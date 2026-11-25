@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { boot, idb, main, nav, newPage, saved } from "./helpers";
+import { makePdf } from "./fixtures";
 
 /**
  * Live AI checks against a local Ollama server (no cloud, no keys).
@@ -84,6 +85,25 @@ test("workspace-aware answer cites the right page, with semantic index", async (
   await expect(main(page).getByRole("button", { name: /\[\d\] Launch logistics/ })).toBeVisible();
   await main(page).getByRole("button", { name: /\[\d\] Launch logistics/ }).click();
   await expect(page.getByLabel("Page title")).toHaveValue("Launch logistics");
+});
+
+test("answers from an uploaded PDF and cites the file", async ({ page }) => {
+  await boot(page);
+  await useOllama(page);
+  await nav(page, "Files");
+  const chooser = page.waitForEvent("filechooser");
+  await main(page).getByRole("button", { name: "Upload" }).click();
+  await (await chooser).setFiles({ name: "warranty.pdf", mimeType: "application/pdf", buffer: makePdf(["Warranty terms", "The warranty period for the KX-9 drill is 36 months.", "Claims require the original receipt."]) });
+  await expect(main(page).getByText("Searchable")).toBeVisible({ timeout: 20_000 });
+  await page.waitForTimeout(1700);
+  await nav(page, "REA Intelligence");
+  await main(page).getByRole("button", { name: "Index" }).click();
+  await expect(page.getByText(/Indexed \d+ pages for semantic search/)).toBeVisible({ timeout: 120_000 });
+  await main(page).getByLabel("Context").selectOption("workspace");
+  await main(page).getByLabel("Message").fill("How long is the warranty period for the KX-9 drill?");
+  await main(page).getByLabel("Message").press("Enter");
+  await expect(main(page).locator(".rea-editor").last()).toContainText(/36 months|three years/i, { timeout: 120_000 });
+  await expect(main(page).getByRole("button", { name: /\[\d\] 📎 warranty\.pdf/ })).toBeVisible();
 });
 
 test("a stopped server produces a clear error, not a crash", async ({ page }) => {

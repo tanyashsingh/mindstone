@@ -76,7 +76,8 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
 
   useEffect(() => { void repo.touchPage(pageId); }, [pageId]);
   useEffect(() => {
-    if (page && !page.title && titleRef.current && page.createdAt > Date.now() - 3000) titleRef.current.focus();
+    // An untitled, empty page opens ready for its title (no time window, which is flaky on a busy machine).
+    if (page && !page.title && !page.text.trim() && page.kind === "page" && titleRef.current) titleRef.current.focus();
   }, [page?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (page === undefined) return <div className="mx-auto max-w-3xl p-12"><Skeleton lines={8} /></div>;

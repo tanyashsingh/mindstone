@@ -9,6 +9,7 @@ npm run check          # both
 npx vitest run tests/perf.test.ts --reporter=verbose   # prints timings
 npm run test:e2e       # Playwright end-to-end, in the installed Chrome (starts Vite if needed)
 npm run check:all      # typecheck + unit + end-to-end
+npm run test:desktop   # builds, then runs the desktop app in real Electron (e2e-electron/)
 ```
 
 ## End-to-end suites (`e2e/`, Playwright)
@@ -22,6 +23,8 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 | `views.spec.ts` | All seven database view types; Number and Formula properties; right-panel tabs and comments; split view |
 | `system.spec.ts` | Command palette search and commands; backup download and restore; Markdown import and export; themes; offline editing; AI-off messaging; templates, files (incl. blocked .exe), graph, inbox |
 | `ai-live.spec.ts` | Opt-in (`$env:REA_LIVE_AI="1"`, needs Ollama with `llama3.2` and `nomic-embed-text`): chat, writing tool preview/replace/undo, semantic index + cited workspace answer, unreachable-server error |
+| `features.spec.ts` | Block drag handle (move, undo, select + duplicate); record templates; PDF and Word attachments become searchable |
+| `e2e-electron/desktop.spec.ts` | Built desktop app: file:// boot, preload bridge, no Node in renderer, PDF/Word extraction (throwaway profile) |
 | `screens.spec.ts` | Optional screenshots for visual review (`$env:REA_SCREENS="<dir>"`); skipped otherwise |
 
 ## Suites
@@ -32,15 +35,17 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 | `tests/lib.test.ts` | Document text, links and tags, Markdown export, block ID reassignment, CSV (incl. formula-injection guard), recurrence, ICS round-trip, IDs, safe file names |
 | `tests/data.test.ts` | Page nesting and cycle prevention, save + backlinks + tags + revisions, trash/restore/purge, lock, duplicate, database filter/sort/group across views, recurring tasks and dependency cycles, backup/restore round-trip and validation, search |
 | `tests/ai.test.ts` | Provider failure handling (missing key, missing model, unreachable server, 401/429), OpenAI and Ollama streaming parsers, Claude embeddings refusal, RAG chunking and untrusted-source framing, ZIP writer |
+| `tests/extract.test.ts` | Word extraction (stored and deflated ZIP), entities, HTML stripping, unsupported types, attachments indexed for search, corrupt files recorded as unreadable |
 | `tests/perf.test.ts` | 3,000 pages + 10,000 records: index build, query latency, filter + sort |
 
 IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses a fresh database.
 
 ## Latest results (2026-11-25)
 
-- Unit: 39 / 39 passing; type check clean.
-- End-to-end: 18 / 18 passing, and 36 / 36 when each test is run twice (no flaky tests).
-- Live AI (Ollama 0.40.18, llama3.2): 4 / 4 passing.
+- Unit: 48 / 48 passing; type check clean.
+- End-to-end: 21 / 21 passing (the opt-in live AI and screenshot tests are skipped by default).
+- Live AI (Ollama 0.40.18, llama3.2): 5 / 5 passing, including an answer drawn from an uploaded PDF.
+- Desktop (Electron): 1 / 1 passing.
 - Performance (Node + fake-indexeddb, slower than Chromium): index of 13,001 documents built in 170 ms,
   search query 5.2 ms, filter + sort of 10,000 records 6 ms.
 

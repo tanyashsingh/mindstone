@@ -91,6 +91,36 @@ describe("databases", () => {
   });
 });
 
+describe("record templates", () => {
+  it("saves editable values, skips computed ones, and survives property deletion", async () => {
+    const ws = await repo.createWorkspace("T");
+    const { database } = await repo.createDatabase(ws.id, null, "Bugs", [
+      repo.newProperty("Name", "title"), repo.newProperty("Priority", "select"), repo.newProperty("Estimate", "number"),
+      repo.newProperty("Double", "formula", { formula: 'prop("Estimate") * 2' }), repo.newProperty("ID", "uniqueId"),
+    ]);
+    const [name, prio, est, dbl, idp] = database.properties;
+    await repo.saveRecordTemplate(database.id, "Bug report", { [name!.id]: "Bug: ", [prio!.id]: "p1", [est!.id]: 3, [dbl!.id]: 6, [idp!.id]: "X-1", stale: "gone" });
+    let fresh = (await db().databases.get(database.id))!;
+    const tpl = fresh.templates![0]!;
+    expect(tpl.name).toBe("Bug report");
+    expect(Object.keys(tpl.values).sort()).toEqual([est!.id, name!.id, prio!.id].sort());
+
+    const r = await repo.addRecordFromTemplate(database.id, tpl.id);
+    expect(r.values[name!.id]).toBe("Bug: ");
+    expect(r.values[est!.id]).toBe(3);
+
+    // Delete the Estimate property: new records from the template no longer carry its value.
+    await repo.updateDatabase(database.id, { properties: fresh.properties.filter((p) => p.id !== est!.id) });
+    const r2 = await repo.addRecordFromTemplate(database.id, tpl.id);
+    expect(r2.values[est!.id]).toBeUndefined();
+    expect(r2.seq).toBe(r.seq + 1);
+
+    await repo.deleteRecordTemplate(database.id, tpl.id);
+    fresh = (await db().databases.get(database.id))!;
+    expect(fresh.templates).toEqual([]);
+  });
+});
+
 describe("tasks", () => {
   it("rolls recurring tasks forward and detects dependency cycles", async () => {
     const ws = await repo.createWorkspace("Test");

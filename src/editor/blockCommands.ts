@@ -5,7 +5,12 @@ import { TextSelection } from "@tiptap/pm/state";
 /** Top-level block containing the selection head: returns [start, end, index]. */
 function topBlock(state: EditorState) {
   const $from = state.selection.$from;
-  if ($from.depth < 1) return null;
+  if ($from.depth < 1) {
+    // Whole top-level block selected (e.g. via the drag handle): the selection sits between blocks.
+    const node = state.doc.nodeAt($from.pos);
+    if (!node || !node.isBlock) return null;
+    return { start: $from.pos, end: $from.pos + node.nodeSize, index: $from.index(0), node };
+  }
   const index = $from.index(0);
   const start = $from.before(1);
   const node = state.doc.child(index);

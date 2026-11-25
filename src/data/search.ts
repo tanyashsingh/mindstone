@@ -38,7 +38,7 @@ export class SearchIndex {
     const events = await d.events.where("[workspaceId+deletedAt]").equals([workspaceId, 0]).toArray();
     for (const e of events) docs.push({ id: `event:${e.id}`, kind: "event", refId: e.id, title: e.title, body: e.notes, tags: e.calendar });
     const atts = await d.attachments.where("workspaceId").equals(workspaceId).toArray();
-    for (const a of atts) docs.push({ id: `attachment:${a.id}`, kind: "attachment", refId: a.id, parentId: a.pageId ?? undefined, title: a.name, body: a.mime, tags: "" });
+    for (const a of atts) docs.push({ id: `attachment:${a.id}`, kind: "attachment", refId: a.id, parentId: a.pageId ?? undefined, title: a.name, body: a.text ? a.text.slice(0, 200_000) : a.mime, tags: "" });
     const tags = new Set(pages.flatMap((p) => p.tags).concat(tasks.flatMap((t) => t.tags)));
     for (const t of tags) docs.push({ id: `tag:${t}`, kind: "tag", refId: t, title: `#${t}`, body: "", tags: t });
     this.ms.removeAll();

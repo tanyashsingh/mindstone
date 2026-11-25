@@ -8,6 +8,7 @@ import {
 import { schemaExtensions } from "./schema";
 import { SlashCommand, PageLinkSuggest, FindReplace, findKey, type SlashItem, type PageItem, type SuggestState } from "./extensions";
 import { BlockCommands } from "./blockCommands";
+import { DragHandle } from "./DragHandle";
 import { slashItems } from "./slashItems";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
@@ -99,6 +100,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
   const pageRef = useRef(page);
   pageRef.current = page;
   const listeners = useRef({ slash: setSlash, links: setLinks });
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   const save = useMemo(
     () => debounce(async (id: string, json: JSONContent) => {
@@ -242,7 +244,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
   );
 
   return (
-    <div className="relative">
+    <div className="relative" ref={wrapRef}>
       {find && <FindBar editor={editor} replace={find === "replace"} onClose={() => { setFind(null); editor.commands.focus(); }} />}
       <BubbleMenu editor={editor} options={{ placement: "top" }} shouldShow={({ editor: ed, from, to }) => ed.isEditable && from !== to && !ed.isActive("codeBlock") && !ed.isActive("attachment")}>
         <div className="menu flex items-center gap-0.5 p-1">
@@ -271,6 +273,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
           <TurnInto editor={editor} />
         </div>
       </BubbleMenu>
+      <DragHandle editor={editor} container={wrapRef} />
       <EditorContent editor={editor} />
       <SuggestMenu label="Insert block" state={slash} render={(it) => (
         <span className="flex w-full items-center justify-between gap-3"><span>{it.title}</span><span className="truncate text-[11.5px] text-faint">{it.hint}</span></span>

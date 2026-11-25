@@ -13,8 +13,8 @@
 |---|---|---|
 | 0 | Audit, decisions, docs | Done |
 | 1 | Shell, design system, navigation, persistence, settings | Done |
-| 2 | Pages, block editor, autosave, slash commands, links, recovery | Done (drag handle deferred) |
-| 3 | Database engine, property types, 7 views, filters, formulas, relations | Done (record templates pending) |
+| 2 | Pages, block editor, autosave, slash commands, links, recovery | Done |
+| 3 | Database engine, property types, 7 views, filters, formulas, relations, record templates | Done |
 | 4 | Tasks, projects, calendar, dashboard, reminders, templates | Done; covered by E2E |
 | 5 | Backlinks, tags, graph, search, palette | Done |
 | 6 | AI providers, assistant, writing tools, RAG, local AI | Done; verified live with Ollama |
@@ -24,5 +24,5 @@
 | 10 | Windows packaging | Done: unsigned NSIS installer, install/launch/uninstall verified |
 
 ## Next iteration
-1. Block drag handle, database record templates, PDF/DOCX ingestion for RAG.
+1. Publish the installer as a GitHub Release.
 2. Code-signing certificate (owner decision) and an update channel (owner approval required).

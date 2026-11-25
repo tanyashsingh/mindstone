@@ -22,8 +22,9 @@ function Preview({ a, onClose }: { a: Attachment; onClose: () => void }) {
       {a.mime.startsWith("video/") && <video src={url} controls className="max-h-[60vh] w-full" />}
       {a.mime.startsWith("audio/") && <audio src={url} controls className="w-full" />}
       {a.mime === "application/pdf" && <object data={url} type="application/pdf" className="h-[60vh] w-full"><p>PDF preview is unavailable here. Use Save as.</p></object>}
+      {!isText && a.text && a.mime !== "application/pdf" && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 text-[12.5px]">{a.text.slice(0, 200_000)}</pre>}
       {isText && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 font-mono text-[12px]">{text ?? "Loading…"}</pre>}
-      {!isText && !/^(image|video|audio)\//.test(a.mime) && a.mime !== "application/pdf" && <p className="text-[13px] text-muted">No preview for {a.mime}. Use Save as to open it in another app. REA never runs attachments.</p>}
+      {!isText && !a.text && !/^(image|video|audio)\//.test(a.mime) && a.mime !== "application/pdf" && <p className="text-[13px] text-muted">No preview for {a.mime}. Use Save as to open it in another app. REA never runs attachments.</p>}
       <dl className="mt-3 grid grid-cols-3 gap-2 text-[12px] text-muted"><div>Type<br /><b className="text-fg">{a.mime}</b></div><div>Size<br /><b className="text-fg">{fmtBytes(a.size)}</b></div><div>Added<br /><b className="text-fg">{new Date(a.createdAt).toLocaleString()}</b></div></dl>
     </Modal>
   );
@@ -73,6 +74,9 @@ export default function Files() {
               <span className="text-muted">{icon(f.mime)}</span>
               <button className="flex-1 truncate text-left hover:underline" onClick={() => setPreview(f)}>{f.name}</button>
               {f.pageId && <button className="max-w-40 truncate text-[12px] text-accent" onClick={() => open({ kind: "page", id: f.pageId! })}>↗ {pages?.get(f.pageId) ?? "page"}</button>}
+              {f.textStatus === "ok" && <span className="chip c-green" title="Text extracted: found by search and AI">Searchable</span>}
+              {f.textStatus === "empty" && <span className="chip c-gray" title="No text layer (e.g. a scanned PDF)">No text</span>}
+              {f.textStatus === "error" && <span className="chip c-red" title="The file could not be read">Unreadable</span>}
               <span className="w-20 text-right text-faint">{fmtBytes(f.size)}</span>
               <span className="w-20 text-right text-faint">{relTime(f.createdAt)}</span>
               <button className="icon-btn" aria-label="Preview" onClick={() => setPreview(f)}><Eye size={14} /></button>

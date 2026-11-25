@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
-  Table2, Columns3, List as ListIcon, LayoutGrid, CalendarDays, GanttChart, BarChart3, Plus, Filter, ArrowUpDown, Search, Eye, Download, Upload, Trash2, X, MoreHorizontal, Copy,
+  Table2, Columns3, List as ListIcon, LayoutGrid, CalendarDays, GanttChart, BarChart3, Plus, Filter, ArrowUpDown, Search, Eye, Download, Upload, Trash2, X, MoreHorizontal, Copy, ChevronDown,
 } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
@@ -10,6 +10,7 @@ import { groupRecords, queryView, recordTitle, type QueryContext } from "@/lib/d
 import { CellDisplay, CellEditor, PropertyMenu, PROPERTY_TYPES, READONLY, useQueryContext } from "./cells";
 import { Chip, EmptyState, MenuItem, MenuSep, Modal, Popover, Skeleton, useAnchor, confirmDialog, promptDialog } from "@/components/ui";
 import { databaseToCSV, databaseToJSON, importCSV } from "@/data/portability";
+import { useApp } from "@/store/app";
 import { cx, downloadBlob, parseISODate, safeFileName, startOfWeek, toISODate, addDays, fmtDate } from "@/lib/util";
 
 const VIEW_ICONS: Record<ViewType, React.ReactNode> = {
@@ -72,7 +73,15 @@ export function RecordModal({ database, record, ctx, onClose }: { database: Data
   const [editing, setEditing] = useState<string | null>(null);
   return (
     <Modal open onClose={onClose} title={recordTitle(database, live)} width={620}
-      footer={<button className="btn-danger" onClick={async () => { await repo.deleteRecords([record.id]); onClose(); }}><Trash2 size={14} /> Delete record</button>}>
+      footer={<>
+        <button className="btn-danger mr-auto" onClick={async () => { await repo.deleteRecords([record.id]); onClose(); }}><Trash2 size={14} /> Delete record</button>
+        <button className="btn-outline" onClick={async () => {
+          const name = await promptDialog("Template name", recordTitle(database, live), "New records created from this template start with these property values.");
+          if (!name) return;
+          await repo.saveRecordTemplate(database.id, name, live.values);
+          useApp.getState().toast(`Saved template “${name}”`, "success");
+        }}><Copy size={14} /> Save as template</button>
+      </>}>
       <div className="space-y-1">
         {database.properties.map((p) => (
           <div key={p.id} className="flex min-h-8 items-start gap-3">
@@ -363,7 +372,7 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
   const ctx = useQueryContext(database);
   const [viewId, setViewId] = useState<string | null>(null);
   const [open, setOpen] = useState<DbRecord | null>(null);
-  const filterMenu = useAnchor(), sortMenu = useAnchor(), propsMenu = useAnchor(), groupMenu = useAnchor(), moreMenu = useAnchor(), addView = useAnchor();
+  const tplMenu = useAnchor(), filterMenu = useAnchor(), sortMenu = useAnchor(), propsMenu = useAnchor(), groupMenu = useAnchor(), moreMenu = useAnchor(), addView = useAnchor();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const view = database?.views.find((v) => v.id === viewId) ?? database?.views[0];
@@ -401,9 +410,23 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
         {(view.type === "board" || view.type === "chart") && <button className="btn h-7" onClick={groupMenu.openAt}>Group</button>}
         <button className="btn h-7" onClick={propsMenu.openAt}><Eye size={14} /> Properties</button>
         <button className="icon-btn" aria-label="More database actions" onClick={moreMenu.openAt}><MoreHorizontal size={15} /></button>
-        <button className="btn-primary h-7" onClick={async () => { const r = await repo.addRecord(database.id); setOpen(r); }}><Plus size={14} /> New</button>
+        <span className="flex">
+          <button className="btn-primary h-7 rounded-r-none" onClick={async () => { const r = await repo.addRecord(database.id); setOpen(r); }}><Plus size={14} /> New</button>
+          <button className="btn-primary h-7 rounded-l-none border-l border-white/25 px-1.5" aria-label="New from template" onClick={tplMenu.openAt}><ChevronDown size={14} /></button>
+        </span>
       </div>
 
+      <Popover anchor={tplMenu.anchor} onClose={tplMenu.close} className="w-64" align="end">
+        <MenuItem icon={<Plus />} onClick={async () => { tplMenu.close(); setOpen(await repo.addRecord(database.id)); }}>Blank record</MenuItem>
+        {(database.templates ?? []).length > 0 && <MenuSep />}
+        {(database.templates ?? []).map((t) => (
+          <div key={t.id} className="group flex items-center">
+            <MenuItem icon={<Copy />} onClick={async () => { tplMenu.close(); setOpen(await repo.addRecordFromTemplate(database.id, t.id)); }}>{t.name}</MenuItem>
+            <button className="icon-btn size-6 shrink-0 opacity-0 group-hover:opacity-100" aria-label={`Delete template ${t.name}`} onClick={() => repo.deleteRecordTemplate(database.id, t.id)}><X size={12} /></button>
+          </div>
+        ))}
+        {(database.templates ?? []).length === 0 && <div className="px-2 py-1.5 text-[12px] text-faint">Open a record and choose “Save as template” to add one here.</div>}
+      </Popover>
       <Popover anchor={filterMenu.anchor} onClose={filterMenu.close} className="w-[560px] p-2">
         <FilterGroupEditor database={database} group={view.filter} onChange={(filter) => updateView({ filter })} />
       </Popover>

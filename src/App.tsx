@@ -12,7 +12,7 @@ import { DialogHost, Skeleton } from "./components/ui";
 import { Toasts } from "./components/Toasts";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { db } from "./data/db";
-import { createPage, setSetting } from "./data/repo";
+import { createPage, extractPendingAttachments, setSetting } from "./data/repo";
 import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
@@ -126,7 +126,11 @@ export function App() {
     return () => { removeEventListener("online", on); removeEventListener("offline", off); };
   }, []);
 
-  useEffect(() => { if (app.workspaceId) void setSetting("lastWorkspace", app.workspaceId); }, [app.workspaceId]);
+  useEffect(() => {
+    if (!app.workspaceId) return;
+    void setSetting("lastWorkspace", app.workspaceId);
+    void extractPendingAttachments(app.workspaceId); // resume text extraction interrupted by a restart
+  }, [app.workspaceId]);
 
   // Global shortcuts
   useEffect(() => {

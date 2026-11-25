@@ -23,7 +23,7 @@ function Markdown({ text, citations }: { text: string; citations: Citation[] }) 
     <div>
       <div className="rea-editor !pb-0 !text-[14px]" dangerouslySetInnerHTML={{ __html: html }} />
       {citations.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">{citations.map((c, i) => <button key={i} className="chip c-blue" title={c.snippet} onClick={() => open({ kind: "page", id: c.pageId })}>[{i + 1}] {c.title}</button>)}</div>
+        <div className="mt-2 flex flex-wrap gap-1">{citations.map((c, i) => <button key={i} className="chip c-blue" title={c.snippet} onClick={() => open(c.pageId ? { kind: "page", id: c.pageId } : { kind: "files" })}>[{i + 1}] {c.attachmentId ? "📎 " : ""}{c.title}</button>)}</div>
       )}
     </div>
   );

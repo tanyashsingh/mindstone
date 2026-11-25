@@ -279,6 +279,30 @@ export async function addRecord(databaseId: ID, values: Record<ID, unknown> = {}
   });
 }
 
+/** Save a record's editable values as a named template. Computed properties are skipped. */
+export async function saveRecordTemplate(databaseId: ID, name: string, values: Record<ID, unknown>): Promise<void> {
+  const database = await db().databases.get(databaseId);
+  if (!database) throw new Error("Database not found");
+  const computed = new Set(database.properties.filter((p) => ["formula", "rollup", "createdTime", "editedTime", "uniqueId"].includes(p.type)).map((p) => p.id));
+  const kept = Object.fromEntries(Object.entries(values).filter(([k, v]) => !computed.has(k) && database.properties.some((p) => p.id === k) && v !== undefined));
+  const tpl = { id: uid(), name: name.trim() || "Template", values: structuredClone(kept) };
+  await patch(db().databases, databaseId, { templates: [...(database.templates ?? []), tpl], updatedAt: now() });
+}
+
+export async function deleteRecordTemplate(databaseId: ID, templateId: ID) {
+  const database = await db().databases.get(databaseId);
+  if (database) await patch(db().databases, databaseId, { templates: (database.templates ?? []).filter((t) => t.id !== templateId) });
+}
+
+/** New record pre-filled from a template; values whose property no longer exists are dropped. */
+export async function addRecordFromTemplate(databaseId: ID, templateId: ID): Promise<DbRecord> {
+  const database = await db().databases.get(databaseId);
+  const tpl = database?.templates?.find((t) => t.id === templateId);
+  if (!database || !tpl) throw new Error("Template not found");
+  const ids = new Set(database.properties.map((p) => p.id));
+  return addRecord(databaseId, structuredClone(Object.fromEntries(Object.entries(tpl.values).filter(([k]) => ids.has(k)))));
+}
+
 export async function updateRecord(id: ID, propertyId: ID, value: unknown) {
   const d = db();
   await d.transaction("rw", d.records, async () => {
@@ -414,7 +438,33 @@ export async function addAttachment(workspaceId: ID, pageId: ID | null, file: Fi
   if (err) throw new Error(err);
   const a: Attachment = { id: uid(), workspaceId, pageId, name: file.name.slice(0, 200), mime: file.type || "application/octet-stream", size: file.size, blob: file, createdAt: now() };
   await db().attachments.add(a);
+  void extractAttachmentText(a.id); // background: makes PDFs, Word and text files searchable
   return a;
+}
+
+/**
+ * Extract text for attachments not processed yet: uploaded before this feature, or interrupted
+ * (app closed mid-extraction). Runs at workspace open and before AI indexing.
+ */
+export async function extractPendingAttachments(workspaceId: ID): Promise<number> {
+  const pending = (await db().attachments.where("workspaceId").equals(workspaceId).filter((a) => a.textStatus === undefined).primaryKeys()) as ID[];
+  for (const id of pending) await extractAttachmentText(id);
+  return pending.length;
+}
+
+/** Extract and store an attachment's text. Never throws; failures are recorded as textStatus "error". */
+export async function extractAttachmentText(id: ID): Promise<void> {
+  const a = await db().attachments.get(id);
+  if (!a) return;
+  const { extractText } = await import("@/lib/extract");
+  try {
+    const text = await extractText(a.name, a.mime, a.blob);
+    const status = text === null ? "unsupported" : text.trim() ? "ok" : "empty";
+    await patch(db().attachments, id, { text: text ?? undefined, textStatus: status });
+  } catch (e) {
+    console.warn("[REA] text extraction failed", a.name, e);
+    await patch(db().attachments, id, { textStatus: "error" });
+  }
 }
 
 // ---- Settings -------------------------------------------------------------

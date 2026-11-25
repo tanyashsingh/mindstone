@@ -26,7 +26,7 @@ Last updated: 2026-11-25.
 | Autosave (debounced), save status, Ctrl+S flush, crash-recovery drafts | Verified |
 | Page create, rename, duplicate, trash, restore, purge, lock, icon, cover, favourite, history and restore | Tested (repo); Verified (create, persist) |
 | `[[wiki]]` links, `@` and `[[` mentions, backlinks, cycle-safe nesting | Tested + Verified |
-| Block drag-and-drop | Partial: media and embeds are draggable; other blocks move with Alt+Shift+↑/↓, duplicate with Ctrl+D |
+| Block drag-and-drop: ⋮⋮ handle on every top-level block (drag to move, click to select); each move is one undo step | Verified (E2E) |
 | Columns, synced block, button block | Deferred |
 
 ## Databases
@@ -37,7 +37,7 @@ Last updated: 2026-11-25.
 | Nested filter groups, multi-sort, grouping, search, bulk edit | Tested (engine); Implemented (UI) |
 | Safe formula engine (no eval) | Tested |
 | CSV/JSON import and export | Tested (CSV codec); Implemented (UI) |
-| Record templates | Not started |
+| Record templates (save a record as a template, create from the New menu, delete) | Tested (unit + E2E) |
 | Files property | Partial (counts only); Person property is free text (no accounts) |
 
 ## Productivity
@@ -69,7 +69,7 @@ Last updated: 2026-11-25.
 | Tasks from replies (confirmed), save reply as page | Implemented |
 | RAG: chunking, embeddings, hybrid retrieval, untrusted-content framing | Tested (helpers); verified live: answer cites the right page |
 | Cloud opt-in, per-request consent, local-only mode | Implemented |
-| PDF/DOCX ingestion for RAG | Not started (pages and imported Markdown/HTML/text are indexed) |
+| PDF, Word (.docx), text and HTML attachments: text extracted on upload, found by Ctrl+K and used (with 📎 citations) by AI | Tested (unit + E2E + live AI + desktop). Scanned PDFs without a text layer and legacy .doc are not supported (no OCR) |
 
 ## Portability and resilience
 | Feature | Status |
@@ -114,11 +114,16 @@ The Playwright suite exercised the main controls of every view. Bugs found and f
 - `indexWorkspace` always reported 0 pages indexed (`onProgress?.(++done)` skipped the increment), so the UI said "Nothing to index".
 - A page could be cited twice, once from keyword and once from vector retrieval; the keyword excerpt is now dropped when vector hits exist.
 
+## Feature gaps closed (2026-11-25)
+- Block drag handle, record templates, and PDF/Word text for search and AI (see tables above).
+- Fixed along the way: block commands (Ctrl+D, Alt+Shift+↑/↓, Ctrl+Shift+K) ignored a whole-block selection; a new page's title lost focus on a busy machine (a 3-second window was replaced by "untitled and empty"); interrupted text extraction now resumes when the workspace opens.
+- New desktop test (`e2e-electron/`) runs the built app in real Electron: boots from file://, bridge present, no Node in the renderer, PDF and Word extraction.
+
 ## Known issues
 - Vite warns that a few modules are both statically and dynamically imported (bundle-splitting only; no runtime effect).
 - The PDF export uses the system print dialog ("Save as PDF").
 - In the browser build, AI keys are kept in memory only and Ollama needs `OLLAMA_ORIGINS` to allow the page origin.
 
 ## Next steps
-1. Add a block drag handle (TipTap drag-handle extension) and record templates.
-2. PDF/DOCX text extraction for RAG.
+1. Publish the installer as a GitHub Release.
+2. Columns, synced and button blocks; OCR for scanned PDFs.

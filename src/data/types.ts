@@ -93,6 +93,9 @@ export interface DatabaseView {
   search?: string;
 }
 
+/** Pre-filled values for new records (stored on the database; no schema change needed). */
+export interface RecordTemplate { id: ID; name: string; values: Record<ID, unknown> }
+
 export interface Database {
   id: ID;
   workspaceId: ID;
@@ -101,6 +104,7 @@ export interface Database {
   properties: Property[];
   views: DatabaseView[];
   nextSeq: number; // for uniqueId property
+  templates?: RecordTemplate[];
   createdAt: number;
   updatedAt: number;
 }
@@ -193,6 +197,10 @@ export interface Attachment {
   size: number;
   blob: Blob;
   createdAt: number;
+  /** Extracted plain text (PDF, Word, text-like files) for search and AI. */
+  text?: string;
+  /** undefined = not processed yet. */
+  textStatus?: "ok" | "empty" | "unsupported" | "error";
 }
 
 export interface Comment {
@@ -233,7 +241,7 @@ export interface SavedSearch { id: ID; workspaceId: ID; name: string; query: str
 // ---- AI ---------------------------------------------------------------------
 export type AiProviderId = "anthropic" | "openai" | "gemini" | "ollama" | "openaiCompatible";
 export interface AiConversation { id: ID; workspaceId: ID; title: string; pageId: ID | null; createdAt: number; updatedAt: number }
-export interface Citation { pageId: ID; title: string; snippet: string }
+export interface Citation { pageId: ID; title: string; snippet: string; attachmentId?: ID }
 export interface AiMessage {
   id: ID;
   conversationId: ID;
