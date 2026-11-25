@@ -44,7 +44,8 @@ export async function indexWorkspace(workspaceId: ID, onProgress?: (done: number
       await db().embeddings.where("pageId").equals(p.id).delete();
       await db().embeddings.bulkPut(chunks.map((text, i) => ({ id: `${p.id}:${i}`, workspaceId, pageId: p.id, chunkIndex: i, text, vector: res.vectors[i] ?? [], model: res.model, pageUpdatedAt: p.updatedAt })));
     });
-    onProgress?.(++done, stale.length);
+    done++; // not inside onProgress?.(…): optional chaining would skip the increment when there is no callback
+    onProgress?.(done, stale.length);
     await new Promise((r) => setTimeout(r, 0));
   }
   // drop embeddings of deleted pages
@@ -85,6 +86,10 @@ export async function retrieve(workspaceId: ID, query: string, k = 6): Promise<R
       }
     }
   } catch { /* semantic retrieval is optional */ }
+  // A page with vector hits already carries its keyword score; drop the duplicate keyword excerpt.
+  for (const [key, c] of [...scores]) {
+    if (!key.endsWith(":kw") && scores.has(`${c.pageId}:kw`)) scores.delete(`${c.pageId}:kw`);
+  }
   const seen = new Map<string, number>();
   return [...scores.values()].sort((a, b) => b.score - a.score).filter((c) => {
     const n = seen.get(c.pageId) ?? 0;

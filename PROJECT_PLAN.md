@@ -17,13 +17,12 @@
 | 3 | Database engine, property types, 7 views, filters, formulas, relations | Done (record templates pending) |
 | 4 | Tasks, projects, calendar, dashboard, reminders, templates | Done; covered by E2E |
 | 5 | Backlinks, tags, graph, search, palette | Done |
-| 6 | AI providers, assistant, writing tools, RAG, local AI | Done; untested against live providers |
+| 6 | AI providers, assistant, writing tools, RAG, local AI | Done; verified live with Ollama |
 | 7 | Import/export, backup/restore, crash recovery | Done |
 | 8 | Collaboration and sync | Blocked (no backend); architecture is sync-ready |
 | 9 | QA: unit, integration, performance, E2E | 39 unit + 18 E2E tests; accessibility audit pending |
 | 10 | Windows packaging | Done: unsigned NSIS installer, install/launch/uninstall verified |
 
 ## Next iteration
-1. Live AI provider check.
-2. Block drag handle, database record templates, PDF/DOCX ingestion for RAG.
-3. Code-signing certificate (owner decision) and an update channel (owner approval required).
+1. Block drag handle, database record templates, PDF/DOCX ingestion for RAG.
+2. Code-signing certificate (owner decision) and an update channel (owner approval required).

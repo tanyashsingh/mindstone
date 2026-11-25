@@ -5,6 +5,9 @@
 - Playwright end-to-end suite (18 tests) running in the installed Chrome.
 - Fixed: Escape could not close dialogs, because closed popovers swallowed it.
 - Calendar day and week views open scrolled to 07:00.
+- Opt-in live AI tests against a local Ollama server.
+- Fixed: building the semantic index always reported "Nothing to index".
+- Fixed: workspace answers could cite the same page twice.
 
 ## 0.1.0 (2026-11-25)
 

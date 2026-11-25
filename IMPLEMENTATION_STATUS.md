@@ -63,11 +63,11 @@ Last updated: 2026-11-25.
 ## AI
 | Feature | Status |
 |---|---|
-| Provider layer: Claude (SDK, server-side refusal fallback), OpenAI, Gemini, Ollama, OpenAI-compatible | Tested (streaming, error mapping with mocked HTTP); not run against a live provider (no key configured) |
-| Chat with history, page-aware and workspace-aware modes, citations, stop, token usage | Implemented |
-| Writing tools with preview before replace, undoable | Implemented |
+| Provider layer: Claude (SDK, server-side refusal fallback), OpenAI, Gemini, Ollama, OpenAI-compatible | Tested (mocked HTTP); Ollama verified live (llama3.2, nomic-embed-text); cloud providers not run live (no keys) |
+| Chat with history, page-aware and workspace-aware modes, citations, stop, token usage | Verified live (Ollama) |
+| Writing tools with preview before replace, undoable | Verified live (Summarize, replace, Ctrl+Z) |
 | Tasks from replies (confirmed), save reply as page | Implemented |
-| RAG: chunking, embeddings, hybrid retrieval, untrusted-content framing | Tested (helpers); Implemented |
+| RAG: chunking, embeddings, hybrid retrieval, untrusted-content framing | Tested (helpers); verified live: answer cites the right page |
 | Cloud opt-in, per-request consent, local-only mode | Implemented |
 | PDF/DOCX ingestion for RAG | Not started (pages and imported Markdown/HTML/text are indexed) |
 
@@ -109,12 +109,16 @@ The Playwright suite exercised the main controls of every view. Bugs found and f
 - Closed popovers (one per sidebar page) listened for Escape in the capture phase and stopped it, so no dialog could be closed with Escape. They also listened for every click. Now only an open popover listens.
 - The calendar time grid opened at midnight; it now opens at 07:00.
 
+## Live AI pass (2026-11-25, Ollama 0.40.18, llama3.2 + nomic-embed-text)
+`e2e/ai-live.spec.ts` (opt-in) passes 4/4: chat with saved history and token counts; Summarize preview, replace and undo; semantic index plus a workspace answer that cites the right page; a clear error when the server is unreachable. Bugs fixed:
+- `indexWorkspace` always reported 0 pages indexed (`onProgress?.(++done)` skipped the increment), so the UI said "Nothing to index".
+- A page could be cited twice, once from keyword and once from vector retrieval; the keyword excerpt is now dropped when vector hits exist.
+
 ## Known issues
 - Vite warns that a few modules are both statically and dynamically imported (bundle-splitting only; no runtime effect).
 - The PDF export uses the system print dialog ("Save as PDF").
 - In the browser build, AI keys are kept in memory only and Ollama needs `OLLAMA_ORIGINS` to allow the page origin.
 
 ## Next steps
-1. Try AI against a live provider (Ollama locally, or a cloud key).
-2. Add a block drag handle (TipTap drag-handle extension) and record templates.
-3. PDF/DOCX text extraction for RAG.
+1. Add a block drag handle (TipTap drag-handle extension) and record templates.
+2. PDF/DOCX text extraction for RAG.
