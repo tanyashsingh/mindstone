@@ -12,7 +12,7 @@ export function welcomeDoc(): JSONContent {
   return {
     type: "doc",
     content: [
-      p("REA is a local-first workspace: everything you write stays on this device unless you choose otherwise."),
+      p("Cairn is a local-first workspace: everything you write stays on this device unless you choose otherwise."),
       { type: "callout", attrs: { id: uid(), variant: "tip" }, content: [p("Press Ctrl + K for the command palette, or type / on an empty line to insert a block.")] },
       h(2, "Getting around"),
       { type: "bulletList", attrs: { id: uid() }, content: [
@@ -42,7 +42,7 @@ export async function bootstrap(): Promise<string> {
     if (first) wsId = first.id;
     else {
       const ws = await createWorkspace("My Workspace", "◆");
-      await createPage(ws.id, null, { title: "Welcome to REA", icon: "👋", content: welcomeDoc() });
+      await createPage(ws.id, null, { title: "Welcome to Cairn", icon: "👋", content: welcomeDoc() });
       wsId = ws.id;
     }
     await setSetting("lastWorkspace", wsId);

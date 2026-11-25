@@ -462,7 +462,7 @@ export async function extractAttachmentText(id: ID): Promise<void> {
     const status = text === null ? "unsupported" : text.trim() ? "ok" : "empty";
     await patch(db().attachments, id, { text: text ?? undefined, textStatus: status });
   } catch (e) {
-    console.warn("[REA] text extraction failed", a.name, e);
+    console.warn("[Cairn] text extraction failed", a.name, e);
     await patch(db().attachments, id, { textStatus: "error" });
   }
 }

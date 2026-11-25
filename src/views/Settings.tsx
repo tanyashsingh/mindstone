@@ -12,11 +12,12 @@ import { chat, deleteApiKey, hasApiKey, listModels, setApiKey } from "@/ai/clien
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
 import { Toggle, confirmDialog } from "@/components/ui";
 import { cx, downloadBlob, fmtBytes, safeFileName } from "@/lib/util";
+import cairnMark from "@/assets/cairn-mark.png";
 
 const SECTIONS = [
   ["general", "General"], ["appearance", "Appearance"], ["editor", "Editor"], ["workspace", "Workspace"], ["notifications", "Notifications"], ["shortcuts", "Keyboard shortcuts"],
   ["ai", "Artificial intelligence"], ["providers", "AI providers"], ["privacy", "Privacy"], ["security", "Security"], ["storage", "Storage"], ["backup", "Backup & restore"],
-  ["import", "Import & export"], ["integrations", "Integrations"], ["sync", "Synchronization"], ["accessibility", "Accessibility"], ["about", "About REA"],
+  ["import", "Import & export"], ["integrations", "Integrations"], ["sync", "Synchronization"], ["accessibility", "Accessibility"], ["about", "About Cairn"],
 ] as const;
 
 function Row({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
@@ -67,7 +68,7 @@ function ProviderCard({ id }: { id: AiProviderId }) {
         }}>{busy ? <Loader2 size={14} className="animate-spin" /> : null}Test connection</button>
         {s.ai.active === id && <button className="btn" disabled={busy} onClick={async () => {
           setBusy(true); setStatus(null);
-          try { const r = await chat("Reply with one short sentence.", [{ role: "user", content: "Say hello from REA." }], () => {}); setStatus({ ok: true, text: `“${r.text.trim().slice(0, 80)}” · ${r.inputTokens + r.outputTokens} tokens` }); }
+          try { const r = await chat("Reply with one short sentence.", [{ role: "user", content: "Say hello from Cairn." }], () => {}); setStatus({ ok: true, text: `“${r.text.trim().slice(0, 80)}” · ${r.inputTokens + r.outputTokens} tokens` }); }
           catch (e) { setStatus({ ok: false, text: e instanceof Error ? e.message : String(e) }); } finally { setBusy(false); }
         }}>Send test message</button>}
         {status && <span className={cx("text-[12px]", status.ok ? "text-success" : "text-danger")}>{status.text}</span>}
@@ -170,23 +171,23 @@ export default function SettingsView({ section }: { section?: string }) {
           {sec === "notifications" && <Row label="Desktop notifications" desc="Task reminders, event reminders and focus-timer alerts. Shown in-app as well."><Toggle checked={s.notifications} onChange={(v) => set("notifications", v)} label="Notifications" /></Row>}
           {sec === "shortcuts" && <ShortcutEditor />}
           {sec === "ai" && <>
-            <Row label="Active provider" desc="REA works fully without AI."><select className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>
+            <Row label="Active provider" desc="Cairn works fully without AI."><select className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>
             <Row label="Allow cloud AI providers" desc="Off by default. While off, nothing is sent to Claude, OpenAI or Gemini; local models still work."><Toggle checked={s.ai.allowCloud} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, allowCloud: v } }))} label="Allow cloud AI" /></Row>
             <Row label="Ask before sending workspace content" desc="Confirm each time page excerpts are attached to a cloud request."><Toggle checked={s.ai.confirmWorkspaceContext} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, confirmWorkspaceContext: v } }))} label="Confirm context" /></Row>
             <p className="mt-3 text-[12.5px] text-muted">AI never edits your pages directly. Writing tools show a preview first, and inserted text can be undone with Ctrl+Z. Creating tasks from AI replies asks for confirmation. Imported documents are passed to models as quoted data, not instructions.</p>
           </>}
           {sec === "providers" && (Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <ProviderCard key={p} id={p} />)}
           {sec === "privacy" && <>
-            <Row label="Telemetry" desc="REA contains no analytics or telemetry. This switch exists so the choice is explicit; it stays off."><Toggle checked={false} onChange={() => useApp.getState().toast("REA does not collect telemetry", "info")} label="Telemetry" /></Row>
+            <Row label="Telemetry" desc="Cairn contains no analytics or telemetry. This switch exists so the choice is explicit; it stays off."><Toggle checked={false} onChange={() => useApp.getState().toast("Cairn does not collect telemetry", "info")} label="Telemetry" /></Row>
             <p className="text-[12.5px] text-muted">Your data lives in this device's local database. Network requests happen only for AI providers you enable. External calendar accounts are never accessed.</p>
           </>}
           {sec === "security" && <>
             <Row label="API key storage" desc={window.rea ? (secure ? "Keys are encrypted with Windows DPAPI (Electron safeStorage) and only the main process can read them." : "OS encryption is unavailable, so keys will not be saved.") : "Browser build: keys stay in memory for this tab and are forgotten on reload."}><KeyRound size={16} className="text-muted" /></Row>
             <Row label="Content security" desc="Rich text, Markdown, Mermaid and AI output are sanitised before rendering; links are limited to http, https and mailto; a strict Content Security Policy blocks remote scripts."><Check size={16} className="text-success" /></Row>
-            <Row label="Encryption at rest" desc="Data is protected by your Windows account. REA does not add its own encryption at rest or end-to-end encryption."><span /></Row>
+            <Row label="Encryption at rest" desc="Data is protected by your Windows account. Cairn does not add its own encryption at rest or end-to-end encryption."><span /></Row>
           </>}
           {sec === "storage" && <>
-            <Row label="Storage used" desc={est?.usage !== undefined ? `${fmtBytes(est.usage)} of ${fmtBytes(est.quota ?? 0)} available to REA` : "Unavailable"}><span /></Row>
+            <Row label="Storage used" desc={est?.usage !== undefined ? `${fmtBytes(est.usage)} of ${fmtBytes(est.quota ?? 0)} available to Cairn` : "Unavailable"}><span /></Row>
             <Row label="Persistent storage" desc="Prevents the browser from evicting data under storage pressure."><button className="btn-outline" disabled={!!persisted} onClick={async () => setPersisted((await navigator.storage?.persist?.()) ?? false)}>{persisted ? "Granted" : "Request"}</button></Row>
             {dataPath && <Row label="Data folder" desc={dataPath}><span /></Row>}
             <Row label="Database schema" desc={`Version ${DB_SCHEMA_VERSION}`}><span /></Row>
@@ -230,7 +231,9 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Text size" desc="Editor font size; use Ctrl + / Ctrl − in the desktop app to zoom the whole interface."><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Text size" /></Row>
           </>}
           {sec === "about" && <div className="space-y-2 text-[13px] text-muted">
-            <p><b className="text-fg">REA</b> {__APP_VERSION__}. A local-first workspace for notes, tasks, databases and knowledge.</p>
+            <img src={cairnMark} alt="Cairn logo" width={96} height={96} className="mb-2" />
+            <p><b className="text-fg">Cairn</b> {__APP_VERSION__}. A local-first workspace for notes, tasks, databases and knowledge.</p>
+            <p>A cairn is a stack of stones that marks the way. Cairn keeps your notes, tasks and knowledge stacked the same way: built by you, on your own computer.</p>
             <p>Runtime: {window.rea ? `Desktop (${window.rea.platform}, Electron ${window.rea.version})` : "Browser"} · Database schema v{DB_SCHEMA_VERSION} · Backup format v{BACKUP_VERSION}</p>
             <p>Built with React, TipTap (ProseMirror), Dexie (IndexedDB), MiniSearch, KaTeX and Mermaid.</p>
           </div>}

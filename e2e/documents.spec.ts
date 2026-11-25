@@ -4,7 +4,7 @@ import { boot, idb, main, nav, newPage, noCrash, saved, sidebar } from "./helper
 test("first run creates a workspace with a welcome page and a real dashboard", async ({ page }) => {
   const errors = await boot(page);
   await expect(sidebar(page).getByText("My Workspace")).toBeVisible();
-  await expect(sidebar(page).getByRole("treeitem", { name: /Welcome to REA/ })).toBeVisible();
+  await expect(sidebar(page).getByRole("treeitem", { name: /Welcome to Cairn/ })).toBeVisible();
   await expect(main(page).getByText("Nothing due today")).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -54,10 +54,10 @@ test("wiki links create backlinks shown in the right panel", async ({ page }) =>
   await page.keyboard.type("See [[Welc");
   await expect(page.getByRole("listbox", { name: "Link to page" })).toBeVisible();
   await page.keyboard.press("Enter");
-  await expect(page.locator(".rea-editor .mention")).toHaveText(/Welcome to REA/);
+  await expect(page.locator(".rea-editor .mention")).toHaveText(/Welcome to Cairn/);
   await saved(page);
   await page.locator(".rea-editor .mention").click();
-  await expect(page.getByLabel("Page title")).toHaveValue("Welcome to REA");
+  await expect(page.getByLabel("Page title")).toHaveValue("Welcome to Cairn");
   await page.keyboard.press("Control+Shift+Backslash");
   const panel = page.getByRole("complementary", { name: "Context panel" });
   await panel.getByRole("button", { name: "Backlinks" }).click();

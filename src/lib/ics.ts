@@ -21,7 +21,7 @@ function fold(line: string): string {
 }
 
 export function toICS(events: CalendarEvent[]): string {
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//REA//Workspace//EN", "CALSCALE:GREGORIAN"];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Cairn//Workspace//EN", "CALSCALE:GREGORIAN"];
   for (const e of events) {
     lines.push("BEGIN:VEVENT", `UID:${e.id}@rea.local`, `DTSTAMP:${utcStamp(e.updatedAt)}`);
     if (e.allDay) {

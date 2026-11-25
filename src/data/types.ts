@@ -1,4 +1,4 @@
-// Domain types for REA. All ids are ULID-like strings (time-sortable, sync-safe).
+// Domain types for Cairn. All ids are ULID-like strings (time-sortable, sync-safe).
 // Soft deletion uses `deletedAt` (0 = live) so it can be indexed by IndexedDB.
 
 export type ID = string;

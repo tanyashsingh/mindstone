@@ -50,7 +50,7 @@ function HistoryModal({ page, onClose }: { page: Page; onClose: () => void }) {
   return (
     <Modal open onClose={onClose} title="Page history" width={760}
       footer={rev && <button className="btn-primary" onClick={async () => { await repo.restoreRevision(page.id, rev.id); useApp.getState().toast("Version restored. The previous content was saved to history.", "success"); onClose(); }}>Restore this version</button>}>
-      {revs?.length === 0 ? <EmptyState title="No earlier versions yet" body="REA saves a version at most every 5 minutes while you edit." /> : (
+      {revs?.length === 0 ? <EmptyState title="No earlier versions yet" body="Cairn saves a version at most every 5 minutes while you edit." /> : (
         <div className="flex gap-3">
           <div className="w-52 shrink-0 space-y-0.5">
             {revs?.map((r) => <button key={r.id} className={cx("menu-item", sel === r.id && "bg-active")} onClick={() => setSel(r.id)}>{new Date(r.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</button>)}

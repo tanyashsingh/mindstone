@@ -1,4 +1,4 @@
-# REA database schema
+# Cairn database schema
 
 Storage: IndexedDB database `rea`, managed by Dexie (`src/data/db.ts`). Schema version **1**.
 All primary keys are 26-character ULID-style strings unless noted. `deletedAt = 0` means live, and any
@@ -50,7 +50,7 @@ Field definitions are the TypeScript interfaces in `src/data/types.ts` (the sour
 ## Backup format (`rea-backup`, version 1)
 
 ```json
-{ "format": "rea-backup", "version": 1, "schemaVersion": 1, "exportedAt": "ISO-8601", "app": "REA",
+{ "format": "rea-backup", "version": 1, "schemaVersion": 1, "exportedAt": "ISO-8601", "app": "Cairn",
   "workspace": { …Workspace },
   "tables": { "pages": [], "links": [], "databases": [], "records": [], "tasks": [], "projects": [], "events": [],
               "templates": [], "habits": [], "goals": [], "activity": [], "savedSearches": [],

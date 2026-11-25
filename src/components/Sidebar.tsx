@@ -226,7 +226,7 @@ export function Sidebar() {
         </button>
         <NavItem icon={<Home />} label="Home" kind="home" />
         <NavItem icon={<Inbox />} label="Inbox" kind="inbox" badge={inboxCount} />
-        <NavItem icon={<Sparkles />} label="REA Intelligence" kind="ai" />
+        <NavItem icon={<Sparkles />} label="Cairn Intelligence" kind="ai" />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3" role="tree"
         onDragOver={(e) => e.dataTransfer.types.includes("application/x-rea-page") && e.preventDefault()}

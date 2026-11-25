@@ -1,11 +1,11 @@
 {
-  "name": "rea-workspace",
-  "productName": "REA",
-  "version": "0.2.0",
-  "description": "REA: a local-first, privacy-first productivity and knowledge workspace.",
+  "name": "cairn",
+  "productName": "Cairn",
+  "version": "0.3.0",
+  "description": "Cairn: a local-first, privacy-first workspace for notes, tasks, databases and knowledge.",
   "private": true,
   "license": "UNLICENSED",
-  "author": "REA",
+  "author": "Cairn",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
@@ -20,10 +20,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test",
-    "icon": "node scripts/make-icon.mjs",
     "test:e2e": "playwright test",
     "check:all": "npm run typecheck && npm test && npm run test:e2e",
-    "test:desktop": "npm run build && playwright test -c playwright.electron.config.ts"
+    "test:desktop": "npm run build && playwright test -c playwright.electron.config.ts",
+    "logo": "node scripts/render-logo.mjs"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
@@ -44,6 +44,7 @@
     "@types/node": "^26.6.10",
     "@types/react": "^19.3.2",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.3.0",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
@@ -62,14 +63,15 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwindcss": "^4.3.5",
+    "three": "^0.187.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.1",
     "zustand": "^5.1.0"
   },
   "build": {
-    "appId": "app.rea.workspace",
-    "productName": "REA",
+    "appId": "app.cairn.workspace",
+    "productName": "Cairn",
     "directories": {
       "output": "release"
     },

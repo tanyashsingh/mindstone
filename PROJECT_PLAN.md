@@ -3,7 +3,7 @@
 ## Phase 0 audit (2026-11-25)
 - The provided `rea` folder (`Downloads\rea-main\rea-main`) is **rea-agents 6.10.1**, an MIT-licensed reverse-engineering
   CLI/MCP server (~4,700 source files), downloaded as a zip with no git history. It contains no productivity app.
-  The owner chose to build REA in a new sibling repository, `Downloads\rea-workspace`, leaving rea-agents untouched.
+  The owner chose to build Cairn in a new sibling repository, `Downloads\rea-workspace`, leaving rea-agents untouched.
 - Environment: Windows 11, Node 26.13.1, npm 11.20, Git 2.56, WebView2 158. No Rust/Cargo and no MSVC
   build tools, so Electron was chosen over Tauri and IndexedDB over native SQLite (see ARCHITECTURE.md).
 - No git identity is configured on this machine, so commits await the owner's name and email.

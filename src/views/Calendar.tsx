@@ -131,7 +131,7 @@ export default function CalendarView() {
         {[...calendars, "Tasks"].map((c) => (
           <label key={c} className="flex items-center gap-1.5 text-muted"><input type="checkbox" checked={!hidden.has(c)} onChange={() => { const h = new Set(hidden); if (h.has(c)) h.delete(c); else h.add(c); setHidden(h); }} />{c}</label>
         ))}
-        <span className="text-faint">Google Calendar and Outlook sync are not set up: they need your explicit sign-in, and REA works without them.</span>
+        <span className="text-faint">Google Calendar and Outlook sync are not set up: they need your explicit sign-in, and Cairn works without them.</span>
       </div>
 
       {mode === "month" && (

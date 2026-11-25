@@ -6,7 +6,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ErrorBoundary label="REA">
+    <ErrorBoundary label="Cairn">
       <App />
     </ErrorBoundary>
   </StrictMode>,

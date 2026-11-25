@@ -38,7 +38,7 @@ sub-pages and tags, with local and global modes and orphan detection.
 ## Files
 PDF, Word (.docx), text and HTML attachments have their text extracted on upload, so Ctrl+K finds words inside them and AI answers can cite them. Scanned PDFs without a text layer are not read (no OCR).
 
-## REA Intelligence
+## Cairn Intelligence
 Choose Claude, OpenAI, Gemini, Ollama or an OpenAI-compatible local server in Settings. Cloud use requires
 an explicit opt-in. Chat about a page or your whole workspace with cited sources, rewrite or translate a
 selection with a side-by-side preview, turn replies into tasks or pages, and build semantic-search embeddings.

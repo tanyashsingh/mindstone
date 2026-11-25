@@ -1,4 +1,4 @@
-# REA architecture
+# Cairn architecture
 
 ## Decisions
 
@@ -7,7 +7,7 @@
 | Repository | New repo `rea-workspace` | The existing `rea` repo is an unrelated reverse-engineering CLI (rea-agents, MIT). Building here keeps that project untouched (decision confirmed by the owner). |
 | UI | React 19 + TypeScript (strict) + Vite 8 + Tailwind CSS 4 | Fast dev loop, small runtime, typed end to end. |
 | Desktop | Electron 45 | Tauri needs Rust and MSVC build tools, which this machine lacks. Electron ships its own Chromium, so WebView2 is not required at runtime. |
-| Local storage | IndexedDB via Dexie 4 | Works identically in the browser and in Electron (Chromium persists it under `%APPDATA%\REA`). Transactional, indexed, no native compile. SQLite was considered; `better-sqlite3` needs a native toolchain and `node:sqlite` would split the data layer between processes. Revisit when sync arrives. |
+| Local storage | IndexedDB via Dexie 4 | Works identically in the browser and in Electron (Chromium persists it under `%APPDATA%\Cairn`). Transactional, indexed, no native compile. SQLite was considered; `better-sqlite3` needs a native toolchain and `node:sqlite` would split the data layer between processes. Revisit when sync arrives. |
 | Editor | TipTap 3 (ProseMirror) | MIT, schema-based (lossless JSON), mature extension model. One editor framework only. |
 | Search | MiniSearch (in-memory, fuzzy + prefix) | Sub-10 ms queries over 13k documents measured; no FTS5 dependency. |
 | State | Zustand (UI state) + Dexie live queries (data) | Live queries make every view reactive to the same records, so table, board and calendar can't drift. |
@@ -45,7 +45,7 @@ while block IDs still allow addressing (outline, table of contents, future sync)
 - Preload exposes a narrow `window.rea` bridge (notifications, new window, secrets, AI calls).
 - Main verifies every IPC sender's origin, validates provider IDs and endpoint URLs, and denies
   permission requests, navigation away from the app and `<webview>` attachment.
-- API keys are encrypted with `safeStorage` (DPAPI on Windows) in `%APPDATA%\REA\secrets.json` and are
+- API keys are encrypted with `safeStorage` (DPAPI on Windows) in `%APPDATA%\Cairn\secrets.json` and are
   only decrypted in the main process. AI requests run in the main process, so keys never reach page JavaScript.
 
 ## Offline and failure behaviour

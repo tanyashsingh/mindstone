@@ -1,4 +1,8 @@
-# REA
+<p align="center"><img src="brand/cairn-logo-512.png" alt="Cairn logo: three stacked stones under a small light" width="160"></p>
+
+# Cairn
+
+*Formerly REA (working name).* A cairn is a stack of stones that marks the way.
 
 A local-first, privacy-first workspace for notes, documents, tasks, projects, databases, calendar and
 personal knowledge, with optional AI. Everything runs on your machine; no account is required.
@@ -15,7 +19,7 @@ personal knowledge, with optional AI. Everything runs on your machine; no accoun
 - **Tasks and projects**: subtasks, dependencies, recurrence, reminders, Eisenhower matrix, milestones, progress reports.
 - **Calendar**: day/week/month/agenda, recurring events, drag to reschedule, ICS import and export.
 - **Knowledge**: fuzzy full-text search (Ctrl+K), tags, related pages, interactive knowledge graph.
-- **REA Intelligence (optional)**: Claude, OpenAI, Gemini, Ollama or any OpenAI-compatible local server.
+- **Cairn Intelligence (optional)**: Claude, OpenAI, Gemini, Ollama or any OpenAI-compatible local server.
   Workspace-aware chat with citations, writing tools with preview, tasks from notes. Cloud AI is off until you enable it.
 - **Portability**: versioned full backups, Markdown/HTML/PDF/CSV/JSON export, Markdown/Obsidian/Notion import.
 
@@ -51,20 +55,20 @@ The latest Windows installer is on the [Releases page](https://github.com/tanyas
 
 ```powershell
 npm run build          # type check, web bundle (dist/), Electron bundle (dist-electron/)
-npm run dist:win       # NSIS installer at release\REA Setup <version>.exe
+npm run dist:win       # NSIS installer at release\Cairn Setup <version>.exe
 ```
 
 The installer is per-user (no admin rights), lets you choose the folder, and is **unsigned**: Windows
-SmartScreen will warn until a code-signing certificate is configured. Silent install: `"REA Setup <version>.exe" /S`.
+SmartScreen will warn until a code-signing certificate is configured. Silent install: `"Cairn Setup <version>.exe" /S`.
 
 ## Where your data lives
 
 | Build | Location |
 |---|---|
-| Desktop | `%APPDATA%\REA` (IndexedDB, settings, encrypted `secrets.json`) |
+| Desktop | `%APPDATA%\Cairn` (IndexedDB, settings, encrypted `secrets.json`). If a pre-rename `%APPDATA%\REA` folder exists and `Cairn` does not, the app keeps using `REA`. |
 | Browser | The browser profile's IndexedDB for `localhost:5183` |
 
-Uninstalling keeps your data. Delete `%APPDATA%\REA` to remove it. Use **Settings → Backup & restore** to
+Uninstalling keeps your data. Delete `%APPDATA%\Cairn` to remove it. Use **Settings → Backup & restore** to
 move a workspace between machines.
 
 ## Releasing
@@ -73,13 +77,13 @@ move a workspace between machines.
 npm version minor --no-git-tag-version   # bump package.json, then update CHANGELOG.md
 npm run check:all
 npm run dist:win
-git tag -a vX.Y.Z -m "REA X.Y.Z"; git push --follow-tags
-& "C:\Program Files\GitHub CLI\gh.exe" release create vX.Y.Z "release\REA Setup X.Y.Z.exe" --notes-file notes.md
+git tag -a vX.Y.Z -m "Cairn X.Y.Z"; git push --follow-tags
+& "C:\Program Files\GitHub CLI\gh.exe" release create vX.Y.Z "release\Cairn Setup X.Y.Z.exe" --notes-file notes.md
 ```
 
 ## Updating
 
-Install a newer `REA Setup x.y.z.exe` over the existing one; data is preserved and the database migrates on
+Install a newer `Cairn Setup x.y.z.exe` over the existing one; data is preserved and the database migrates on
 first launch. Automatic updates are not configured.
 
 ## Environment variables
@@ -91,7 +95,7 @@ and stored with Windows DPAPI, never in files in this repository.
 
 Sandboxed renderer with context isolation, strict Content Security Policy, IPC sender verification,
 sanitised rich text and AI output, link protocol allow-list, blocked executable attachments, CSV
-formula-injection guard, and an `eval`-free formula engine. No telemetry. REA does **not** encrypt data at
+formula-injection guard, and an `eval`-free formula engine. No telemetry. Cairn does **not** encrypt data at
 rest beyond your Windows account protection and offers no end-to-end encryption.
 
 ## Documentation
@@ -99,7 +103,13 @@ rest beyond your Windows account protection and offers no end-to-end encryption.
 [ARCHITECTURE.md](ARCHITECTURE.md) · [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) · [TESTING.md](TESTING.md) ·
 [PROJECT_PLAN.md](PROJECT_PLAN.md) · [CHANGELOG.md](CHANGELOG.md) · [CLAUDE.md](CLAUDE.md)
 
-## Extending REA
+## Brand
+
+The logo is a real 3D render: `brand/logo-scene.ts` (three.js) is rendered in headless Chrome by
+`node scripts/render-logo.mjs`, which writes `brand/cairn-logo-{1024,512}.png`, `build/icon.png`, `public/favicon.png`
+and `src/assets/cairn-mark*.png`. Re-run it after editing the scene.
+
+## Extending Cairn
 
 - New block: add a TipTap node in `src/editor/extensions.ts` (plus a node view in `nodeViews.tsx`), register
   it in `src/editor/schema.ts`, add a slash item in `slashItems.ts`, and handle it in `docToMarkdown`.

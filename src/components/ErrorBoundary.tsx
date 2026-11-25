@@ -6,7 +6,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode; label?: stri
     return { error };
   }
   componentDidCatch(error: Error) {
-    console.error("[REA] UI error", error);
+    console.error("[Cairn] UI error", error);
   }
   render() {
     if (!this.state.error) return this.props.children;

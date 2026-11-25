@@ -1,5 +1,5 @@
 /**
- * REA desktop shell (Electron main process).
+ * Cairn desktop shell (Electron main process).
  * Security posture: context isolation + sandboxed renderer, no Node in the renderer, navigation
  * locked to the bundled app, external links opened in the system browser, permission requests
  * denied, IPC senders verified, API keys encrypted with OS facilities (DPAPI on Windows).
@@ -17,6 +17,11 @@ const windows = new Set<BrowserWindow>();
 let tray: Tray | null = null;
 let quitting = false;
 
+// The data folder follows the product name. Builds from before the rename stored data in %APPDATA%\REA:
+// keep using that folder rather than starting with an empty workspace.
+const legacyData = path.join(app.getPath("appData"), "REA");
+if (!fs.existsSync(app.getPath("userData")) && fs.existsSync(legacyData)) app.setPath("userData", legacyData);
+
 if (!app.requestSingleInstanceLock()) app.quit();
 
 function isTrustedSender(e: IpcMainInvokeEvent): boolean {
@@ -33,7 +38,7 @@ function handle<A extends unknown[], R>(channel: string, fn: (e: IpcMainInvokeEv
 function createWindow() {
   const win = new BrowserWindow({
     width: 1360, height: 880, minWidth: 900, minHeight: 600,
-    title: "REA",
+    title: "Cairn",
     backgroundColor: "#191919",
     icon: fs.existsSync(ICON) ? ICON : undefined,
     autoHideMenuBar: true,
@@ -133,13 +138,13 @@ function registerIpc() {
 function createTray() {
   const img = fs.existsSync(ICON) ? nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 }) : nativeImage.createEmpty();
   tray = new Tray(img);
-  tray.setToolTip("REA");
+  tray.setToolTip("Cairn");
   const show = () => { const w = [...windows][0] ?? createWindow(); w.show(); w.focus(); };
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: "Open REA", click: show },
+    { label: "Open Cairn", click: show },
     { label: "New window", click: () => createWindow() },
     { type: "separator" },
-    { label: "Quit REA", click: () => { quitting = true; app.quit(); } },
+    { label: "Quit Cairn", click: () => { quitting = true; app.quit(); } },
   ]));
   tray.on("click", show);
 }
@@ -151,14 +156,14 @@ app.on("web-contents-created", (_e, contents) => {
 });
 
 void app.whenReady().then(() => {
-  app.setAppUserModelId("app.rea.workspace"); // Windows notifications and taskbar grouping
+  app.setAppUserModelId("app.cairn.workspace"); // Windows notifications and taskbar grouping
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
   session.defaultSession.setPermissionCheckHandler(() => false);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: "File", submenu: [{ label: "New window", accelerator: "CmdOrCtrl+Shift+N", click: () => createWindow() }, { type: "separator" }, { role: "quit" }] },
     { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
     { label: "View", submenu: [{ role: "reload" }, { role: "toggleDevTools" }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
-    { label: "Help", submenu: [{ label: "Data folder", click: () => void dialog.showMessageBox({ message: `REA stores its data in:\n${app.getPath("userData")}` }) }] },
+    { label: "Help", submenu: [{ label: "Data folder", click: () => void dialog.showMessageBox({ message: `Cairn stores its data in:\n${app.getPath("userData")}` }) }] },
   ]));
   registerIpc();
   createWindow();

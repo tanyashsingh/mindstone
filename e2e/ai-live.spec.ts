@@ -25,7 +25,7 @@ async function useOllama(page: import("@playwright/test").Page) {
 test("chat with a local model, with history and token usage", async ({ page }) => {
   await boot(page);
   await useOllama(page);
-  await nav(page, "REA Intelligence");
+  await nav(page, "Cairn Intelligence");
   await main(page).getByLabel("Context").selectOption("general");
   await main(page).getByLabel("Message").fill("Reply with exactly the word PINEAPPLE and nothing else.");
   await main(page).getByLabel("Message").press("Enter");
@@ -70,7 +70,7 @@ test("workspace-aware answer cites the right page, with semantic index", async (
   await saved(page);
   await page.waitForTimeout(1700); // debounced search index refresh
 
-  await nav(page, "REA Intelligence");
+  await nav(page, "Cairn Intelligence");
   await main(page).getByRole("button", { name: "Index" }).click();
   await expect(page.getByText(/Indexed \d+ pages for semantic search/)).toBeVisible({ timeout: 120_000 });
   const emb = await idb<{ vector: number[]; model: string }>(page, "embeddings");
@@ -96,7 +96,7 @@ test("answers from an uploaded PDF and cites the file", async ({ page }) => {
   await (await chooser).setFiles({ name: "warranty.pdf", mimeType: "application/pdf", buffer: makePdf(["Warranty terms", "The warranty period for the KX-9 drill is 36 months.", "Claims require the original receipt."]) });
   await expect(main(page).getByText("Searchable")).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(1700);
-  await nav(page, "REA Intelligence");
+  await nav(page, "Cairn Intelligence");
   await main(page).getByRole("button", { name: "Index" }).click();
   await expect(page.getByText(/Indexed \d+ pages for semantic search/)).toBeVisible({ timeout: 120_000 });
   await main(page).getByLabel("Context").selectOption("workspace");
@@ -113,7 +113,7 @@ test("a stopped server produces a clear error, not a crash", async ({ page }) =>
   await main(page).getByRole("button", { name: "AI providers", exact: true }).click();
   const card = main(page).locator(".panel").filter({ hasText: "Ollama (local)" });
   await card.getByLabel("Endpoint").fill("http://127.0.0.1:9"); // nothing listens on the discard port
-  await nav(page, "REA Intelligence");
+  await nav(page, "Cairn Intelligence");
   await main(page).getByLabel("Context").selectOption("general");
   await main(page).getByLabel("Message").fill("hello");
   await main(page).getByLabel("Message").press("Enter");

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+- Renamed from REA to **Cairn**, with a new 3D logo (three stacked stones and a light) used for the app icon, favicon, start-up screen and About.
+- Data, backups and settings carry over: internal identifiers are unchanged, and the desktop app keeps using an existing `%APPDATA%\REA` folder.
+
 ## 0.2.0 (2026-11-25)
 
 - Playwright end-to-end suite (18 tests) running in the installed Chrome.
