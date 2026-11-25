@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { CalendarDays, Plus, Download, Upload, ChevronLeft, ChevronRight, Trash2, CheckSquare } from "lucide-react";
 import { db } from "@/data/db";
@@ -61,6 +61,9 @@ export default function CalendarView() {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
+  const hoursRef = useRef<HTMLDivElement>(null);
+  // Open the time grid at 07:00 rather than midnight.
+  useEffect(() => { if (hoursRef.current) hoursRef.current.scrollTop = 7 * 48; }, [mode]);
   const events = useLiveQuery(() => db().events.where("[workspaceId+deletedAt]").equals([ws, 0]).toArray(), [ws]);
   const tasks = useLiveQuery(() => db().tasks.where("[workspaceId+deletedAt]").equals([ws, 0]).filter((t) => !!t.dueDate).toArray(), [ws]);
 
@@ -159,7 +162,7 @@ export default function CalendarView() {
               </div>
             ))}
           </div>
-          <div className="relative min-h-0 flex-1 overflow-y-auto">
+          <div ref={hoursRef} className="relative min-h-0 flex-1 overflow-y-auto">
             <div className="flex" style={{ height: 24 * 48 }}>
               <div className="w-14 shrink-0">{Array.from({ length: 24 }, (_, h) => <div key={h} className="h-12 pr-2 text-right text-[10.5px] text-faint">{h ? `${h}:00` : ""}</div>)}</div>
               {days.map((d) => (

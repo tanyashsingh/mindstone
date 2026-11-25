@@ -20,12 +20,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test",
-    "icon": "node scripts/make-icon.mjs"
+    "icon": "node scripts/make-icon.mjs",
+    "test:e2e": "playwright test",
+    "check:all": "npm run typecheck && npm test && npm run test:e2e"
   },
-  "dependencies": {},
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
     "@floating-ui/dom": "^1.8.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/vite": "^4.3.5",
     "@tiptap/extension-code-block-lowlight": "^3.35.0",
     "@tiptap/extension-details": "^3.35.0",

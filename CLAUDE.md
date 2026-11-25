@@ -10,7 +10,7 @@ React 19 + TS strict + Vite 8 + Tailwind 4 · Electron 45 desktop · Dexie/Index
 MiniSearch · Zustand · provider-independent AI layer (`src/ai/providers.ts`; Claude through `@anthropic-ai/sdk`).
 
 ## Commands (PowerShell)
-- `npm run dev` (browser, port 5183) · `npm test` · `npm run typecheck` · `npm run check`
+- `npm run dev` (browser, port 5183) · `npm test` · `npm run test:e2e` (Playwright, installed Chrome) · `npm run typecheck` · `npm run check:all`
 - `npm run build` (typecheck + web + electron bundles) · `npm run dist:win` (NSIS installer in `release/`)
 - `npm run icon` regenerates `build/icon.png` and `public/favicon.png`
 

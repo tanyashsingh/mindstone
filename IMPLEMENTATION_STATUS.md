@@ -98,11 +98,16 @@ Last updated: 2026-11-25.
 |---|---|
 | Unit and integration tests (Vitest): 39 passing | Done |
 | Performance on a generated workspace (3,000 pages + 10,000 records) | Measured: index 170 ms, query 5 ms, filter+sort 6 ms |
-| End-to-end browser tests (Playwright) | Not started; manual verification done in the browser pane |
+| End-to-end browser tests (Playwright): 18 passing | Done |
 | Accessibility audit (screen reader pass) | Not started; ARIA roles and labels added throughout |
 
 ## Smoke test (2026-11-25)
 Every routed view (Home, Inbox, AI, Tasks, Projects, Calendar, Databases, Graph, Files, Templates, Trash, Settings) renders without error in the browser build. Applying the CRM template created its page with an embedded database. Quick-add parsed `tomorrow !high #ops` into due date, priority and tag. Fixed during the smoke test: an effect returned `scrollIntoView()`'s Promise as its cleanup (crashed the AI view), and error boundaries are now keyed per route.
+
+## End-to-end pass (2026-11-25)
+The Playwright suite exercised the main controls of every view. Bugs found and fixed:
+- Closed popovers (one per sidebar page) listened for Escape in the capture phase and stopped it, so no dialog could be closed with Escape. They also listened for every click. Now only an open popover listens.
+- The calendar time grid opened at midnight; it now opens at 07:00.
 
 ## Known issues
 - Vite warns that a few modules are both statically and dynamically imported (bundle-splitting only; no runtime effect).
@@ -110,7 +115,6 @@ Every routed view (Home, Inbox, AI, Tasks, Projects, Calendar, Databases, Graph,
 - In the browser build, AI keys are kept in memory only and Ollama needs `OLLAMA_ORIGINS` to allow the page origin.
 
 ## Next steps
-1. Exercise the views marked Implemented in the running app and fix what turns up.
-2. Add Playwright end-to-end tests for the critical workflows in TESTING.md.
-3. Add a block drag handle (TipTap drag-handle extension) and record templates.
-4. PDF/DOCX text extraction for RAG.
+1. Try AI against a live provider (Ollama locally, or a cloud key).
+2. Add a block drag handle (TipTap drag-handle extension) and record templates.
+3. PDF/DOCX text extraction for RAG.

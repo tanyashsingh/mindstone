@@ -19,13 +19,16 @@ export function Popover({ anchor, onClose, children, className, align = "start" 
     const top = ay + r.height > innerHeight - 8 ? Math.max(8, ("top" in anchor ? anchor.top : ay) - r.height - 4) : ay;
     setPos({ left, top });
   }, [anchor, align]);
+  const isOpen = !!anchor;
   useEffect(() => {
+    // Only an open popover listens; closed ones must not swallow Escape or clicks meant for dialogs.
+    if (!isOpen) return;
     const down = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
     const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
-    setTimeout(() => document.addEventListener("mousedown", down), 0);
+    const t = setTimeout(() => document.addEventListener("mousedown", down), 0);
     document.addEventListener("keydown", key, true);
-    return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key, true); };
-  }, [onClose]);
+    return () => { clearTimeout(t); document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key, true); };
+  }, [onClose, isOpen]);
   if (!anchor) return null;
   return createPortal(
     <div ref={ref} className={cx("menu fixed z-50 anim-in", className)} style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999 }}>

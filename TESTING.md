@@ -7,7 +7,21 @@ npm test               # Vitest, all suites
 npm run typecheck      # tsc --noEmit (strict)
 npm run check          # both
 npx vitest run tests/perf.test.ts --reporter=verbose   # prints timings
+npm run test:e2e       # Playwright end-to-end, in the installed Chrome (starts Vite if needed)
+npm run check:all      # typecheck + unit + end-to-end
 ```
+
+## End-to-end suites (`e2e/`, Playwright)
+
+Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
+
+| File | Workflows |
+|---|---|
+| `documents.spec.ts` | First run; create, nest, edit, undo/redo and reload a page; wiki links and backlinks panel; trash and restore; page history |
+| `data.spec.ts` | Database records across table and board, sort, filter; tasks (quick-add parsing, detail, subtasks, completion, three views); projects; calendar views |
+| `views.spec.ts` | All seven database view types; Number and Formula properties; right-panel tabs and comments; split view |
+| `system.spec.ts` | Command palette search and commands; backup download and restore; Markdown import and export; themes; offline editing; AI-off messaging; templates, files (incl. blocked .exe), graph, inbox |
+| `screens.spec.ts` | Optional screenshots for visual review (`$env:REA_SCREENS="<dir>"`); skipped otherwise |
 
 ## Suites
 
@@ -23,7 +37,8 @@ IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses
 
 ## Latest results (2026-11-25)
 
-- 39 / 39 tests passing; type check clean.
+- Unit: 39 / 39 passing; type check clean.
+- End-to-end: 18 / 18 passing, and 36 / 36 when each test is run twice (no flaky tests).
 - Performance (Node + fake-indexeddb, slower than Chromium): index of 13,001 documents built in 170 ms,
   search query 5.2 ms, filter + sort of 10,000 records 6 ms.
 
@@ -42,5 +57,4 @@ In the packaged Windows build:
 
 ## Not yet covered
 
-Playwright end-to-end tests, screen-reader testing, live AI provider calls (needs your key), and import of large real-world Notion/Obsidian exports.
-Critical workflows to automate next: workspace create, page nesting, edit + reload, undo/redo, database views, filters, tasks, search, import, export, backup restore, offline, theme switch.
+Screen-reader testing, the packaged Electron build under Playwright, live AI provider calls (needs your key), and import of large real-world Notion/Obsidian exports.
