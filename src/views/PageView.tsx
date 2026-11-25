@@ -149,7 +149,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
           rows={1}
           readOnly={locked}
           aria-label="Page title"
-          className="mb-3 w-full resize-none overflow-hidden bg-transparent text-[38px] font-bold leading-tight tracking-tight outline-none placeholder:text-faint/60 [field-sizing:content]"
+          className="font-display mb-3 w-full resize-none overflow-hidden bg-transparent text-[42px] leading-[1.15] outline-none placeholder:text-faint/60 [field-sizing:content]"
           placeholder="Untitled"
           defaultValue={page.title}
           key={page.id}

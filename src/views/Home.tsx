@@ -210,10 +210,10 @@ export default function Home() {
           </Card>
           <Card title="Weekly review" icon={<Target />}>
             <dl className="grid grid-cols-2 gap-2 text-[13px]">
-              <div><dt className="text-faint">Tasks completed</dt><dd className="text-[18px] font-semibold tabular-nums">{data?.week.done ?? 0}</dd></div>
-              <div><dt className="text-faint">Tasks added</dt><dd className="text-[18px] font-semibold tabular-nums">{data?.week.created ?? 0}</dd></div>
-              <div><dt className="text-faint">Pages edited</dt><dd className="text-[18px] font-semibold tabular-nums">{data?.week.pagesEdited ?? 0}</dd></div>
-              <div><dt className="text-faint">Open tasks</dt><dd className="text-[18px] font-semibold tabular-nums">{data?.open.length ?? 0}</dd></div>
+              <div><dt className="text-faint">Tasks completed</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.done ?? 0}</dd></div>
+              <div><dt className="text-faint">Tasks added</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.created ?? 0}</dd></div>
+              <div><dt className="text-faint">Pages edited</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.pagesEdited ?? 0}</dd></div>
+              <div><dt className="text-faint">Open tasks</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.open.length ?? 0}</dd></div>
             </dl>
             <div className="mt-1 text-[11px] text-faint">Since {fmtDate(toISODate(startOfWeek(new Date())))}</div>
           </Card>

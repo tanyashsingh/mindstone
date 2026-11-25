@@ -34,7 +34,7 @@ export function useQueryContext(database: Database | undefined): QueryContext | 
 export function CellDisplay({ database, record, prop, ctx }: { database: Database; record: DbRecord; prop: Property; ctx?: QueryContext }) {
   const raw = record.values[prop.id];
   switch (prop.type) {
-    case "checkbox": return <span className={cx("inline-flex size-4 items-center justify-center rounded border", raw ? "border-accent bg-accent text-white" : "border-line-strong")}>{raw ? <Check size={12} /> : null}</span>;
+    case "checkbox": return <span className={cx("inline-flex size-4 items-center justify-center rounded border", raw ? "border-accent bg-accent text-on-accent" : "border-line-strong")}>{raw ? <Check size={12} /> : null}</span>;
     case "select": case "status": {
       const o = prop.options?.find((x) => x.id === raw);
       return o ? <Chip color={o.color}>{o.name}</Chip> : null;

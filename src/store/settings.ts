@@ -41,7 +41,7 @@ export const DEFAULT_SHORTCUTS: Record<string, string> = {
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
-  accent: "#4f5bd5",
+  accent: "", // "" = the theme's own accent: ink in light, brass in dark
   editorFont: "sans",
   editorSize: 16,
   editorWidth: "normal",
@@ -89,7 +89,9 @@ export const useSettings = create<SettingsState>((set, get) => ({
   loaded: false,
   load: async () => {
     const stored = await getSetting<unknown>("settings", null);
-    set({ s: merge(DEFAULT_SETTINGS, stored), loaded: true });
+    const s = merge(DEFAULT_SETTINGS, stored);
+    if (s.accent === "#4f5bd5") s.accent = ""; // the pre-editorial default becomes "theme default"
+    set({ s, loaded: true });
   },
   update: (fn) => {
     const s = fn(structuredClone(get().s));

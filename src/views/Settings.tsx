@@ -154,8 +154,11 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Reset all settings" desc="Restores defaults. Your pages and data are not touched."><button className="btn-outline" onClick={async () => { if (await confirmDialog("Reset all settings to defaults?")) reset(); }}>Reset</button></Row>
           </>}
           {sec === "appearance" && <>
-            <Row label="Theme"><div className="flex gap-1 rounded-[12px] p-1 shadow-[var(--neu-out-sm)]">{(["system", "light", "dark", "oled"] as const).map((t) => <button key={t} className={cx("btn h-6 capitalize", s.theme === t && "bg-active")} onClick={() => set("theme", t)}>{t === "oled" ? "OLED black" : t}</button>)}</div></Row>
-            <Row label="Accent colour"><div className="flex items-center gap-1.5">{["#4f5bd5", "#2f8a57", "#c2410c", "#9065b0", "#c14c8a", "#0e7490", "#1f1f1e"].map((c) => <button key={c} aria-label={c} className={cx("size-6 rounded-full", s.accent === c && "ring-2 ring-offset-2 ring-fg")} style={{ background: c }} onClick={() => set("accent", c)} />)}<input type="color" value={s.accent} onChange={(e) => set("accent", e.target.value)} aria-label="Custom accent" /></div></Row>
+            <Row label="Theme"><div className="flex gap-0.5 rounded-[10px] bg-sunken p-0.5 shadow-[var(--inset)]">{(["system", "light", "dark", "oled"] as const).map((t) => <button key={t} className={cx("btn h-6 capitalize", s.theme === t && "bg-active")} onClick={() => set("theme", t)}>{t === "oled" ? "OLED black" : t}</button>)}</div></Row>
+            <Row label="Accent colour" desc="Theme default is ink in light mode and brass in dark mode."><div className="flex items-center gap-1.5">
+              <button aria-label="Theme default" title="Theme default" className={cx("size-6 rounded-full", !s.accent && "ring-2 ring-offset-2 ring-fg")} style={{ background: "linear-gradient(135deg, #1f2a44 50%, #c9a96e 50%)" }} onClick={() => set("accent", "")} />
+              {["#2c5d4f", "#7a3b2e", "#4b3f72", "#2f5d8a", "#8a6a2f"].map((c) => <button key={c} aria-label={c} className={cx("size-6 rounded-full", s.accent === c && "ring-2 ring-offset-2 ring-fg")} style={{ background: c }} onClick={() => set("accent", c)} />)}
+              <input type="color" value={s.accent || "#1f2a44"} onChange={(e) => set("accent", e.target.value)} aria-label="Custom accent" /></div></Row>
             <Row label="Page width"><select className="input w-32" value={s.editorWidth} onChange={(e) => set("editorWidth", e.target.value as Settings["editorWidth"])}><option value="narrow">Narrow</option><option value="normal">Normal</option><option value="wide">Wide</option></select></Row>
           </>}
           {sec === "editor" && <>

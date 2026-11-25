@@ -68,7 +68,7 @@ export default function Files() {
         <select className="input w-40" value={kind} onChange={(e) => setKind(e.target.value)} aria-label="File type"><option value="">All types</option><option value="image/">Images</option><option value="application/pdf">PDF</option><option value="video/">Video</option><option value="audio/">Audio</option><option value="text/">Text</option></select>
       </div>
       {list.length === 0 ? <EmptyState icon={<Paperclip />} title="No files" body="Upload files here or drop them into any page." /> : (
-        <div className="divide-y divide-line overflow-hidden rounded-[18px] shadow-[var(--neu-out)]">
+        <div className="divide-y divide-line overflow-hidden rounded-[12px] shadow-[var(--elev)]">
           {list.map((f) => (
             <div key={f.id} className="group flex items-center gap-3 px-3 py-2 text-[13px]">
               <span className="text-muted">{icon(f.mime)}</span>

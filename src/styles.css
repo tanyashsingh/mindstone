@@ -5,66 +5,70 @@
 
 /* ---- Design tokens ------------------------------------------------------ */
 /*
- * Neumorphism: every surface shares one base colour and is shaped only by light. A light source at the
- * top-left gives raised elements a highlight on that side and a shade on the other; pressed elements
- * invert it. Text colours are kept at WCAG-readable contrast on the base colour.
+ * Refined editorial. Light: "ivory and ink". Dark: "graphite and brass".
+ * Depth comes from hairline rings and soft, warm layered shadows; titles use a book serif (Newsreader),
+ * the interface uses the system sans. One deep accent per theme; --accent-fg is the readable text on it.
  */
 :root {
-  --bg: #e4e8ef;
-  --bg-elev: #e4e8ef;
-  --bg-sunken: #e4e8ef;
-  --bg-hover: rgba(255, 255, 255, 0.4);
-  --bg-active: rgba(120, 130, 155, 0.08);
-  --fg: #262b36;
-  --fg-muted: #555d6c;
-  --fg-faint: #757d8b;
-  --border: rgba(90, 102, 128, 0.12);
-  --border-strong: rgba(90, 102, 128, 0.22);
-  --accent: #4f5bd5;
-  --accent-fg: #ffffff;
-  --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
-  --danger: #c63d33;
-  --success: #2a7d4f;
-  --warning: #a66d17;
-  /* the two lights */
-  --neu-hi: rgba(255, 255, 255, 0.95);
-  --neu-lo: rgba(148, 160, 184, 0.62);
-  --neu-out: 7px 7px 16px var(--neu-lo), -7px -7px 16px var(--neu-hi);
-  --neu-out-sm: 3px 3px 7px var(--neu-lo), -3px -3px 7px var(--neu-hi);
-  --neu-in: inset 5px 5px 11px var(--neu-lo), inset -5px -5px 11px var(--neu-hi);
-  --neu-in-sm: inset 2px 2px 5px var(--neu-lo), inset -2px -2px 5px var(--neu-hi);
-  --neu-pop: 14px 14px 32px var(--neu-lo), -10px -10px 28px var(--neu-hi);
-  --shadow: var(--neu-pop);
-  --radius: 14px;
+  --bg: #faf7f2;
+  --bg-elev: #fffdf9;
+  --bg-sunken: #f3eee6;
+  --bg-hover: rgba(31, 42, 68, 0.05);
+  --bg-active: rgba(31, 42, 68, 0.085);
+  --fg: #1c2333;
+  --fg-muted: #5d5850;
+  --fg-faint: #857e72;
+  --border: rgba(70, 52, 24, 0.13);
+  --border-strong: rgba(70, 52, 24, 0.22);
+  --accent: #1f2a44;
+  --accent-fg: #fffdf9;
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, transparent);
+  --danger: #b03a2e;
+  --success: #2c6a48;
+  --warning: #93641a;
+  --shade: 40, 30, 15;
+  --elev: 0 0 0 1px var(--border), 0 1px 2px rgba(var(--shade), 0.04), 0 8px 20px -10px rgba(var(--shade), 0.14);
+  --elev-sm: 0 0 0 1px var(--border), 0 1px 2px rgba(var(--shade), 0.05);
+  --inset: inset 0 0 0 1px var(--border);
+  --inset-sm: inset 0 0 0 1px var(--border);
+  --pop: 0 0 0 1px var(--border), 0 2px 6px rgba(var(--shade), 0.06), 0 18px 40px -12px rgba(var(--shade), 0.22);
+  --shadow: var(--pop);
+  --radius: 10px;
   --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Inter", sans-serif;
-  --font-serif: "Iowan Old Style", "Charter", "Georgia", serif;
+  --font-display: "Newsreader Variable", "Iowan Old Style", "Sitka Heading", Georgia, serif;
+  --font-serif: "Newsreader Variable", "Iowan Old Style", Charter, Georgia, serif;
   --font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "Consolas", monospace;
   --editor-font: var(--font-sans);
   --editor-size: 16px;
   color-scheme: light;
 }
 .dark {
-  --bg: #272a31;
-  --bg-elev: #272a31;
-  --bg-sunken: #272a31;
-  --bg-hover: rgba(255, 255, 255, 0.035);
-  --bg-active: rgba(0, 0, 0, 0.12);
-  --fg: #e7e9ee;
-  --fg-muted: #a5abb7;
-  --fg-faint: #858c99;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.13);
-  --neu-hi: rgba(255, 255, 255, 0.055);
-  --neu-lo: rgba(0, 0, 0, 0.5);
+  --bg: #1a1917;
+  --bg-elev: #22211e;
+  --bg-sunken: #151412;
+  --bg-hover: rgba(236, 230, 220, 0.05);
+  --bg-active: rgba(236, 230, 220, 0.09);
+  --fg: #ece6dc;
+  --fg-muted: #aba397;
+  --fg-faint: #8a8377;
+  --border: rgba(236, 230, 220, 0.1);
+  --border-strong: rgba(236, 230, 220, 0.18);
+  --accent: #c9a96e;
+  --accent-fg: #1a1917;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --danger: #e2786a;
+  --success: #7cc49a;
+  --warning: #d9b062;
+  --shade: 0, 0, 0;
+  --elev: 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 24px -12px rgba(0, 0, 0, 0.6);
+  --elev-sm: 0 0 0 1px var(--border), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --pop: 0 0 0 1px var(--border-strong), 0 2px 6px rgba(0, 0, 0, 0.35), 0 20px 44px -12px rgba(0, 0, 0, 0.7);
   color-scheme: dark;
 }
-/* "OLED" keeps neumorphism near-black: pure #000 cannot cast a visible shadow. */
 .dark.oled {
-  --bg: #111215;
-  --bg-elev: #111215;
-  --bg-sunken: #111215;
-  --neu-hi: rgba(255, 255, 255, 0.045);
-  --neu-lo: rgba(0, 0, 0, 0.85);
+  --bg: #0a0a09;
+  --bg-elev: #151513;
+  --bg-sunken: #000000;
 }
 
 @theme inline {
@@ -85,6 +89,8 @@
   --color-warning: var(--warning);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+  --color-on-accent: var(--accent-fg);
 }
 
 html, body, #root { height: 100%; }
@@ -110,64 +116,49 @@ body {
 }
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation: none !important; transition: none !important; }
 
-/* ---- Reusable primitives (neumorphic) ------------------------------- */
-/* Ghost button: flat at rest, rises on hover, presses in when clicked. */
+/* ---- Reusable primitives (editorial) -------------------------------- */
 @utility btn {
-  @apply inline-flex items-center gap-1.5 rounded-[10px] px-3 h-8 text-[13px] text-fg transition-[box-shadow,color,filter] duration-150 select-none disabled:opacity-40 disabled:pointer-events-none hover:shadow-[var(--neu-out-sm)] active:shadow-[var(--neu-in-sm)];
+  @apply inline-flex items-center gap-1.5 rounded-[8px] px-3 h-8 text-[13px] text-fg transition-colors duration-150 select-none hover:bg-hover active:bg-active disabled:opacity-40 disabled:pointer-events-none;
 }
 @utility btn-primary {
-  @apply btn bg-accent text-white shadow-[var(--neu-out-sm)] hover:shadow-[var(--neu-out)] hover:brightness-105 active:shadow-[inset_3px_3px_7px_rgba(0,0,0,0.3),inset_-2px_-2px_6px_rgba(255,255,255,0.18)];
+  @apply btn bg-accent text-on-accent shadow-[var(--elev-sm)] hover:bg-accent hover:brightness-110 active:brightness-95;
 }
 @utility btn-outline {
-  @apply btn shadow-[var(--neu-out-sm)] hover:shadow-[var(--neu-out)];
+  @apply btn bg-elev shadow-[var(--elev-sm)] hover:bg-hover;
 }
 @utility btn-danger {
-  @apply btn text-danger;
+  @apply btn text-danger hover:bg-danger/10;
 }
 @utility icon-btn {
-  @apply inline-flex items-center justify-center rounded-[10px] size-8 text-muted transition-[box-shadow,color] duration-150 hover:text-fg hover:shadow-[var(--neu-out-sm)] active:shadow-[var(--neu-in-sm)];
+  @apply inline-flex items-center justify-center rounded-[8px] size-8 text-muted transition-colors duration-150 hover:bg-hover hover:text-fg active:bg-active;
 }
-/* Fields are carved into the surface. */
 @utility input {
-  @apply h-9 w-full rounded-[10px] bg-bg px-3 text-[13px] outline-none shadow-[var(--neu-in-sm)] placeholder:text-faint focus:shadow-[var(--neu-in-sm),0_0_0_2px_var(--accent)];
+  @apply h-9 w-full rounded-[8px] bg-elev px-3 text-[13px] outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
 }
 @utility textarea {
-  @apply w-full rounded-[10px] bg-bg px-3 py-2 text-[13px] outline-none shadow-[var(--neu-in-sm)] placeholder:text-faint focus:shadow-[var(--neu-in-sm),0_0_0_2px_var(--accent)];
+  @apply w-full rounded-[8px] bg-elev px-3 py-2 text-[13px] outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
 }
 @utility label {
-  @apply text-[11px] font-semibold uppercase tracking-wide text-faint;
+  @apply text-[10.5px] font-semibold uppercase tracking-[0.09em] text-faint;
 }
-/* Cards rise out of the surface. */
 @utility panel {
-  @apply rounded-[18px] bg-elev shadow-[var(--neu-out)];
+  @apply rounded-[14px] bg-elev shadow-[var(--elev)];
 }
 @utility menu {
-  @apply rounded-[16px] bg-elev p-1.5 shadow-[var(--neu-pop)] text-[13px];
+  @apply rounded-[12px] bg-elev p-1.5 shadow-[var(--pop)] text-[13px];
 }
 @utility menu-item {
-  @apply flex w-full items-center gap-2 rounded-[10px] px-2.5 h-8 text-left text-fg transition-shadow hover:shadow-[var(--neu-in-sm)];
+  @apply flex w-full items-center gap-2 rounded-[7px] px-2.5 h-8 text-left text-fg hover:bg-hover;
 }
 @utility chip {
   @apply inline-flex items-center rounded-full px-2 h-5 text-[12px] leading-none whitespace-nowrap;
 }
 @utility kbd {
-  @apply inline-flex items-center rounded-md bg-bg px-1.5 text-[11px] font-mono text-muted shadow-[var(--neu-in-sm)];
-}
-/* Shared shapes for layout regions. */
-@utility neu-raised {
-  @apply shadow-[var(--neu-out)];
-}
-@utility neu-pressed {
-  @apply shadow-[var(--neu-in-sm)];
-}
-@utility neu-well {
-  @apply shadow-[var(--neu-in)];
+  @apply inline-flex items-center rounded-[5px] bg-sunken px-1.5 text-[11px] font-mono text-muted shadow-[var(--inset)];
 }
 
-/* Hover tints stay soft; neumorphism signals interaction with light, not colour blocks. */
-.hover\:bg-hover:hover { box-shadow: var(--neu-out-sm); }
-/* Selected states (tabs, segmented controls, nav items) use bg-active: pressed in, and they stay pressed under the pointer. */
-.bg-active, .bg-active:hover { box-shadow: var(--neu-in-sm); }
+/* Serif display type for titles. */
+h1, .font-display { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.012em; font-optical-sizing: auto; }
 
 /* Option colours for selects, tags, calendars */
 .c-gray { background: rgba(120,120,115,.16); color: var(--fg); }
@@ -262,11 +253,15 @@ body {
 @keyframes rea-pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 .skeleton { background: var(--bg-active); border-radius: 4px; animation: rea-pulse 1.4s ease-in-out infinite; }
 
-/* ---- Neumorphic editor surfaces ---------------------------------------- */
-.rea-editor pre { border: none; border-radius: 14px; box-shadow: var(--neu-in-sm); background: var(--bg); }
-.rea-editor code { border: none; box-shadow: var(--neu-in-sm); background: var(--bg); }
-.rea-editor pre code { box-shadow: none; }
-.rea-editor table { border-radius: 14px; box-shadow: var(--neu-out-sm); }
-.rea-editor th { background: transparent; }
-.rea-editor .mention { box-shadow: var(--neu-out-sm); background: var(--bg); padding: 0 6px; border-radius: 8px; }
-.rea-editor ul[data-type="taskList"] li > label input { box-shadow: var(--neu-in-sm); border-radius: 4px; }
+/* ---- Editorial editor typography ------------------------------------- */
+.rea-editor h1, .rea-editor h2, .rea-editor h3 { font-family: var(--font-display); font-weight: 560; letter-spacing: -0.01em; }
+.rea-editor h1 { font-size: 2.05em; }
+.rea-editor h2 { font-size: 1.55em; }
+.rea-editor h3 { font-size: 1.25em; }
+.rea-editor blockquote { border-left: 2px solid var(--accent); font-family: var(--font-serif); font-size: 1.08em; font-style: italic; color: var(--fg-muted); }
+.rea-editor pre { background: var(--bg-sunken); border: 1px solid var(--border); border-radius: 10px; }
+.rea-editor code { background: var(--bg-sunken); border: 1px solid var(--border); }
+.rea-editor .mention { background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 0 5px; }
+.rea-editor hr { border-top-color: var(--border-strong); }
+/* Native controls take the accent (ink or brass). */
+input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--accent); }

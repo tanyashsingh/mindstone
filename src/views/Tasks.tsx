@@ -149,7 +149,7 @@ export default function Tasks() {
         <CheckSquare size={22} className="text-muted" />
         <h1 className="text-[26px] font-bold tracking-tight">Tasks</h1>
         <span className="flex-1" />
-        <div className="flex gap-1 rounded-[12px] p-1 shadow-[var(--neu-out-sm)]">
+        <div className="flex gap-0.5 rounded-[10px] bg-sunken p-0.5 shadow-[var(--inset)]">
           {(["list", "board", "matrix"] as Mode[]).map((m) => <button key={m} className={cx("btn h-6", mode === m && "bg-active")} onClick={() => setMode(m)}>{m === "matrix" ? "Eisenhower" : m[0]!.toUpperCase() + m.slice(1)}</button>)}
         </div>
         <select className="input h-7 w-40" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} aria-label="Filter by project"><option value="">All projects</option>{projects?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
@@ -166,7 +166,7 @@ export default function Tasks() {
       {mode === "board" && (
         <div className="grid grid-cols-4 gap-3">
           {(Object.keys(STATUS) as TaskStatus[]).map((s) => (
-            <div key={s} className="min-h-40 rounded-[18px] bg-sunken p-2.5 shadow-[var(--neu-in)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { status: s }); }}>
+            <div key={s} className="min-h-40 rounded-[14px] bg-sunken p-2.5 shadow-[var(--inset)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { status: s }); }}>
               <div className="mb-2 flex items-center gap-2 px-1 text-[13px] font-medium">{STATUS[s].icon}{STATUS[s].label}<span className="text-faint">{(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).length}</span></div>
               {(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).map((t) => (
                 <button key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)} onClick={() => setOpen(t)} className="panel mb-1.5 block w-full p-2 text-left text-[13px] hover:border-line-strong">

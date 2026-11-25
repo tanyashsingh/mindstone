@@ -70,11 +70,11 @@ function TabBar() {
   const label = (r: Route) => r.kind === "page" ? titles?.[r.id!] ?? "…" : r.kind === "project" ? "Project" : r.kind[0]!.toUpperCase() + r.kind.slice(1);
   if (tabs.length < 2) return null;
   return (
-    <div role="tablist" className="flex h-11 shrink-0 items-center gap-1.5 overflow-x-auto px-4 pt-2">
+    <div role="tablist" className="flex h-10 shrink-0 items-end gap-1 overflow-x-auto border-b border-line bg-sunken px-3">
       {tabs.map((t, i) => (
         <div key={t.key + i} role="tab" aria-selected={i === active}
           onMouseDown={(e) => { if (e.button === 1) { e.preventDefault(); closeTab(i); } else setActive(i); }}
-          className={cx("group flex h-8 max-w-[200px] min-w-[110px] items-center gap-1 rounded-[10px] px-3 text-[12.5px] transition-shadow", i === active ? "text-fg shadow-[var(--neu-in-sm)]" : "text-muted shadow-[var(--neu-out-sm)] hover:text-fg")}>
+          className={cx("group flex h-8 max-w-[200px] min-w-[110px] items-center gap-1 rounded-[10px] px-3 text-[12.5px] transition-shadow", i === active ? "-mb-px rounded-b-none border border-b-0 border-line bg-bg text-fg" : "text-muted hover:bg-hover hover:text-fg")}>
           <span className="flex-1 truncate">{label(t.route)}</span>
           <button className="opacity-0 group-hover:opacity-100 rounded hover:bg-active p-0.5" aria-label="Close tab" onMouseDown={(e) => e.stopPropagation()} onClick={() => closeTab(i)}><X size={12} /></button>
         </div>
@@ -110,7 +110,8 @@ export function App() {
       root.classList.toggle("dark", resolvedDark(s.theme));
       root.classList.toggle("oled", s.theme === "oled");
       root.classList.toggle("reduce-motion", s.reduceMotion);
-      root.style.setProperty("--accent", s.accent);
+      if (s.accent) root.style.setProperty("--accent", s.accent);
+      else root.style.removeProperty("--accent");
       root.style.setProperty("--editor-font", `var(--font-${s.editorFont})`);
       root.style.setProperty("--editor-size", `${s.editorSize}px`);
     };
@@ -177,7 +178,7 @@ export function App() {
               <RouteView route={route} pane="main" />
             </section>
             {app.split && (
-              <section className="relative my-3 mr-3 min-w-0 flex-1 overflow-auto rounded-[22px] shadow-[var(--neu-in)]" aria-label="Split view">
+              <section className="relative min-w-0 flex-1 overflow-auto border-l border-line" aria-label="Split view">
                 <button className="icon-btn absolute right-2 top-2 z-10" title="Close split view" onClick={app.closeSplit}><Columns2 size={15} /></button>
                 <RouteView route={app.split} pane="split" />
               </section>

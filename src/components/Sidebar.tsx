@@ -218,7 +218,7 @@ export function Sidebar() {
   const curId = tabs[active]?.route.id;
 
   return (
-    <nav className="relative my-3 ml-3 flex shrink-0 flex-col rounded-[22px] bg-sunken shadow-[var(--neu-out)]" style={{ width: sidebarWidth }} aria-label="Sidebar">
+    <nav className="relative flex shrink-0 flex-col border-r border-line bg-sunken" style={{ width: sidebarWidth }} aria-label="Sidebar">
       <WorkspaceSwitcher />
       <div className="px-2">
         <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg" onClick={() => { set("paletteMode", "all"); set("paletteOpen", true); }}>

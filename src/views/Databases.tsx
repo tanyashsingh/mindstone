@@ -18,7 +18,7 @@ export default function Databases() {
       <div className="mb-5 flex items-center gap-3"><DbIcon size={22} className="text-muted" /><h1 className="flex-1 text-[26px] font-bold tracking-tight">Databases</h1>
         <button className="btn-primary" onClick={async () => { const { page } = await repo.createDatabase(ws, null); open({ kind: "page", id: page.id }); }}><Plus size={14} /> New database</button></div>
       {list?.length === 0 && <EmptyState icon={<Table2 />} title="No databases yet" body="Databases are collections of records with typed properties and multiple views. You can also import a CSV." />}
-      <div className={list?.length ? "divide-y divide-line overflow-hidden rounded-[18px] shadow-[var(--neu-out)]" : "hidden"}>
+      <div className={list?.length ? "divide-y divide-line overflow-hidden rounded-[12px] shadow-[var(--elev)]" : "hidden"}>
         {list?.map(({ p, count, d }) => (
           <button key={p.id} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}>
             <span className="w-5 text-center">{p.icon || "▦"}</span><span className="flex-1 truncate font-medium">{p.title || "Untitled"}</span>
