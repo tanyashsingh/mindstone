@@ -144,7 +144,7 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
           </Popover>
         </div>
       )}
-      <div className="max-h-[70vh] overflow-auto rounded-md border border-line" onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)} role="grid" aria-rowcount={records.length}>
+      <div className="max-h-[70vh] overflow-auto rounded-[18px] bg-bg p-1 shadow-[var(--neu-in)]" onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)} role="grid" aria-rowcount={records.length}>
         <div style={{ width: total + 120 }}>
           <div className="sticky top-0 z-[1] flex border-b border-line bg-sunken text-[12.5px] text-muted" role="row">
             <div className="flex w-10 shrink-0 items-center justify-center"><input type="checkbox" aria-label="Select all" checked={selected.size > 0 && selected.size === records.length} onChange={(e) => setSelected(e.target.checked ? new Set(records.map((r) => r.id)) : new Set())} /></div>
@@ -222,7 +222,7 @@ function BoardView({ database, view, records, ctx, onOpen }: { database: Databas
   return (
     <div className="flex gap-3 overflow-x-auto pb-4">
       {groups.map((g) => (
-        <div key={g.key} className="w-72 shrink-0 rounded-lg bg-sunken p-2" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-record"); if (id) move(id, g.key); }}>
+        <div key={g.key} className="w-72 shrink-0 rounded-[18px] bg-sunken p-2.5 shadow-[var(--neu-in)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-record"); if (id) move(id, g.key); }}>
           <div className="mb-2 flex items-center gap-2 px-1"><Chip color={g.color}>{g.label}</Chip><span className="text-[12px] text-faint">{g.records.length}</span></div>
           <div className="space-y-1.5">
             {g.records.map((r) => (
@@ -244,7 +244,7 @@ function ListView({ database, view, records, ctx, onOpen }: { database: Database
   const title = database.properties.find((p) => p.type === "title")!;
   const shown = database.properties.filter((p) => !view.hidden.includes(p.id) && p.id !== title.id).slice(0, 4);
   return (
-    <div className="divide-y divide-line rounded-md border border-line">
+    <div className="divide-y divide-line overflow-hidden rounded-[18px] shadow-[var(--neu-out)]">
       {records.map((r) => (
         <button key={r.id} onClick={() => onOpen(r)} className="flex w-full items-center gap-4 px-3 py-2 text-left hover:bg-hover">
           <span className="flex-1 truncate font-medium">{recordTitle(database, r)}</span>
@@ -299,7 +299,7 @@ function CalendarDbView({ database, view, records, onOpen }: { database: Databas
         <span className="font-medium">{month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
         <span className="text-[12px] text-faint">by {dp.name}</span>
       </div>
-      <div className="grid grid-cols-7 overflow-hidden rounded-md border border-line">
+      <div className="grid grid-cols-7 overflow-hidden rounded-[18px] shadow-[var(--neu-in)]">
         {days.map((d) => (
           <div key={d} className={cx("min-h-24 border-b border-r border-line p-1", parseISODate(d).getMonth() !== month.getMonth() && "bg-sunken/60")}
             onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-record"); if (id) void repo.updateRecord(id, dp.id, dp.type === "dateRange" ? { start: d } : d); }}>

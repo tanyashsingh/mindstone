@@ -218,7 +218,7 @@ export function Sidebar() {
   const curId = tabs[active]?.route.id;
 
   return (
-    <nav className="relative flex shrink-0 flex-col border-r border-line bg-sunken" style={{ width: sidebarWidth }} aria-label="Sidebar">
+    <nav className="relative my-3 ml-3 flex shrink-0 flex-col rounded-[22px] bg-sunken shadow-[var(--neu-out)]" style={{ width: sidebarWidth }} aria-label="Sidebar">
       <WorkspaceSwitcher />
       <div className="px-2">
         <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg" onClick={() => { set("paletteMode", "all"); set("paletteOpen", true); }}>
@@ -264,7 +264,7 @@ export function Sidebar() {
           <div className="flex items-start gap-2 px-2 py-1 text-[12px] text-faint"><Users size={14} className="mt-0.5 shrink-0" /> Sharing needs a sync server, which is not configured. This workspace is local only.</div>
         </Section>
       </div>
-      <div className="border-t border-line px-2 py-1.5">
+      <div className="mx-2 mb-2 border-t border-line px-0 pt-1.5">
         <NavItem icon={<Trash2 />} label="Trash" kind="trash" />
         <NavItem icon={<Settings />} label="Settings" kind="settings" shortcut="Ctrl+," />
       </div>

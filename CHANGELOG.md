@@ -2,6 +2,7 @@
 
 ## 0.3.0 (unreleased)
 
+- New neumorphic interface: one soft surface per theme, raised cards and buttons that press in, inset fields and wells, the sidebar and context panel as raised islands. Light, dark and a near-black OLED variant (pure black cannot show the shadows).
 - Renamed from REA to **Cairn**, with a new 3D logo (three stacked stones and a light) used for the app icon, favicon, start-up screen and About.
 - Cairn Intelligence can now propose tasks: ask for them in chat ("make a task for my flight tomorrow at 12 am") and a card lists each task with its date and time; nothing is created until you click. Tasks with a time get a reminder.
 - The assistant knows today's date and time, so "tomorrow" and "2 pm" resolve correctly.

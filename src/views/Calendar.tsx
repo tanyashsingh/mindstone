@@ -114,7 +114,7 @@ export default function CalendarView() {
         <button className="btn-outline" onClick={() => setCursor(today())}>Today</button>
         <button className="icon-btn" aria-label="Next" onClick={() => step(1)}><ChevronRight size={16} /></button>
         <span className="flex-1" />
-        <div className="flex rounded-md border border-line p-0.5">{(["day", "week", "month", "agenda"] as Mode[]).map((m) => <button key={m} className={cx("btn h-6 capitalize", mode === m && "bg-active")} onClick={() => setMode(m)}>{m}</button>)}</div>
+        <div className="flex gap-1 rounded-[12px] p-1 shadow-[var(--neu-out-sm)]">{(["day", "week", "month", "agenda"] as Mode[]).map((m) => <button key={m} className={cx("btn h-6 capitalize", mode === m && "bg-active")} onClick={() => setMode(m)}>{m}</button>)}</div>
         <button className="btn" onClick={() => fileRef.current?.click()}><Upload size={14} /> Import .ics</button>
         <button className="btn" onClick={() => downloadBlob(new Blob([toICS(events ?? [])], { type: "text/calendar" }), "rea-calendar.ics")}><Download size={14} /> Export</button>
         <button className="btn-primary" onClick={() => { const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1); void create(d.getTime()); }}><Plus size={14} /> Event</button>
@@ -135,7 +135,7 @@ export default function CalendarView() {
       </div>
 
       {mode === "month" && (
-        <div className="grid flex-1 grid-cols-7 grid-rows-[auto_repeat(6,1fr)] overflow-hidden rounded-md border border-line">
+        <div className="grid flex-1 grid-cols-7 grid-rows-[auto_repeat(6,1fr)] overflow-hidden rounded-[18px] shadow-[var(--neu-in)]">
           {days.slice(0, 7).map((d) => <div key={d} className="border-b border-r border-line px-2 py-1 text-[11.5px] text-faint">{parseISODate(d).toLocaleDateString(undefined, { weekday: "short" })}</div>)}
           {days.map((d) => (
             <div key={d} className={cx("min-h-0 overflow-hidden border-b border-r border-line p-1", parseISODate(d).getMonth() !== parseISODate(cursor).getMonth() && "bg-sunken/60")}
@@ -151,7 +151,7 @@ export default function CalendarView() {
       )}
 
       {(mode === "week" || mode === "day") && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-line">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] shadow-[var(--neu-in)]">
           <div className="flex border-b border-line">
             <div className="w-14 shrink-0" />
             {days.map((d) => (

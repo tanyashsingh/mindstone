@@ -56,7 +56,7 @@ export function RightPanel() {
   const revisions = useLiveQuery(() => (pageId ? db().revisions.where("pageId").equals(pageId).count() : 0), [pageId]);
 
   return (
-    <aside className="flex w-[320px] shrink-0 flex-col border-l border-line bg-sunken" aria-label="Context panel">
+    <aside className="my-3 mr-3 flex w-[320px] shrink-0 flex-col overflow-hidden rounded-[22px] bg-sunken shadow-[var(--neu-out)]" aria-label="Context panel">
       <div className="flex items-center gap-0.5 border-b border-line px-1.5 py-1">
         {TABS.map((t) => <button key={t.id} className={cx("icon-btn", rightTab === t.id && "bg-active text-fg")} title={t.label} aria-label={t.label} aria-pressed={rightTab === t.id} onClick={() => set("rightTab", t.id)}>{t.icon}</button>)}
         <span className="flex-1" />

@@ -36,7 +36,7 @@ test("database records stay consistent across table and board, with filter and s
 
   // Board shows the same record in the right column
   await page.getByRole("button", { name: "Board" }).click();
-  const col = page.locator("div.rounded-lg.bg-sunken").filter({ hasText: "In progress" });
+  const col = page.locator("div.bg-sunken").filter({ hasText: "In progress" });
   await expect(col).toContainText("Banana");
   await noCrash(page);
 });

@@ -14,7 +14,7 @@ export function StatusBar() {
   }[saveState];
   const provider = ai.active === "none" ? "AI off" : `${PROVIDER_LABELS[ai.active]} · ${ai.providers[ai.active].model}`;
   return (
-    <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-line bg-sunken px-2 text-[11.5px] text-muted" role="status">
+    <footer className="flex h-7 shrink-0 items-center gap-4 bg-sunken px-4 text-[11.5px] text-muted" role="status">
       {!sidebarOpen && <button className="icon-btn size-5" title="Show sidebar" onClick={() => set("sidebarOpen", true)}><PanelLeft size={13} /></button>}
       <span className="flex items-center gap-1">{save.icon}{save.text}</span>
       {stats && <span>{stats.words.toLocaleString()} words · {stats.chars.toLocaleString()} characters</span>}
