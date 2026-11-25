@@ -22,3 +22,5 @@ interface ReaBridge {
   dataPath(): Promise<string>;
 }
 interface Window { rea?: ReaBridge }
+/** App version from package.json, injected at build time. */
+declare const __APP_VERSION__: string;

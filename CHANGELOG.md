@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-11-25)
 
 - Playwright end-to-end suite (18 tests) running in the installed Chrome.
 - Fixed: Escape could not close dialogs, because closed popovers swallowed it.

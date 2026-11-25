@@ -230,7 +230,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Text size" desc="Editor font size; use Ctrl + / Ctrl − in the desktop app to zoom the whole interface."><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Text size" /></Row>
           </>}
           {sec === "about" && <div className="space-y-2 text-[13px] text-muted">
-            <p><b className="text-fg">REA</b> 0.1.0. A local-first workspace for notes, tasks, databases and knowledge.</p>
+            <p><b className="text-fg">REA</b> {__APP_VERSION__}. A local-first workspace for notes, tasks, databases and knowledge.</p>
             <p>Runtime: {window.rea ? `Desktop (${window.rea.platform}, Electron ${window.rea.version})` : "Browser"} · Database schema v{DB_SCHEMA_VERSION} · Backup format v{BACKUP_VERSION}</p>
             <p>Built with React, TipTap (ProseMirror), Dexie (IndexedDB), MiniSearch, KaTeX and Mermaid.</p>
           </div>}

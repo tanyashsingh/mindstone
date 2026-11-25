@@ -47,11 +47,11 @@ $env:REA_DEV_URL = "http://localhost:5183"; npx electron .
 
 ```powershell
 npm run build          # type check, web bundle (dist/), Electron bundle (dist-electron/)
-npm run dist:win       # NSIS installer at release\REA Setup 0.1.0.exe
+npm run dist:win       # NSIS installer at release\REA Setup <version>.exe
 ```
 
 The installer is per-user (no admin rights), lets you choose the folder, and is **unsigned**: Windows
-SmartScreen will warn until a code-signing certificate is configured. Silent install: `"REA Setup 0.1.0.exe" /S`.
+SmartScreen will warn until a code-signing certificate is configured. Silent install: `"REA Setup <version>.exe" /S`.
 
 ## Where your data lives
 
