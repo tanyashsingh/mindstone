@@ -21,8 +21,8 @@
 | 7 | Import/export, backup/restore, crash recovery | Done |
 | 8 | Collaboration and sync | Blocked (no backend); architecture is sync-ready |
 | 9 | QA: unit, integration, performance, E2E | 39 unit + 18 E2E tests; accessibility audit pending |
-| 10 | Windows packaging | Done: unsigned NSIS installer, install/launch/uninstall verified |
+| 10 | Windows packaging | Done: unsigned NSIS installer; 0.2.0 released on GitHub |
 
 ## Next iteration
-1. Publish the installer as a GitHub Release.
+1. Columns, synced and button blocks; OCR for scanned PDFs.
 2. Code-signing certificate (owner decision) and an update channel (owner approval required).

@@ -43,6 +43,10 @@ npm run build:electron
 $env:REA_DEV_URL = "http://localhost:5183"; npx electron .
 ```
 
+## Download
+
+The latest Windows installer is on the [Releases page](https://github.com/tanyashsingh/notion_rea/releases/latest).
+
 ## Production build and Windows installer
 
 ```powershell
@@ -62,6 +66,16 @@ SmartScreen will warn until a code-signing certificate is configured. Silent ins
 
 Uninstalling keeps your data. Delete `%APPDATA%\REA` to remove it. Use **Settings → Backup & restore** to
 move a workspace between machines.
+
+## Releasing
+
+```powershell
+npm version minor --no-git-tag-version   # bump package.json, then update CHANGELOG.md
+npm run check:all
+npm run dist:win
+git tag -a vX.Y.Z -m "REA X.Y.Z"; git push --follow-tags
+& "C:\Program Files\GitHub CLI\gh.exe" release create vX.Y.Z "release\REA Setup X.Y.Z.exe" --notes-file notes.md
+```
 
 ## Updating
 
