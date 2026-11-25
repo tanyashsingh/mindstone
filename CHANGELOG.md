@@ -3,6 +3,10 @@
 ## 0.3.0 (unreleased)
 
 - Renamed from REA to **Cairn**, with a new 3D logo (three stacked stones and a light) used for the app icon, favicon, start-up screen and About.
+- Cairn Intelligence can now propose tasks: ask for them in chat ("make a task for my flight tomorrow at 12 am") and a card lists each task with its date and time; nothing is created until you click. Tasks with a time get a reminder.
+- The assistant knows today's date and time, so "tomorrow" and "2 pm" resolve correctly.
+- Fixed: answers printed a literal "[n]" and showed unrelated sources. Sources now appear only when the answer cites or visibly uses them.
+- Empty states for the knowledge graph and Home's recent pages; no stray border on an empty Databases list; Files shows "local storage".
 - Data, backups and settings carry over: internal identifiers are unchanged, and the desktop app keeps using an existing `%APPDATA%\REA` folder.
 
 ## 0.2.0 (2026-11-25)

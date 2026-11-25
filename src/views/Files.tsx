@@ -61,7 +61,7 @@ export default function Files() {
         <input ref={input} type="file" multiple hidden onChange={(e) => { void upload([...(e.target.files ?? [])]); e.target.value = ""; }} />
       </div>
       <p className="mb-5 text-[13px] text-muted">
-        {files?.length ?? 0} files · {fmtBytes(total)} in this workspace{quota?.usage !== undefined && quota.quota ? ` · ${fmtBytes(quota.usage)} of ${fmtBytes(quota.quota)} browser storage used` : ""}. Drop files anywhere here. Max 100 MB each; executables are blocked.
+        {files?.length ?? 0} files · {fmtBytes(total)} in this workspace{quota?.usage !== undefined && quota.quota ? ` · ${fmtBytes(quota.usage)} of ${fmtBytes(quota.quota)} local storage used` : ""}. Drop files anywhere here. Max 100 MB each; executables are blocked.
       </p>
       <div className="mb-3 flex gap-2">
         <input className="input w-64" placeholder="Search files" value={q} onChange={(e) => setQ(e.target.value)} />

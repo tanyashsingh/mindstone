@@ -42,6 +42,7 @@ PDF, Word (.docx), text and HTML attachments have their text extracted on upload
 Choose Claude, OpenAI, Gemini, Ollama or an OpenAI-compatible local server in Settings. Cloud use requires
 an explicit opt-in. Chat about a page or your whole workspace with cited sources, rewrite or translate a
 selection with a side-by-side preview, turn replies into tasks or pages, and build semantic-search embeddings.
+Ask for tasks in plain language ("remind me to call Sam tomorrow at 3pm"): the assistant proposes them as a card with dates, times and priorities, and you create them with one click.
 
 ## Data ownership
 Full backups (one JSON file, attachments included), Markdown ZIP export, imports from Markdown, HTML, text,

@@ -152,6 +152,13 @@ export default function Graph({ focusId }: { focusId?: string }) {
         <label className="flex items-center gap-1.5"><input type="checkbox" checked={orphansOnly} onChange={(e) => setOrphansOnly(e.target.checked)} /> Orphans only</label>
       </div>
       <div className="relative min-h-0 flex-1">
+        {graph && graph.nodes.length === 0 && (
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
+            <Network size={30} className="text-faint" />
+            <div className="font-medium">{filter || orphansOnly ? "No pages match" : "Nothing to map yet"}</div>
+            <div className="max-w-sm text-[13px] text-muted">{filter || orphansOnly ? "Clear the filter or untick “Orphans only”." : "Every page appears here as a dot. Link pages with [[ and nest them to see the connections."}</div>
+          </div>
+        )}
         <canvas ref={canvas} className={cx("h-full w-full", hover ? "cursor-pointer" : "cursor-grab")} aria-label="Knowledge graph canvas. Use the filter box to find pages."
           onWheel={(e) => { const v = view.current; v.k = Math.max(0.15, Math.min(4, v.k * (e.deltaY < 0 ? 1.1 : 0.9))); }}
           onMouseMove={(e) => { if (e.buttons === 1) { view.current.x += e.movementX; view.current.y += e.movementY; } else setHover(hit(e)); }}

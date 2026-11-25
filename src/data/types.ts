@@ -241,7 +241,7 @@ export interface SavedSearch { id: ID; workspaceId: ID; name: string; query: str
 // ---- AI ---------------------------------------------------------------------
 export type AiProviderId = "anthropic" | "openai" | "gemini" | "ollama" | "openaiCompatible";
 export interface AiConversation { id: ID; workspaceId: ID; title: string; pageId: ID | null; createdAt: number; updatedAt: number }
-export interface Citation { pageId: ID; title: string; snippet: string; attachmentId?: ID }
+export interface Citation { pageId: ID; title: string; snippet: string; attachmentId?: ID; /** Full excerpt given to the model (for grounding checks). */ excerpt?: string }
 export interface AiMessage {
   id: ID;
   conversationId: ID;
@@ -253,6 +253,8 @@ export interface AiMessage {
   inputTokens: number;
   outputTokens: number;
   createdAt: number;
+  /** Set once the user creates the tasks the assistant proposed in this message. */
+  appliedAt?: number;
 }
 export interface Embedding {
   id: ID; // `${pageId}:${chunkIndex}`

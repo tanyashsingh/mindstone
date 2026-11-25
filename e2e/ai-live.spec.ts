@@ -106,6 +106,44 @@ test("answers from an uploaded PDF and cites the file", async ({ page }) => {
   await expect(main(page).getByRole("button", { name: /\[\d\] 📎 warranty\.pdf/ })).toBeVisible();
 });
 
+test("asking for tasks yields a proposal that creates real tasks after confirmation", async ({ page }) => {
+  await boot(page);
+  await useOllama(page);
+  await nav(page, "Cairn Intelligence");
+  await main(page).getByLabel("Context").selectOption("general");
+  await main(page).getByLabel("Message").fill("can you make a task for tomorrow , i have flight at 12 am and then train at 2 pm");
+  await main(page).getByLabel("Message").press("Enter");
+  const card = main(page).getByRole("group", { name: "Proposed tasks" });
+  await expect(card).toBeVisible({ timeout: 120_000 });
+  await expect(main(page).getByText("cairn-tasks")).toHaveCount(0); // raw JSON is never shown
+  expect(await idb(page, "tasks")).toHaveLength(0); // nothing is created before confirming
+  const create = card.getByRole("button", { name: /^Create \d+ tasks?$/ });
+  const n = Number((await create.innerText()).match(/\d+/)![0]);
+  await create.click();
+  await expect(card).toContainText("Added to Tasks");
+  const tasks = await idb<{ title: string; dueDate: string | null; reminderAt: number | null }>(page, "tasks");
+  expect(tasks).toHaveLength(n);
+  const tomorrow = await page.evaluate(() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; });
+  expect(tasks.some((t) => t.dueDate === tomorrow)).toBe(true);
+  console.log("PROPOSED", JSON.stringify(tasks.map((t) => [t.title, t.dueDate, t.reminderAt && new Date(t.reminderAt).toTimeString().slice(0, 5)])));
+});
+
+test("no placeholder citations, and only cited sources are shown", async ({ page }) => {
+  await boot(page);
+  await useOllama(page);
+  await nav(page, "Cairn Intelligence");
+  await main(page).getByLabel("Context").selectOption("workspace");
+  await main(page).getByLabel("Message").fill("Suggest a project plan from my notes");
+  await main(page).getByLabel("Message").press("Enter");
+  const answer = main(page).locator(".rea-editor").last();
+  await expect(answer).not.toBeEmpty({ timeout: 120_000 });
+  await expect(main(page).getByRole("button", { name: "Copy" })).toBeVisible({ timeout: 120_000 }); // reply finished
+  const text = await answer.innerText();
+  expect(text).not.toContain("[n]");
+  const chips = await main(page).locator("button.chip.c-blue").allInnerTexts();
+  for (const c of chips) expect(text).toContain(c.match(/^\[\d+\]/)![0]);
+});
+
 test("a stopped server produces a clear error, not a crash", async ({ page }) => {
   await boot(page);
   await useOllama(page);

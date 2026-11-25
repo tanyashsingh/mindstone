@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { Sparkles, Plus, Send, Square, Trash2, ListChecks, Database as DbIcon, Copy } from "lucide-react";
+import { Sparkles, Plus, Send, Square, Trash2, ListChecks, Database as DbIcon, Copy, CheckSquare, Check, Clock } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { AiConversation, AiMessage, Citation } from "@/data/types";
@@ -10,20 +10,65 @@ import { useApp } from "@/store/app";
 import { useSettings } from "@/store/settings";
 import { activeProvider, chat, requiresCloudConsent } from "@/ai/client";
 import { PROVIDER_LABELS } from "@/ai/providers";
-import { SYSTEM_PROMPT, contextBlock, indexWorkspace, retrieve } from "@/ai/rag";
+import { contextBlock, indexWorkspace, retrieve } from "@/ai/rag";
+import { groundedSources, parseTaskProposal, reminderAt, systemPrompt, type ProposedTask } from "@/ai/actions";
 import { confirmDialog, EmptyState } from "@/components/ui";
-import { cx, relTime, uid } from "@/lib/util";
+import { cx, fmtDate, relTime, uid } from "@/lib/util";
+import { PRIORITY } from "./Tasks";
 
 type Scope = "general" | "page" | "workspace";
 
-function Markdown({ text, citations }: { text: string; citations: Citation[] }) {
+/** Confirmation card for tasks the assistant proposed. Nothing is created until the user clicks. */
+function TaskProposal({ tasks, message }: { tasks: ProposedTask[]; message?: AiMessage }) {
+  const ws = useApp((s) => s.workspaceId)!;
+  const [busy, setBusy] = useState(false);
+  const applied = !!message?.appliedAt;
+  const create = async () => {
+    setBusy(true);
+    try {
+      for (const t of tasks) {
+        await repo.createTask(ws, { title: t.title, dueDate: t.due, reminderAt: reminderAt(t), priority: t.priority, description: [t.notes, "Created from Cairn Intelligence"].filter(Boolean).join("\n\n") });
+      }
+      if (message) await db().aiMessages.update(message.id, { appliedAt: Date.now() });
+      useApp.getState().toast(`Created ${tasks.length} task${tasks.length === 1 ? "" : "s"}`, "success", { label: "View", run: () => useApp.getState().open({ kind: "tasks" }) });
+    } finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-3 rounded-lg border border-accent/40 bg-accent-soft p-3" role="group" aria-label="Proposed tasks">
+      <div className="mb-2 flex items-center gap-2 text-[13px] font-medium"><CheckSquare size={15} className="text-accent" /> {applied ? "Tasks created" : `Proposed task${tasks.length === 1 ? "" : "s"}: review before creating`}</div>
+      <ul className="space-y-1">
+        {tasks.map((t, i) => (
+          <li key={i} className="flex items-center gap-2 rounded-md bg-elev px-2 py-1.5 text-[13.5px]">
+            <span className="flex-1">{t.title}</span>
+            {t.priority !== "none" && <span className={cx("chip", `c-${PRIORITY[t.priority].color}`)}>{PRIORITY[t.priority].label}</span>}
+            {t.due && <span className="text-[12px] text-muted">{fmtDate(t.due, { weekday: "short", month: "short", day: "numeric" })}</span>}
+            {t.time && <span className="flex items-center gap-1 text-[12px] text-muted"><Clock size={12} />{t.time}</span>}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 flex items-center gap-2">
+        {applied
+          ? <span className="flex items-center gap-1 text-[12.5px] text-success"><Check size={14} /> Added to Tasks{tasks.some((t) => t.time) ? ", with reminders at the given times" : ""}.</span>
+          : <button className="btn-primary" disabled={busy || !message} onClick={create}>Create {tasks.length} task{tasks.length === 1 ? "" : "s"}</button>}
+        {!applied && tasks.some((t) => t.time) && <span className="text-[12px] text-faint">Tasks with a time get a reminder then.</span>}
+      </div>
+    </div>
+  );
+}
+
+function Markdown({ text, citations, message }: { text: string; citations: Citation[]; message?: AiMessage }) {
   const open = useApp((s) => s.open);
-  const html = DOMPurify.sanitize(marked.parse(text, { async: false }) as string);
+  const { display, tasks } = parseTaskProposal(text);
+  const html = DOMPurify.sanitize(marked.parse(display, { async: false }) as string);
+  // Show sources the reply cites or visibly draws on, so unrelated retrieval results don't look like evidence.
+  const used = new Set(groundedSources(display, citations));
+  const shown = citations.map((c, i) => ({ c, i })).filter(({ i }) => used.has(i));
   return (
     <div>
       <div className="rea-editor !pb-0 !text-[14px]" dangerouslySetInnerHTML={{ __html: html }} />
-      {citations.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">{citations.map((c, i) => <button key={i} className="chip c-blue" title={c.snippet} onClick={() => open(c.pageId ? { kind: "page", id: c.pageId } : { kind: "files" })}>[{i + 1}] {c.attachmentId ? "📎 " : ""}{c.title}</button>)}</div>
+      {tasks.length > 0 && <TaskProposal tasks={tasks} message={message} />}
+      {shown.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">{shown.map(({ c, i }) => <button key={i} className="chip c-blue" title={c.snippet} onClick={() => open(c.pageId ? { kind: "page", id: c.pageId } : { kind: "files" })}>[{i + 1}] {c.attachmentId ? "📎 " : ""}{c.title}</button>)}</div>
       )}
     </div>
   );
@@ -83,7 +128,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
     setInput(""); setBusy(true); setStreaming("");
     abort.current = new AbortController();
     try {
-      const res = await chat(SYSTEM_PROMPT, [...history, { role: "user", content: context ? `${context}\n\nQuestion: ${text}` : text }], (t) => setStreaming((s) => s + t), abort.current.signal);
+      const res = await chat(systemPrompt(), [...history, { role: "user", content: context ? `${context}\n\nQuestion: ${text}` : text }], (t) => setStreaming((s) => s + t), abort.current.signal);
       await db().aiMessages.add({ id: uid(), conversationId: cid, role: "assistant", content: res.text, provider: res.provider, model: res.servedBy || res.model, citations, inputTokens: res.inputTokens, outputTokens: res.outputTokens, createdAt: Date.now() });
       await db().aiConversations.update(cid, { updatedAt: Date.now() });
       await repo.logActivity(ws, "ai", cid, "asked", text.slice(0, 80));
@@ -142,7 +187,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
               <div key={m.id} className={cx("group", m.role === "user" && "flex justify-end")}>
                 {m.role === "user" ? <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-accent-soft px-3 py-2 text-[14px]">{m.content}</div> : (
                   <div>
-                    <Markdown text={m.content} citations={m.citations} />
+                    <Markdown text={m.content} citations={m.citations} message={m} />
                     <div className="mt-1 flex gap-1 text-[11.5px] text-faint opacity-0 group-hover:opacity-100">
                       <span className="mr-2">{m.model} · {m.inputTokens + m.outputTokens} tokens</span>
                       <button className="btn h-6" onClick={() => void navigator.clipboard.writeText(m.content)}><Copy size={12} /> Copy</button>

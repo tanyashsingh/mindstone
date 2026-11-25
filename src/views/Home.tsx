@@ -186,6 +186,7 @@ export default function Home() {
           </Card>
           <div className="grid grid-cols-2 gap-3">
             <Card title="Recent pages" icon={<Clock />}>
+              {data?.recent.length === 0 && <div className="text-[13px] text-faint">Pages you open appear here. Press Ctrl+N to start one.</div>}
               {data?.recent.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-[13px] hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center">{p.icon || "📄"}</span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-[11px] text-faint">{relTime(p.lastOpenedAt)}</span></button>)}
             </Card>
             <Card title="Pinned" icon={<Star />}>

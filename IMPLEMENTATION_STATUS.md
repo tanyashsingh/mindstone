@@ -66,7 +66,9 @@ Last updated: 2026-11-25.
 | Provider layer: Claude (SDK, server-side refusal fallback), OpenAI, Gemini, Ollama, OpenAI-compatible | Tested (mocked HTTP); Ollama verified live (llama3.2, nomic-embed-text); cloud providers not run live (no keys) |
 | Chat with history, page-aware and workspace-aware modes, citations, stop, token usage | Verified live (Ollama) |
 | Writing tools with preview before replace, undoable | Verified live (Summarize, replace, Ctrl+Z) |
-| Tasks from replies (confirmed), save reply as page | Implemented |
+| Tasks from chat: the model proposes a validated `cairn-tasks` block, shown as a confirmation card (date, time, priority, reminder) | Tested (unit) + verified live with llama3.2, 3/3 runs on the user's own request |
+| Sources shown only when cited or visibly used (grounding check) | Tested (unit + live) |
+| Save reply as page; create tasks from list items (confirmed) | Implemented |
 | RAG: chunking, embeddings, hybrid retrieval, untrusted-content framing | Tested (helpers); verified live: answer cites the right page |
 | Cloud opt-in, per-request consent, local-only mode | Implemented |
 | PDF, Word (.docx), text and HTML attachments: text extracted on upload, found by Ctrl+K and used (with 📎 citations) by AI | Tested (unit + E2E + live AI + desktop). Scanned PDFs without a text layer and legacy .doc are not supported (no OCR) |

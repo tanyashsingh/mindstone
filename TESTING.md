@@ -36,15 +36,16 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 | `tests/data.test.ts` | Page nesting and cycle prevention, save + backlinks + tags + revisions, trash/restore/purge, lock, duplicate, database filter/sort/group across views, recurring tasks and dependency cycles, backup/restore round-trip and validation, search |
 | `tests/ai.test.ts` | Provider failure handling (missing key, missing model, unreachable server, 401/429), OpenAI and Ollama streaming parsers, Claude embeddings refusal, RAG chunking and untrusted-source framing, ZIP writer |
 | `tests/extract.test.ts` | Word extraction (stored and deflated ZIP), entities, HTML stripping, unsupported types, attachments indexed for search, corrupt files recorded as unreadable |
+| `tests/actions.test.ts` | Task proposal parsing and validation (dates, 12-hour times, priorities, caps), system prompt content, citation and grounded-source selection |
 | `tests/perf.test.ts` | 3,000 pages + 10,000 records: index build, query latency, filter + sort |
 
 IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses a fresh database.
 
 ## Latest results (2026-11-25)
 
-- Unit: 48 / 48 passing; type check clean.
+- Unit: 56 / 56 passing; type check clean.
 - End-to-end: 21 / 21 passing (the opt-in live AI and screenshot tests are skipped by default).
-- Live AI (Ollama 0.40.18, llama3.2): 5 / 5 passing, including an answer drawn from an uploaded PDF.
+- Live AI (Ollama 0.40.18, llama3.2): 7 / 7 passing, including an answer drawn from an uploaded PDF, a task proposal from a natural request, and no placeholder citations.
 - Desktop (Electron): 1 / 1 passing.
 - Performance (Node + fake-indexeddb, slower than Chromium): index of 13,001 documents built in 170 ms,
   search query 5.2 ms, filter + sort of 10,000 records 6 ms.
