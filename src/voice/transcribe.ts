@@ -2,7 +2,9 @@
  * Local transcription front-end. Decodes any audio Chromium can play to 16 kHz mono, then runs Whisper
  * in a worker. Nothing is sent over the network: the model and runtime ship with the app.
  */
-export interface Segment { text: string; start: number; end: number | null }
+import { attributeSpeakers } from "./speakers";
+
+export interface Segment { text: string; start: number; end: number | null; speaker?: "left" | "right" }
 export interface Transcript { text: string; segments: Segment[]; seconds: number; device: string }
 
 const SAMPLE_RATE = 16000;
@@ -54,15 +56,38 @@ export async function decodeAudio(blob: Blob): Promise<Float32Array> {
   return (await off.startRendering()).getChannelData(0);
 }
 
-export async function transcribe(blob: Blob, opts: { language?: string | null } = {}): Promise<Transcript> {
-  const audio = await decodeAudio(blob);
+/** Both channels at 16 kHz, for recordings that keep the microphone and the computer audio apart. */
+export async function decodeStereo(blob: Blob): Promise<[Float32Array, Float32Array]> {
+  const ctx = new OfflineAudioContext(2, 1, SAMPLE_RATE);
+  const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+  if (buf.duration > MAX_SECONDS) throw new Error("Recordings longer than three hours can't be transcribed");
+  const off = new OfflineAudioContext(2, Math.ceil(buf.duration * SAMPLE_RATE), SAMPLE_RATE);
+  const src = off.createBufferSource();
+  src.buffer = buf;
+  src.connect(off.destination);
+  src.start();
+  const out = await off.startRendering();
+  const right = out.numberOfChannels > 1 ? out.getChannelData(1) : out.getChannelData(0);
+  return [out.getChannelData(0), right];
+}
+
+export async function transcribe(blob: Blob, opts: { language?: string | null; speakers?: boolean } = {}): Promise<Transcript> {
+  let channels: [Float32Array, Float32Array] | null = null;
+  let audio: Float32Array;
+  if (opts.speakers) {
+    channels = await decodeStereo(blob);
+    audio = new Float32Array(channels[0].length);
+    for (let i = 0; i < audio.length; i++) audio[i] = (channels[0][i]! + channels[1][i]!) / 2;
+  } else audio = await decodeAudio(blob);
+  const seconds = audio.length / SAMPLE_RATE;
   const device = await start();
   const id = ++seq;
   const result = await new Promise<Omit<Transcript, "seconds" | "device">>((resolve, reject) => {
     pending.set(id, { resolve, reject });
     worker!.postMessage({ type: "transcribe", id, audio, language: opts.language ?? null }, [audio.buffer]);
   });
-  return { ...result, seconds: audio.length / SAMPLE_RATE, device };
+  const segments = channels ? attributeSpeakers(result.segments, channels[0], channels[1], SAMPLE_RATE) : result.segments;
+  return { ...result, segments, seconds, device };
 }
 
 export function fmtClock(s: number): string {

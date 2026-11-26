@@ -179,6 +179,11 @@ export default function SettingsView({ section }: { section?: string }) {
                 {[["", "Detect automatically"], ["en", "English"], ["hi", "Hindi"], ["es", "Spanish"], ["fr", "French"], ["de", "German"], ["pt", "Portuguese"], ["ja", "Japanese"], ["zh", "Chinese"], ["ar", "Arabic"], ["bn", "Bengali"], ["ta", "Tamil"], ["te", "Telugu"], ["mr", "Marathi"], ["ur", "Urdu"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </Row>
+            <Row label="Summaries and action items" desc="Which model writes recording summaries. Local keeps meetings on this computer (needs Ollama running with the model set in AI providers).">
+              <select className="input w-56" aria-label="Summary model" value={s.voice.summaries} onChange={(e) => update((x) => ({ ...x, voice: { ...x.voice, summaries: e.target.value as "active" | "local" } }))}>
+                <option value="active">Active AI provider</option><option value="local">Local model (Ollama)</option>
+              </select>
+            </Row>
             {window.rea && <Row label="Include computer audio by default" desc="For meeting notes: also record what your computer plays, such as the other people on a call. You can change it per recording."><Toggle checked={s.voice.systemAudio} onChange={(v) => update((x) => ({ ...x, voice: { ...x.voice, systemAudio: v } }))} label="Include computer audio" /></Row>}
             <Row label="Speech model" desc="Whisper base (OpenAI, Apache-2.0), running on this computer. Audio and transcripts never leave your device."><span className="text-[12px] text-faint">Built in</span></Row>
             <p className="mt-3 text-[12.5px] text-muted">Dictate with Ctrl+Shift+M or the microphone button on a page. Type /voice note or /meeting notes to record, then transcribe and summarize. Transcripts are searchable with Ctrl+K and used by Mindstone Intelligence.</p>

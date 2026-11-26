@@ -157,3 +157,32 @@ test("a stopped server produces a clear error, not a crash", async ({ page }) =>
   await main(page).getByLabel("Message").press("Enter");
   await expect(main(page).getByText(/Could not reach Ollama/)).toBeVisible({ timeout: 30_000 });
 });
+
+test("recording summaries can use the local model even when AI is off", async ({ page }) => {
+  await boot(page);
+  await nav(page, "Settings");
+  await main(page).getByRole("button", { name: "Voice", exact: true }).click();
+  await main(page).getByLabel("Summary model").selectOption("local");
+  await newPage(page, "Call with Priya");
+  // A recorded meeting whose transcript is already stored (speech-to-text is covered by voice.spec.ts).
+  await page.evaluate(async () => {
+    const { db } = await import("/src/data/db.ts");
+    const { liveEditors } = await import("/src/editor/review.ts");
+    const { useApp } = await import("/src/store/app.ts");
+    const ws = useApp.getState().workspaceId!;
+    const id = "att-meeting-1";
+    await db().attachments.add({ id, workspaceId: ws, pageId: null, name: "call.webm", mime: "audio/webm", size: 4, blob: new Blob(["0000"], { type: "audio/webm" }), createdAt: Date.now(),
+      text: "We agreed to move the launch to March 3. Priya will send the revised budget by Friday.", textStatus: "ok", speakers: { left: "Tanya", right: "Priya" },
+      segments: [{ text: "We agreed to move the launch to March 3.", start: 0, end: 4, speaker: "left" }, { text: "I will send the revised budget by Friday.", start: 4, end: 8, speaker: "right" }] });
+    const ed = [...liveEditors.values()][0]!;
+    ed.chain().focus().insertContent({ type: "voiceNote", attrs: { attachmentId: id, title: "Meeting notes" } }).run();
+  });
+  const block = page.locator(".rea-editor .node-voiceNote").first();
+  await block.getByRole("button", { name: /Transcript/ }).click();
+  await expect(block.locator('p[data-speaker="right"]')).toContainText("Priya:");
+  page.once("dialog", () => {});
+  await block.getByRole("button", { name: "Summarize" }).click();
+  await expect(page.locator(".rea-editor").first().getByRole("heading", { name: /Summary/i })).toBeVisible({ timeout: 180_000 });
+  await expect(page.locator(".rea-editor").first()).toContainText(/budget/i);
+  await expect(page.getByRole("status")).toContainText("AI off"); // the active provider was never switched on
+});

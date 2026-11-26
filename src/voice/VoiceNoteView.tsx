@@ -11,7 +11,8 @@ import { useSettings } from "@/store/settings";
 import { MicError, startRecording, type Recording } from "./recorder";
 import { fmtClock, transcribe, warmUp } from "./transcribe";
 import { LevelMeter, useTimer } from "./VoiceUI";
-import { activeProvider, chat } from "@/ai/client";
+import { DEFAULT_SPEAKERS, labelledLines } from "./speakers";
+import { activeProvider, chat, summaryProvider } from "@/ai/client";
 import { parseTaskProposal, reminderAt, systemPrompt } from "@/ai/actions";
 import { confirmDialog } from "@/components/ui";
 import { cx } from "@/lib/util";
@@ -22,7 +23,7 @@ type Phase = "idle" | "recording" | "paused" | "saving" | "transcribing" | "done
 export async function transcribeAttachment(id: string): Promise<void> {
   const a = await db().attachments.get(id);
   if (!a) throw new Error("Recording not found");
-  const t = await transcribe(a.blob, { language: useSettings.getState().s.voice.language || null });
+  const t = await transcribe(a.blob, { language: useSettings.getState().s.voice.language || null, speakers: !!a.speakers });
   await patch(db().attachments, id, { text: t.text, segments: t.segments, textStatus: t.text ? "ok" : "empty" });
 }
 
@@ -90,16 +91,18 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
     const file = new File([blob], `${title} ${stamp}.webm`.replace(/[\\/:*?"<>|]/g, "-"), { type: blob.type || "audio/webm" });
     const pageId = (editor.storage as unknown as { voiceNote?: { pageId: string | null } }).voiceNote?.pageId ?? null;
     const a = await repo.addAttachment(ws, pageId, file);
+    if (r.systemAudio) await patch(db().attachments, a.id, { speakers: { ...DEFAULT_SPEAKERS } });
     updateAttributes({ attachmentId: a.id, duration: Math.round(secs), recordedAt: Date.now() });
     await runTranscription(a.id);
   };
 
   const summarize = async () => {
     if (!att?.text) return;
-    if (!activeProvider()) return useApp.getState().toast("Choose an AI provider in Settings → AI providers to summarize.", "error");
+    if (!summaryProvider() && !activeProvider()) return useApp.getState().toast("Choose an AI provider in Settings → AI providers to summarize.", "error");
     setSummarizing(true);
     try {
-      const res = await chat(systemPrompt(), [{ role: "user", content: `${SUMMARY_PROMPT}\n\n<transcript>\n${att.text.slice(0, 60000)}\n</transcript>` }], () => {});
+      const transcript = att.speakers && att.segments?.length ? labelledLines(att.segments, att.speakers, fmtClock).join("\n") : att.text;
+      const res = await chat(systemPrompt(), [{ role: "user", content: `${SUMMARY_PROMPT}\n\n<transcript>\n${transcript.slice(0, 60000)}\n</transcript>` }], () => {}, undefined, summaryProvider());
       const { display, tasks } = parseTaskProposal(res.text);
       const html = DOMPurify.sanitize(marked.parse(display, { async: false }) as string);
       const pos = typeof getPos === "function" ? getPos() : undefined;
@@ -117,7 +120,7 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
     if (!att?.text) return;
     const pos = typeof getPos === "function" ? getPos() : undefined;
     if (typeof pos !== "number") return;
-    const paras = (att.segments?.length ? att.segments.map((s) => `[${fmtClock(s.start)}] ${s.text}`) : att.text.split(/\n+/)).map((t) => ({ type: "paragraph", content: t ? [{ type: "text", text: t }] : [] }));
+    const paras = (att.segments?.length ? labelledLines(att.segments, att.speakers, fmtClock) : att.text.split(/\n+/)).map((t) => ({ type: "paragraph", content: t ? [{ type: "text", text: t }] : [] }));
     editor.chain().focus().insertContentAt(pos + node.nodeSize, paras).run();
   };
 
@@ -178,10 +181,18 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
                 {editable && <button className="btn" onClick={insertTranscript}><FileText size={14} /> Insert transcript</button>}
                 {editable && <button className="btn-outline" disabled={summarizing} onClick={() => void summarize()}>{summarizing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Summarize</button>}
               </div>
+              {showText && att.speakers && editable && (
+                <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-muted">Speakers:
+                  {(["left", "right"] as const).map((k) => (
+                    <input key={k} className="input h-7 w-36" aria-label={k === "left" ? "Name for the microphone speaker" : "Name for the computer audio speaker"} defaultValue={att.speakers![k]}
+                      onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== att.speakers![k]) void patch(db().attachments, att.id, { speakers: { ...att.speakers!, [k]: v.slice(0, 40) } }); }} />
+                  ))}
+                </div>
+              )}
               {showText && (
                 <div className="max-h-72 space-y-1 overflow-y-auto rounded-[10px] bg-sunken p-3 text-[13.5px] leading-relaxed shadow-[var(--inset)]">
                   {(att.segments?.length ? att.segments : [{ text: att.text ?? "", start: 0, end: null }]).map((s, i) => (
-                    <p key={i}><span className="mr-2 font-mono text-[11.5px] text-faint">{fmtClock(s.start)}</span>{s.text}</p>
+                    <p key={i} data-speaker={s.speaker ?? ""}><span className="mr-2 font-mono text-[11.5px] text-faint">{fmtClock(s.start)}</span>{att.speakers && s.speaker && <b className={cx("mr-1 font-medium", s.speaker === "left" ? "text-accent" : "text-warning")}>{att.speakers[s.speaker]}:</b>}{s.text}</p>
                   ))}
                 </div>
               )}

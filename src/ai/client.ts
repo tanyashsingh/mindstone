@@ -30,22 +30,29 @@ export async function deleteApiKey(p: AiProviderId) {
   else sessionKeys.delete(p);
 }
 
-export function activeProvider() {
+export function activeProvider(override?: AiProviderId) {
   const ai = useSettings.getState().s.ai;
-  if (ai.active === "none") return null;
-  return { id: ai.active, cfg: ai.providers[ai.active], isLocal: LOCAL_PROVIDERS.includes(ai.active) };
+  const id = override ?? ai.active;
+  if (id === "none") return null;
+  return { id, cfg: ai.providers[id], isLocal: LOCAL_PROVIDERS.includes(id) };
+}
+
+/** Provider for recording summaries: the local model when Settings → Voice asks for it, otherwise the active one. */
+export function summaryProvider(): AiProviderId | undefined {
+  return useSettings.getState().s.voice.summaries === "local" ? "ollama" : undefined;
 }
 
 /** True when sending content requires the cloud opt-in. */
-export function requiresCloudConsent(): boolean {
-  const p = activeProvider();
+export function requiresCloudConsent(override?: AiProviderId): boolean {
+  const p = activeProvider(override);
   return !!p && !p.isLocal && !useSettings.getState().s.ai.allowCloud;
 }
 
-export async function chat(system: string, messages: ChatMsg[], onText: (t: string) => void, signal?: AbortSignal): Promise<ChatResult & { provider: AiProviderId; model: string }> {
-  const p = activeProvider();
+export async function chat(system: string, messages: ChatMsg[], onText: (t: string) => void, signal?: AbortSignal, provider?: AiProviderId): Promise<ChatResult & { provider: AiProviderId; model: string }> {
+  const p = activeProvider(provider);
   if (!p) throw new AiError("No AI provider is enabled. Choose one in Settings → AI providers.", "config");
-  if (requiresCloudConsent()) throw new AiError("Cloud AI is off. Allow cloud providers in Settings → AI before sending content off this device.", "config");
+  if (provider && !p.cfg.model) throw new AiError("Set a model for Ollama in Settings → AI providers to summarize locally.", "config");
+  if (requiresCloudConsent(provider)) throw new AiError("Cloud AI is off. Allow cloud providers in Settings → AI before sending content off this device.", "config");
   guardBegin(p.isLocal);
   const req = { provider: p.id, model: p.cfg.model, baseUrl: p.cfg.baseUrl, system, messages };
   const res = await chatRaw(p, req, onText, signal);

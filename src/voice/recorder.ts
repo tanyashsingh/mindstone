@@ -9,6 +9,7 @@ export interface Recording {
   resume(): void;
   level(): number; // 0..1, for a meter
   elapsed(): number; // seconds recorded, excluding pauses
+  /** True when the computer's audio was captured; it is then on the right channel and the microphone on the left. */
   readonly systemAudio: boolean;
 }
 
@@ -28,8 +29,11 @@ export async function startRecording(opts: { systemAudio?: boolean } = {}): Prom
   const analyser = ctx.createAnalyser();
   analyser.fftSize = 512;
   const micNode = ctx.createMediaStreamSource(mic);
-  micNode.connect(dest);
   micNode.connect(analyser);
+  // Mono "funnel" nodes: downmix each source to one channel so it can be placed on its own side.
+  const mono = () => { const g = ctx.createGain(); g.channelCount = 1; g.channelCountMode = "explicit"; g.channelInterpretation = "speakers"; return g; };
+  const micMono = mono();
+  micNode.connect(micMono);
   const extra: MediaStream[] = [];
   let systemAudio = false;
   if (opts.systemAudio && navigator.mediaDevices.getDisplayMedia) {
@@ -38,13 +42,20 @@ export async function startRecording(opts: { systemAudio?: boolean } = {}): Prom
       display.getVideoTracks().forEach((t) => t.stop()); // audio only
       if (display.getAudioTracks().length) {
         const sys = ctx.createMediaStreamSource(new MediaStream(display.getAudioTracks()));
-        sys.connect(dest);
         sys.connect(analyser);
+        const sysMono = mono();
+        sys.connect(sysMono);
+        const merger = ctx.createChannelMerger(2);
+        micMono.connect(merger, 0, 0); // left: you
+        sysMono.connect(merger, 0, 1); // right: the call
+        dest.channelCount = 2;
+        merger.connect(dest);
         systemAudio = true;
       }
       extra.push(display);
     } catch { /* user declined or not supported: microphone only */ }
   }
+  if (!systemAudio) micMono.connect(dest);
   const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"].find((m) => MediaRecorder.isTypeSupported(m)) ?? "";
   const rec = new MediaRecorder(dest.stream, mime ? { mimeType: mime, audioBitsPerSecond: 64000 } : undefined);
   const parts: Blob[] = [];

@@ -207,7 +207,9 @@ export interface Attachment {
   /** Extracted plain text (PDF, Word, text-like files) for search and AI. */
   text?: string;
   /** Timestamped transcript segments, for audio and video. */
-  segments?: { text: string; start: number; end: number | null }[];
+  segments?: { text: string; start: number; end: number | null; speaker?: "left" | "right" }[];
+  /** Meeting recordings with computer audio: microphone on the left channel, computer audio on the right, and their display names. */
+  speakers?: { left: string; right: string };
   /** undefined = not processed yet. */
   textStatus?: "ok" | "empty" | "unsupported" | "error";
   /** Text recognition (OCR) result for images and scanned PDFs. */
