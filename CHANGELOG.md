@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2026-11-26)
 
 - Renamed to **Mindstone** ("build your mind, stone by stone"). Data, backups and settings from Cairn and REA builds carry over.
 - Voice: dictation (Ctrl+Shift+M), voice notes and meeting notes with local Whisper transcription, timestamps, summaries and action items; computer-audio capture for meetings on Windows; Transcribe for audio and video files. Audio never leaves the computer.
