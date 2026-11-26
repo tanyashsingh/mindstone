@@ -157,15 +157,15 @@ export default function Home() {
   const greet = h < 12 ? ["Good morning", <Sunrise key="i" size={22} />] : h < 18 ? ["Good afternoon", <Sun key="i" size={22} />] : ["Good evening", <Moon key="i" size={22} />];
 
   return (
-    <div className="mx-auto max-w-6xl px-10 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-10 sm:py-10">
       <div className="mb-1 flex items-center gap-2 text-faint">{greet[1]}<span className="text-[13px]">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</span></div>
-      <div className="mb-6 flex items-end gap-2">
+      <div className="mb-6 flex flex-wrap items-end gap-2">
         <h1 className="flex-1 text-[30px] font-bold tracking-tight">{greet[0]}</h1>
         <button className="btn-outline" onClick={() => useDigest.getState().show("today")}><Newspaper size={14} /> Today's digest</button>
         <button className="btn" onClick={() => useDigest.getState().show("week")}>This week</button>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="panel p-3"><div className="mb-1 text-[12px] text-muted">Quick capture: task</div><QuickAdd /></div>
         <form className="panel flex items-center gap-2 p-3" onSubmit={async (e) => {
           e.preventDefault();
@@ -181,15 +181,15 @@ export default function Home() {
         </form>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2 space-y-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <div className="space-y-3 lg:col-span-2">
           <Card title="Today & overdue" icon={<ListChecks />} action={<button className="btn h-6" onClick={() => open({ kind: "tasks" })}>All tasks</button>}>
             {data?.today.length === 0 ? <div className="py-3 text-[13px] text-faint">Nothing due today. Plan your day by giving tasks a due date.</div> : data?.today.map((t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />)}
           </Card>
           <Card title="Upcoming deadlines · next 7 days" icon={<Clock />}>
             {data?.upcoming.length === 0 ? <div className="py-2 text-[13px] text-faint">No deadlines this week.</div> : data?.upcoming.map((t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />)}
           </Card>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Card title="Recent pages" icon={<Clock />}>
               {data?.recent.length === 0 && <div className="text-[13px] text-faint">Pages you open appear here. Press Ctrl+N to start one.</div>}
               {data?.recent.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-[13px] hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center">{p.icon || "📄"}</span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-[11px] text-faint">{relTime(p.lastOpenedAt)}</span></button>)}

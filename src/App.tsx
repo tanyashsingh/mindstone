@@ -21,6 +21,7 @@ import { startSync } from "./sync/service";
 import { prepareVault, resumeIfInterrupted } from "./data/vault";
 import { startIdleLock } from "./lib/idleLock";
 import { LockScreen } from "./components/LockScreen";
+import { MobileBar, useIsPhone } from "./components/MobileBar";
 import { DigestHost, maybeShowDailyDigest } from "./components/DigestDialog";
 import { startUpdateWatch } from "./lib/updates";
 import cairnMark from "./assets/mindstone-mark.png";
@@ -96,6 +97,11 @@ export function App() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
+  const phone = useIsPhone();
+  // On a phone the menu is a drawer: start closed, and close it after choosing something.
+  useEffect(() => { if (phone) useApp.getState().set("sidebarOpen", false); }, [phone]);
+  const routeKey = JSON.stringify(app.tabs[app.active]?.route ?? null);
+  useEffect(() => { if (phone) useApp.getState().set("sidebarOpen", false); }, [routeKey, phone]);
   const [starting, setStarting] = useState(0);
 
   useEffect(() => {
@@ -185,11 +191,13 @@ export function App() {
   const route = app.tabs[app.active]?.route ?? { kind: "home" };
 
   return (
-    <div className={cx("flex h-full flex-col", app.focusMode && "focus-mode")}>
+    <div className={cx("flex h-full flex-col", app.focusMode && "focus-mode", phone && "phone")}>
       <div className="flex min-h-0 flex-1">
-        {app.sidebarOpen && !app.focusMode && <Sidebar />}
+        {app.sidebarOpen && !app.focusMode && (phone
+          ? <div className="fixed inset-0 z-40 flex" role="dialog" aria-label="Menu"><div className="h-full w-[85%] max-w-[320px] shadow-[var(--pop)]"><Sidebar /></div><button className="flex-1 bg-black/30" aria-label="Close menu" onClick={() => app.set("sidebarOpen", false)} /></div>
+          : <Sidebar />)}
         <main className="flex min-w-0 flex-1 flex-col bg-bg">
-          {!app.focusMode && <TabBar />}
+          {!app.focusMode && !phone && <TabBar />}
           <div className="flex min-h-0 flex-1">
             <section className="min-w-0 flex-1 overflow-auto" aria-label="Main view">
               <RouteView route={route} pane="main" />
@@ -202,9 +210,9 @@ export function App() {
             )}
           </div>
         </main>
-        {app.rightOpen && !app.focusMode && <RightPanel />}
+        {app.rightOpen && !app.focusMode && !phone && <RightPanel />}
       </div>
-      {!app.focusMode && <StatusBar />}
+      {!app.focusMode && (phone ? <MobileBar /> : <StatusBar />)}
       <CommandPalette />
       <DialogHost />
       <DigestHost />

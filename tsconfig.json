@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -13,8 +17,27 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "types": ["vite/client", "node"],
-    "paths": { "@/*": ["./src/*"] }
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
-  "include": ["src", "electron", "tests", "vite.config.ts", "vitest.config.ts", "e2e", "e2e-electron", "playwright.config.ts", "playwright.electron.config.ts"]
+  "include": [
+    "src",
+    "electron",
+    "tests",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "e2e",
+    "e2e-electron",
+    "playwright.config.ts",
+    "playwright.electron.config.ts",
+    "e2e-pwa",
+    "playwright.pwa.config.ts"
+  ]
 }

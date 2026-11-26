@@ -1,5 +1,5 @@
 ﻿import { _electron as electron, expect, test } from "@playwright/test";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { makeDocx, makePdf } from "../e2e/fixtures";
@@ -81,5 +81,52 @@ test("desktop voice note records and transcribes locally", async () => {
   } finally {
     await app.close();
     rmSync(profile, { recursive: true, force: true });
+  }
+});
+
+/** Two desktop "devices" (separate profiles) keep in step through one shared folder. */
+test("desktop folder sync between two profiles", async () => {
+  test.setTimeout(180_000);
+  const shared = mkdtempSync(path.join(tmpdir(), "ms-folder-"));
+  const launch = async () => {
+    const profile = mkdtempSync(path.join(tmpdir(), "rea-e2e-"));
+    const app = await electron.launch({ args: [".", `--user-data-dir=${profile}`], cwd: process.cwd(), env: { ...process.env, MINDSTONE_E2E_SYNC_DIR: shared } });
+    const win = await app.firstWindow();
+    await expect(win.getByRole("navigation", { name: "Sidebar" })).toBeVisible({ timeout: 30_000 });
+    return { app, win, profile };
+  };
+  const turnOn = async (win: import("@playwright/test").Page) => {
+    await win.keyboard.press("Control+,");
+    const main = win.getByRole("region", { name: "Main view" });
+    await main.getByRole("button", { name: "Synchronization" }).click();
+    await main.getByRole("button", { name: "Choose folder…" }).click();
+    await expect(main.getByTestId("sync-folder")).toContainText(path.basename(shared));
+    await main.getByLabel("Sync passphrase").fill("folder sync phrase");
+    await main.getByRole("button", { name: "Turn on sync" }).click();
+  };
+  const A = await launch();
+  const B = await launch();
+  try {
+    await A.win.keyboard.press("Control+n");
+    await A.win.getByLabel("Page title").fill("Garden plan");
+    await A.win.getByLabel("Page title").press("Enter");
+    await A.win.keyboard.type("Plant tomatoes, code JASPER-9");
+    await expect(A.win.getByRole("status")).toContainText("Saved locally", { timeout: 10_000 });
+    await turnOn(A.win);
+    await expect(A.win.getByTestId("sync-status")).toContainText("sent", { timeout: 30_000 });
+    const files = readdirSync(path.join(shared, "Mindstone Sync"), { recursive: true }) as string[];
+    expect(files.some((f) => /space\.json$/.test(f))).toBe(true);
+    expect(files.some((f) => /\.bin$/.test(f))).toBe(true);
+
+    await turnOn(B.win);
+    await expect(B.win.getByText("Joined the sync space")).toBeVisible({ timeout: 30_000 });
+    await B.win.getByRole("navigation", { name: "Sidebar" }).getByRole("treeitem", { name: /Garden plan/ }).click();
+    await expect(B.win.locator(".rea-editor")).toContainText("JASPER-9");
+  } finally {
+    await A.app.close();
+    await B.app.close();
+    rmSync(A.profile, { recursive: true, force: true });
+    rmSync(B.profile, { recursive: true, force: true });
+    rmSync(shared, { recursive: true, force: true });
   }
 });

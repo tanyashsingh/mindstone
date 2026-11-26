@@ -84,6 +84,11 @@ The installed app checks GitHub Releases shortly after start and every 12 hours,
 background and offers **Restart to update**. Turn it off in **Settings → About**. You can also install a newer
 `Mindstone-Setup-x.y.z.exe` over the existing one; data is preserved and the database migrates on first launch.
 
+## Sync and phone
+
+Sync your devices through a folder (OneDrive, Dropbox, USB) or your own small server, end-to-end encrypted with a sync
+passphrase. The server can also serve Mindstone to phones as an installable app that works offline. See [SYNC.md](SYNC.md).
+
 ## Reliability
 
 - **Automatic backups** (desktop): once a day each workspace is saved to the `backups` folder inside the data folder; the

@@ -26,7 +26,8 @@
     "logo": "node scripts/render-logo.mjs",
     "voice:setup": "node scripts/voice-setup.mjs",
     "postinstall": "node scripts/ocr-setup.mjs",
-    "ocr:setup": "node scripts/ocr-setup.mjs"
+    "ocr:setup": "node scripts/ocr-setup.mjs",
+    "test:pwa": "npm run build:web && playwright test -c playwright.pwa.config.ts"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

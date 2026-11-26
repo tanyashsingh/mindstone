@@ -144,7 +144,7 @@ export default function Tasks() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-10 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-10 sm:py-10">
       <div className="mb-6 flex items-center gap-3">
         <CheckSquare size={22} className="text-muted" />
         <h1 className="text-[26px] font-bold tracking-tight">Tasks</h1>
@@ -179,7 +179,7 @@ export default function Tasks() {
         </div>
       )}
       {mode === "matrix" && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {([[true, true, "Do first", "Important & urgent"], [true, false, "Schedule", "Important, not urgent"], [false, true, "Delegate", "Urgent, not important"], [false, false, "Eliminate", "Neither"]] as const).map(([imp, urg, title, sub]) => {
             const urgent = (t: Task) => t.priority === "urgent" || (!!t.dueDate && t.dueDate <= addDays(t0, 2));
             const ts = list.filter((t) => t.status !== "done" && !!t.important === imp && urgent(t) === urg);

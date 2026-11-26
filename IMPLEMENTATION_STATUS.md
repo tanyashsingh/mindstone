@@ -127,6 +127,9 @@ Last updated: 2026-11-25.
 | Accounts, roles, sharing, real-time editing, presence, cloud sync | Blocked: no backend or sync server configured. The UI says so explicitly. |
 | Google Calendar / Outlook | Blocked: needs OAuth client credentials and your authorisation |
 
+| Device sync, end-to-end encrypted: through a folder (desktop) or a self-hosted server; later edit wins, losing page versions kept | Tested (unit + two-browser E2E + two-profile desktop E2E) |
+| Phone app (installable web app): offline start, bottom bar, menu drawer, capture; installs from the sync server | Tested (E2E against the production build) |
+
 ## Quality
 | Item | Status |
 |---|---|

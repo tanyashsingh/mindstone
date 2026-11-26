@@ -136,7 +136,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
         {!locked && <button className="btn absolute bottom-2 right-3 bg-elev/80 opacity-0 group-hover:opacity-100" onClick={() => repo.updatePageMeta(page.id, { cover: COVERS[(COVERS.indexOf(page.cover) + 1) % COVERS.length]! })}>Change cover</button>}
       </div>}
 
-      <div className={cx("mx-auto px-12 pb-6", maxW, page.cover ? "pt-4" : "pt-14")}>
+      <div className={cx("mx-auto px-4 pb-6 sm:px-12", maxW, page.cover ? "pt-4" : "pt-8 sm:pt-14")}>
         {page.icon && <button className={cx("mb-2 text-[54px] leading-none", page.cover && "-mt-14 relative")} onClick={iconPick.openAt} disabled={locked}>{page.icon}</button>}
         {!locked && (
           <div className="mb-1 flex gap-1 text-[13px] text-faint opacity-60 hover:opacity-100">
@@ -151,7 +151,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
           rows={1}
           readOnly={locked}
           aria-label="Page title"
-          className="font-display mb-3 w-full resize-none overflow-hidden bg-transparent text-[42px] leading-[1.15] outline-none placeholder:text-faint/60 [field-sizing:content]"
+          className="font-display mb-3 w-full resize-none overflow-hidden bg-transparent text-[32px] sm:text-[42px] leading-[1.15] outline-none placeholder:text-faint/60 [field-sizing:content]"
           placeholder="Untitled"
           defaultValue={page.title}
           key={page.id}
@@ -160,7 +160,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
         />
         {page.tags.length > 0 && <div className="mb-3 flex flex-wrap gap-1">{page.tags.map((t) => <button key={t} className="chip c-gray" onClick={() => app.open({ kind: "search", sub: `#${t}` })}>#{t}</button>)}</div>}
       </div>
-      <div className={cx("mx-auto px-12", page.kind === "database" ? "max-w-none" : maxW)}>
+      <div className={cx("mx-auto px-4 sm:px-12", page.kind === "database" ? "max-w-none" : maxW)}>
         {page.kind === "database" && page.databaseId ? <DatabaseView databaseId={page.databaseId} /> : <Editor key={page.id} page={page} editable={!locked} />}
       </div>
       {history && <HistoryModal page={page} onClose={() => setHistory(false)} />}
