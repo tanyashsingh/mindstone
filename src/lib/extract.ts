@@ -23,9 +23,9 @@ export function extractKind(name: string, mime: string): ExtractKind {
 
 // ---- ZIP reading ------------------------------------------------------------------
 
-interface ZipEntry { name: string; method: number; compressedSize: number; offset: number }
+export interface ZipEntry { name: string; method: number; compressedSize: number; offset: number }
 
-function listZip(buf: Uint8Array): ZipEntry[] {
+export function listZip(buf: Uint8Array): ZipEntry[] {
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   // End-of-central-directory record: scan back over a possible comment (max 64 KiB).
   let eocd = -1;
@@ -49,7 +49,7 @@ function listZip(buf: Uint8Array): ZipEntry[] {
   return out;
 }
 
-async function readZipEntry(buf: Uint8Array, e: ZipEntry): Promise<Uint8Array> {
+export async function readZipEntry(buf: Uint8Array, e: ZipEntry): Promise<Uint8Array> {
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   if (dv.getUint32(e.offset, true) !== 0x04034b50) throw new Error("Corrupt ZIP entry");
   const start = e.offset + 30 + dv.getUint16(e.offset + 26, true) + dv.getUint16(e.offset + 28, true);

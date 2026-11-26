@@ -94,6 +94,7 @@ Last updated: 2026-11-25.
 | Versioned workspace backup and restore | Tested |
 | OCR: text in images and scanned PDFs (offline Tesseract, English), automatic or on request | Tested (E2E browser + desktop) |
 | Import Markdown, HTML, text, CSV, JSON, Obsidian vaults, unzipped Notion exports | Implemented (limitations listed in Settings → Import) |
+| Import Notion export .zip (nested zips, page-and-folder pairs, links, images, databases), Evernote .enex (tags, dates, checklists, images), Todoist CSV (projects, priorities, labels, sections, subtasks, repeats), Apple Notes / Bear Markdown folders with images | Tested (E2E) |
 | Export Markdown, HTML, PDF (print), CSV, JSON, workspace ZIP | Tested (ZIP); Implemented |
 | Automatic daily local backups (desktop, newest 14 per workspace) | Verified (packaged build wrote one) |
 | Local error log with crash capture and key redaction | Verified (packaged build) |

@@ -248,11 +248,11 @@ export default function SettingsView({ section }: { section?: string }) {
             }} />
           </>}
           {sec === "import" && <>
-            <Row label="Import files" desc="Markdown, HTML, plain text, CSV and JSON (array of records). Other files become attachments."><button className="btn-outline" onClick={() => importInput.current?.click()}>Choose files…</button></Row>
-            <Row label="Import a folder" desc="An Obsidian vault or an unzipped Notion export. Folders become nested pages; [[wiki links]] keep working."><button className="btn-outline" onClick={() => folderInput.current?.click()}>Choose folder…</button></Row>
+            <Row label="Import files" desc="Notion export .zip, Evernote .enex, Todoist CSV, and Markdown, HTML, text, CSV or JSON files. Other files become attachments."><button className="btn-outline" onClick={() => importInput.current?.click()}>Choose files…</button></Row>
+            <Row label="Import a folder" desc="An Obsidian vault, an unzipped Notion export, or Apple Notes or Bear notes exported as Markdown or HTML (for Apple Notes, use an exporter app such as Exporter). Folders become nested pages; images and [[wiki links]] keep working."><button className="btn-outline" onClick={() => folderInput.current?.click()}>Choose folder…</button></Row>
             <Row label="Export workspace as Markdown" desc="A .zip of Markdown pages (hierarchy preserved), CSV for each database, and attachments."><button className="btn-outline" onClick={() => exportWorkspaceMarkdown(ws)}>Export .zip</button></Row>
-            <p className="mt-3 text-[12.5px] text-muted">Known limitations: Notion exports must be unzipped first; Notion database relations and formulas arrive as plain text; YAML front matter is not mapped to properties; Obsidian plugins' syntax (Dataview and others) stays as text. For a lossless copy, use Backup.</p>
-            <input ref={importInput} type="file" multiple hidden accept=".md,.markdown,.txt,.html,.htm,.csv,.json,*/*" onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
+            <p className="mt-3 text-[12.5px] text-muted">Known limitations: Notion database relations and formulas arrive as plain text; Evernote encrypted text is skipped; YAML front matter is not mapped to properties; Obsidian plugins' syntax (Dataview and others) stays as text. For a lossless copy, use Backup.</p>
+            <input ref={importInput} type="file" multiple hidden accept=".zip,.enex,.md,.markdown,.txt,.html,.htm,.csv,.json,*/*" onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
             <input ref={folderInput} type="file" multiple hidden {...{ webkitdirectory: "" }} onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
           </>}
           {sec === "integrations" && <>

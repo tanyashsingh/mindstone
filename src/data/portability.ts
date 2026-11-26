@@ -59,56 +59,127 @@ export function textToDoc(text: string): JSONContent {
 
 export interface ImportReport { pages: number; databases: number; skipped: string[]; notes: string[] }
 
-/** Import files (or a whole folder such as an Obsidian vault / unzipped Notion export). Folder structure becomes page nesting. */
-export async function importFiles(workspaceId: ID, files: File[], parentId: ID | null = null): Promise<ImportReport> {
+const PAGE_EXT = new Set(["md", "markdown", "html", "htm", "txt"]);
+const pathOf = (f: File) => (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
+/** Notion appends a 32-hex id to names ("Page 1a2b…"): strip it for titles and matching. */
+const stripId = (s: string) => s.replace(/\s[0-9a-f]{32}$/i, "");
+const baseOf = (p: string) => stripId(p.split("/").pop()!.replace(/\.[^.]+$/, ""));
+
+/**
+ * Import files, folders and archives: Markdown, HTML, text, CSV and JSON records; .zip files (Notion's export
+ * included) are opened; Evernote .enex and Todoist CSV exports are recognised. Folder structure becomes page
+ * nesting; a Notion page and its same-named folder become one page with children. Images referenced from pages
+ * (![](img.png), ![[img.png]], <img src>) are stored as attachments and shown in place; links between imported
+ * Markdown pages become [[wiki links]].
+ */
+export async function importFiles(workspaceId: ID, input: File[], parentId: ID | null = null): Promise<ImportReport> {
   const report: ImportReport = { pages: 0, databases: 0, skipped: [], notes: [] };
+  const { filesFromZip, importEvernote, importTodoist, isTodoistCSV } = await import("./importers");
+  const merge = (r: ImportReport) => { report.pages += r.pages; report.databases += r.databases; report.skipped.push(...r.skipped); report.notes.push(...r.notes); };
+
+  // Archives and app-specific exports first.
+  const files: File[] = [];
+  for (const f of input) {
+    const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
+    try {
+      if (ext === "zip") { files.push(...(await filesFromZip(f))); report.notes.push(`Opened ${f.name}`); }
+      else if (ext === "enex") merge(await importEvernote(workspaceId, f, parentId));
+      else if (ext === "csv" && isTodoistCSV(await f.slice(0, 200).text())) merge(await importTodoist(workspaceId, f.name, await f.text()));
+      else files.push(f);
+    } catch (e) { report.skipped.push(`${f.name} (${e instanceof Error ? e.message : String(e)})`); }
+  }
+  const visible = files.filter((f) => !/(^|\/)\.(obsidian|git|trash)\//.test(pathOf(f)) && !/_all\.csv$/i.test(f.name)); // Notion also writes a duplicate "_all" CSV
+  const pageFiles = visible.filter((f) => PAGE_EXT.has(f.name.split(".").pop()!.toLowerCase()));
+  const other = visible.filter((f) => !pageFiles.includes(f));
+
+  // A page file "A/B.md" next to a folder "A/B/" (Notion) is that folder's page.
+  const byFolderPath = new Map<string, File>();
+  for (const f of pageFiles) byFolderPath.set(pathOf(f).replace(/\.[^.]+$/, ""), f);
   const folders = new Map<string, ID | null>([["", parentId]]);
+  const pageIdOf = new Map<File, ID>();
   const ensureFolder = async (path: string): Promise<ID | null> => {
     if (folders.has(path)) return folders.get(path)!;
     const idx = path.lastIndexOf("/");
     const parent = await ensureFolder(idx < 0 ? "" : path.slice(0, idx));
-    const name = path.slice(idx + 1);
-    const p = await repo.createPage(workspaceId, parent, { title: name, icon: "📁" });
+    const own = byFolderPath.get(path);
+    const p = await repo.createPage(workspaceId, parent, { title: stripId(path.slice(idx + 1)), icon: own ? "" : "📁" });
+    if (own) pageIdOf.set(own, p.id);
     folders.set(path, p.id);
     report.pages++;
     return p.id;
   };
-  let frontMatter = false;
-  for (const f of files) {
-    const rel = (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
-    if (/(^|\/)\.(obsidian|git|trash)\//.test(rel)) continue;
-    const dir = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
-    // Notion appends a 32-hex id to names: strip it for titles.
-    const base = f.name.replace(/\.[^.]+$/, "").replace(/\s[0-9a-f]{32}$/i, "");
+
+  // Attachments (and databases) next, so pages can point at them.
+  const attachmentByPath = new Map<string, { id: string; name: string; mime: string }>();
+  const attachmentByName = new Map<string, { id: string; name: string; mime: string }>();
+  for (const f of other) {
+    const rel = pathOf(f);
     const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
-    const parent = await ensureFolder(dir);
+    const dir = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
     try {
-      if (ext === "md" || ext === "markdown") {
-        const text = await f.text();
-        if (text.startsWith("---\n")) frontMatter = true;
-        await repo.createPage(workspaceId, parent, { title: base, content: markdownToDoc(text) });
-        report.pages++;
-      } else if (ext === "html" || ext === "htm") {
-        const text = await f.text();
-        const title = /<title>([^<]*)<\/title>/i.exec(text)?.[1]?.trim() || base;
-        await repo.createPage(workspaceId, parent, { title, content: htmlToDoc(text) });
-        report.pages++;
-      } else if (ext === "txt") {
-        await repo.createPage(workspaceId, parent, { title: base, content: textToDoc(await f.text()) });
-        report.pages++;
-      } else if (ext === "csv") {
-        await importCSV(workspaceId, parent, base, await f.text());
-        report.databases++;
-      } else if (ext === "json") {
-        const ok = await importJSONRecords(workspaceId, parent, base, await f.text());
+      if (ext === "csv") { await importCSV(workspaceId, await ensureFolder(dir), baseOf(rel), await f.text()); report.databases++; }
+      else if (ext === "json") {
+        const ok = await importJSONRecords(workspaceId, await ensureFolder(dir), baseOf(rel), await f.text());
         if (ok) report.databases++; else report.skipped.push(`${rel} (not an array of records; use Settings → Backup to restore a Mindstone backup)`);
       } else if (repo.validateFile(f) === null) {
-        await repo.addAttachment(workspaceId, parent, f);
-        report.notes.push(`${rel} stored as an attachment`);
+        const a = await repo.addAttachment(workspaceId, null, f);
+        const info = { id: a.id, name: a.name, mime: a.mime };
+        attachmentByPath.set(rel.toLowerCase(), info);
+        attachmentByName.set(f.name.toLowerCase(), info);
       } else report.skipped.push(`${rel} (blocked file type or too large)`);
-    } catch (e) {
-      report.skipped.push(`${rel} (${e instanceof Error ? e.message : String(e)})`);
-    }
+    } catch (e) { report.skipped.push(`${rel} (${e instanceof Error ? e.message : String(e)})`); }
+  }
+
+  const resolve = (from: string, ref: string) => {
+    let r = ref.trim().replace(/^<|>$/g, "").split(/[?#]/)[0]!;
+    try { r = decodeURIComponent(r); } catch { /* keep as is */ }
+    if (/^[a-z]+:/i.test(r)) return undefined; // web or data addresses stay as they are
+    const dir = from.includes("/") ? from.slice(0, from.lastIndexOf("/")) : "";
+    const parts = (r.startsWith("/") ? r.slice(1) : `${dir ? `${dir}/` : ""}${r}`).split("/");
+    const out: string[] = [];
+    for (const p of parts) { if (p === "..") out.pop(); else if (p && p !== ".") out.push(p); }
+    return attachmentByPath.get(out.join("/").toLowerCase()) ?? attachmentByName.get(r.split("/").pop()!.toLowerCase());
+  };
+  const used = new Set<string>();
+  const block = (a: { id: string; name: string; mime: string }) => { used.add(a.id); return `\n\n<div data-attachment="${a.id}"></div>\n\n`; };
+
+  let frontMatter = false;
+  for (const f of pageFiles) {
+    const rel = pathOf(f);
+    const ext = f.name.split(".").pop()!.toLowerCase();
+    const dir = rel.includes("/") ? rel.slice(0, rel.lastIndexOf("/")) : "";
+    try {
+      let text = await f.text();
+      let content: JSONContent;
+      let title = baseOf(rel);
+      if (ext === "md" || ext === "markdown") {
+        if (text.startsWith("---\n")) frontMatter = true;
+        text = text
+          .replace(/!\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g, (m, ref: string) => { const a = resolve(rel, ref); return a ? block(a) : m; })
+          .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, _alt: string, ref: string) => { const a = resolve(rel, ref); return a ? block(a) : m; })
+          .replace(/(?<!!)\[([^\]]+)\]\(([^)]+\.md)\)/g, (m, label: string, ref: string) => (/^[a-z]+:/i.test(ref) ? m : `[[${stripId(label)}]]`)); // Notion links between pages
+        content = markdownToDoc(text);
+      } else if (ext === "html" || ext === "htm") {
+        title = /<title>([^<]*)<\/title>/i.exec(text)?.[1]?.trim() || title;
+        text = text.replace(/<img\b[^>]*\bsrc="([^"]+)"[^>]*>/gi, (m, ref: string) => { const a = resolve(rel, ref); return a ? `</p>${block(a)}<p>` : m; });
+        content = htmlToDoc(text);
+      } else content = textToDoc(text);
+      let id = pageIdOf.get(f);
+      if (id) await repo.updatePageMeta(id, { title });
+      else { id = (await repo.createPage(workspaceId, await ensureFolder(dir), { title })).id; report.pages++; }
+      await repo.savePageContent(id, content); // derives text, tags and [[links]]
+      pageIdOf.set(f, id);
+    } catch (e) { report.skipped.push(`${rel} (${e instanceof Error ? e.message : String(e)})`); }
+  }
+  // Links can point at pages imported later in the batch: connect them now that every page exists.
+  for (const id of new Set(pageIdOf.values())) { const p = await repo.getPage(id); if (p) await repo.updateLinks(p); }
+  // Files no page refers to are kept too, under a page so they are easy to find.
+  const loose = [...attachmentByPath.values()].filter((a) => !used.has(a.id));
+  if (loose.length) {
+    const holder = await repo.createPage(workspaceId, parentId, { title: "Imported files", icon: "📎", content: { type: "doc", content: loose.map((a) => ({ type: "attachment", attrs: { attachmentId: a.id, name: a.name, mime: a.mime } })) } });
+    await repo.savePageContent(holder.id, holder.content!);
+    report.pages++;
+    report.notes.push(`${loose.length} file${loose.length === 1 ? "" : "s"} not shown on any page were put on “Imported files”`);
   }
   if (frontMatter) report.notes.push("YAML front matter was not imported as properties.");
   return report;
