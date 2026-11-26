@@ -17,11 +17,21 @@ const windows = new Set<BrowserWindow>();
 let tray: Tray | null = null;
 let quitting = false;
 
-// The data folder follows the product name. Earlier builds were called Cairn and, before that, REA:
-// keep using an existing folder rather than starting with an empty workspace.
-if (!fs.existsSync(app.getPath("userData"))) {
-  const legacy = ["Cairn", "REA"].map((n) => path.join(app.getPath("appData"), n)).find((p) => fs.existsSync(p));
-  if (legacy) app.setPath("userData", legacy);
+// The data folder follows the product name. Earlier builds were called Cairn and, before that, REA, and
+// their data must carry over. Electron creates the new folder itself at startup, so "does it exist?" is
+// no signal; a marker file says a folder is this app's established home. Until the new folder has one,
+// an older folder that holds a database wins.
+{
+  const home = app.getPath("userData");
+  const marker = path.join(home, ".mindstone-data");
+  if (!fs.existsSync(marker)) {
+    const legacy = ["Cairn", "REA"].map((n) => path.join(app.getPath("appData"), n)).find((p) => fs.existsSync(path.join(p, "IndexedDB")));
+    if (legacy) app.setPath("userData", legacy);
+    else {
+      fs.mkdirSync(home, { recursive: true });
+      fs.writeFileSync(marker, "This folder holds Mindstone's data.\n");
+    }
+  }
 }
 
 if (!app.requestSingleInstanceLock()) app.quit();
