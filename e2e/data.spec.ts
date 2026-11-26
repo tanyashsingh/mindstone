@@ -56,6 +56,7 @@ test("tasks: quick add parses metadata, completion and detail editing persist", 
   await expect(dlg).toContainText("Find number");
   await page.keyboard.press("Escape");
   await main(page).getByRole("button", { name: "Mark done" }).first().click();
+  await expect.poll(async () => (await idb<{ title: string; status: string }>(page, "tasks")).find((x) => x.title === "Call supplier")?.status).toBe("done");
   const tasks = await idb<{ title: string; status: string; priority: string; tags: string[]; parentTaskId: string | null }>(page, "tasks");
   const t = tasks.find((x) => x.title === "Call supplier")!;
   expect(t.priority).toBe("high");
