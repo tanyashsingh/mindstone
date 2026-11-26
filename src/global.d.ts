@@ -27,6 +27,14 @@ interface ReaBridge {
     list(): Promise<{ name: string; size: number; at: number }[]>;
     open(): Promise<string>;
   };
+  sync: {
+    http(method: "GET" | "PUT", url: string, headers: Record<string, string>, body: Uint8Array | null): Promise<{ status: number; body: Uint8Array }>;
+    chooseFolder(): Promise<string | null>;
+    folder(): Promise<string | null>;
+    folderRead(rel: string): Promise<Uint8Array | null>;
+    folderWrite(rel: string, bytes: Uint8Array): Promise<void>;
+    folderList(): Promise<string[]>;
+  };
   updates: {
     configure(enabled: boolean): Promise<void>;
     check(): Promise<ReaUpdateState>;

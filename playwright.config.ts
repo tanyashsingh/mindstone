@@ -4,6 +4,8 @@ import { defineConfig } from "@playwright/test";
 // (no Playwright browser download). Each test gets a fresh profile, so a fresh IndexedDB.
 // CI runners are slower (2 cores, cold dev server): fewer workers, longer waits, and retries for timing flakes.
 const CI = !!process.env.CI;
+// The tests start their own dev server on a port of their own, so a different app on the usual dev port can never be tested by mistake.
+export const TEST_PORT = 5191;
 
 export default defineConfig({
   testDir: "e2e",
@@ -14,12 +16,12 @@ export default defineConfig({
   retries: CI ? 2 : 0,
   reporter: CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
-    baseURL: "http://localhost:5183/",
+    baseURL: `http://localhost:${TEST_PORT}/`,
     channel: "chrome",
     headless: true,
     viewport: { width: 1400, height: 900 },
     acceptDownloads: true,
     trace: "retain-on-failure",
   },
-  webServer: { command: "npx vite --port 5183 --strictPort", url: "http://localhost:5183/", reuseExistingServer: true, timeout: 60_000 },
+  webServer: { command: `npx vite --port ${TEST_PORT} --strictPort`, url: `http://localhost:${TEST_PORT}/`, reuseExistingServer: false, timeout: 90_000 },
 });

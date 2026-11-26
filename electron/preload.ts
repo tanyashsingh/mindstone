@@ -25,6 +25,14 @@ contextBridge.exposeInMainWorld("rea", {
       return () => ipcRenderer.removeListener("rea:update:state", fn);
     },
   },
+  sync: {
+    http: (method: string, url: string, headers: Record<string, string>, body: Uint8Array | null) => ipcRenderer.invoke("rea:sync:http", method, url, headers, body),
+    chooseFolder: () => ipcRenderer.invoke("rea:sync:folder:choose"),
+    folder: () => ipcRenderer.invoke("rea:sync:folder:get"),
+    folderRead: (rel: string) => ipcRenderer.invoke("rea:sync:folder:read", rel),
+    folderWrite: (rel: string, bytes: Uint8Array) => ipcRenderer.invoke("rea:sync:folder:write", rel, bytes),
+    folderList: () => ipcRenderer.invoke("rea:sync:folder:list"),
+  },
   secrets: {
     available: () => ipcRenderer.invoke("rea:secrets:available"),
     set: (name: string, value: string) => ipcRenderer.invoke("rea:secrets:set", name, value),

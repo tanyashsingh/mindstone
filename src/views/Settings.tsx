@@ -11,6 +11,7 @@ import { PROVIDER_LABELS, NEEDS_KEY, LOCAL_PROVIDERS } from "@/ai/providers";
 import { chat, deleteApiKey, hasApiKey, listModels, setApiKey, spendGuard } from "@/ai/client";
 import { runAutoBackups } from "@/lib/autoBackup";
 import { SecuritySettings } from "@/components/SecuritySettings";
+import { SyncSettings } from "@/components/SyncSettings";
 import { isEncryptedBackup, openBackup, sealBackup } from "@/data/vault";
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
 import { Toggle, confirmDialog, promptDialog } from "@/components/ui";
@@ -257,7 +258,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Google Calendar" desc="Not connected. Connecting needs your explicit sign-in and an OAuth client configuration, which this build does not include."><button className="btn-outline" disabled>Not available</button></Row>
             <Row label="Microsoft Outlook" desc="Not connected, for the same reason. Use ICS import and export in Calendar meanwhile."><button className="btn-outline" disabled>Not available</button></Row>
           </>}
-          {sec === "sync" && <p className="text-[13px] text-muted">Cloud sync and collaboration are off: no sync server is configured. Your workspace is stored only on this device. Every record carries a sortable ID and timestamps so a sync service can be added later without migrating data. Until then, use Backup to move workspaces between devices.</p>}
+          {sec === "sync" && <SyncSettings />}
           {sec === "accessibility" && <>
             <Row label="Reduce motion" desc="Also follows your Windows animation setting automatically."><Toggle checked={s.reduceMotion} onChange={(v) => set("reduceMotion", v)} label="Reduce motion" /></Row>
             <Row label="Text size" desc="Editor font size; use Ctrl + / Ctrl − in the desktop app to zoom the whole interface."><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Text size" /></Row>

@@ -33,8 +33,14 @@ export function welcomeDoc(): JSONContent {
   };
 }
 
-/** Ensure a workspace exists and return the one to open. */
-export async function bootstrap(): Promise<string> {
+let booting: Promise<string> | null = null;
+/** Ensure a workspace exists and return the one to open. Concurrent calls (React runs effects twice in development) share one run. */
+export function bootstrap(): Promise<string> {
+  booting ??= doBootstrap().finally(() => { booting = null; });
+  return booting;
+}
+
+async function doBootstrap(): Promise<string> {
   const d = db();
   let wsId = await getSetting<string | null>("lastWorkspace", null);
   if (!wsId || !(await d.workspaces.get(wsId))) {

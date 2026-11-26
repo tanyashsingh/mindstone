@@ -9,6 +9,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { streamChat, embed, listModels, AiError, PROVIDER_LABELS, type ChatRequest } from "../src/ai/providers";
 import type { AiProviderId } from "../src/data/types";
+import { chooseFolder, currentFolder, folderList, folderRead, folderWrite, syncHttp } from "./syncio";
 import { checkForUpdates, configureUpdates, initUpdater, installCrashLogging, installUpdate, listBackups, log, openBackupFolder, openLogFolder, saveBackup, updateState } from "./ops";
 
 const DEV_URL = process.env.REA_DEV_URL; // e.g. http://localhost:5183 during development
@@ -141,6 +142,12 @@ function registerIpc() {
   handle("rea:backup:save", (_e, name: string, json: string) => saveBackup(String(name), String(json)));
   handle("rea:backup:list", () => listBackups());
   handle("rea:backup:open", () => openBackupFolder());
+  handle("rea:sync:http", (_e, method: string, url: string, headers: Record<string, string>, body: Uint8Array | null) => syncHttp(String(method), String(url), headers, body instanceof Uint8Array ? body : null));
+  handle("rea:sync:folder:choose", (e) => chooseFolder(BrowserWindow.fromWebContents(e.sender)));
+  handle("rea:sync:folder:get", () => currentFolder());
+  handle("rea:sync:folder:read", (_e, rel: string) => folderRead(String(rel)));
+  handle("rea:sync:folder:write", (_e, rel: string, bytes: Uint8Array) => { if (!(bytes instanceof Uint8Array)) throw new Error("bytes expected"); folderWrite(String(rel), bytes); });
+  handle("rea:sync:folder:list", () => folderList());
   handle("rea:update:configure", (_e, enabled: boolean) => configureUpdates(enabled === true));
   handle("rea:update:check", () => checkForUpdates());
   handle("rea:update:state", () => updateState());

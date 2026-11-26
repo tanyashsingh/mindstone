@@ -1,6 +1,8 @@
 import { Cloud, CloudOff, Check, Loader2, AlertCircle, PanelLeft, Sparkles, HardDrive } from "lucide-react";
 import { useApp } from "@/store/app";
 import { useSettings } from "@/store/settings";
+import { useSync } from "@/sync/service";
+import { relTime } from "@/lib/util";
 import { PROVIDER_LABELS } from "@/ai/providers";
 
 export function StatusBar() {
@@ -20,9 +22,18 @@ export function StatusBar() {
       {stats && <span>{stats.words.toLocaleString()} words · {stats.chars.toLocaleString()} characters</span>}
       <span className="flex-1" />
       <span className="flex items-center gap-1" title="Data is stored on this device in IndexedDB"><HardDrive size={12} /> Local</span>
-      <span className="flex items-center gap-1" title="Cloud sync is not configured">Sync: off</span>
+      <SyncStatus />
       <span className="flex items-center gap-1">{online ? <Cloud size={12} /> : <CloudOff size={12} className="text-warning" />}{online ? "Online" : "Offline: everything local still works"}</span>
       <button className="flex items-center gap-1 hover:text-fg" onClick={() => useApp.getState().open({ kind: "settings", sub: "ai" })}><Sparkles size={12} />{provider}</button>
     </footer>
   );
+}
+
+function SyncStatus() {
+  const { config, busy, lastSync, lastError } = useSync();
+  const open = () => { const a = useApp.getState(); a.open({ kind: "settings", sub: "sync" }); };
+  if (!config) return <button className="flex items-center gap-1 hover:text-fg" title="Sync between your devices is not set up" onClick={open}>Sync: off</button>;
+  return <button className={lastError ? "text-danger hover:underline" : "hover:text-fg"} title={lastError || "Synced through your encrypted sync space"} onClick={open} data-testid="sync-indicator">
+    Sync: {busy ? "syncing…" : lastError ? "error" : lastSync ? relTime(lastSync) : "on"}
+  </button>;
 }

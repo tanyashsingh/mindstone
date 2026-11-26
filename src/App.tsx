@@ -17,6 +17,7 @@ import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
 import { startAutoBackups } from "./lib/autoBackup";
+import { startSync } from "./sync/service";
 import { prepareVault, resumeIfInterrupted } from "./data/vault";
 import { startIdleLock } from "./lib/idleLock";
 import { LockScreen } from "./components/LockScreen";
@@ -109,6 +110,7 @@ export function App() {
         setReady(true);
         startReminders();
         startAutoBackups();
+        void startSync();
         void maybeShowDailyDigest(ws);
         startUpdateWatch();
       } catch (e) {

@@ -32,7 +32,7 @@ export const isUnlocked = () => !!dataKey;
 type Bin = { b: number; t: "u8" | "f32" | "blob"; m?: string };
 const isBin = (v: unknown): v is Bin => !!v && typeof v === "object" && "\u0000" in (v as object) && typeof (v as Bin).b === "number" && typeof (v as Bin).t === "string";
 
-function encodeFields(fields: Record<string, unknown>): Uint8Array {
+export function encodeFields(fields: Record<string, unknown>): Uint8Array {
   const bins: Uint8Array[] = [];
   const json = JSON.stringify(fields, function (_k, v: unknown) {
     if (v instanceof Uint8Array) { bins.push(v); return { "\u0000": 1, b: bins.length - 1, t: "u8" }; }
@@ -52,7 +52,7 @@ function encodeFields(fields: Record<string, unknown>): Uint8Array {
   return out;
 }
 
-function decodeFields(buf: Uint8Array): Record<string, unknown> {
+export function decodeFields(buf: Uint8Array): Record<string, unknown> {
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   const jl = dv.getUint32(0, true);
   const json = new TextDecoder().decode(buf.subarray(4, 4 + jl));
@@ -73,7 +73,7 @@ function decodeFields(buf: Uint8Array): Record<string, unknown> {
 const aad = (table: string, pk: unknown) => new TextEncoder().encode(`${table}\u0000${JSON.stringify(pk)}`);
 
 /** Blobs can't be read synchronously, so they are turned into bytes before encrypting. */
-async function blobsToBytes(v: unknown): Promise<unknown> {
+export async function blobsToBytes(v: unknown): Promise<unknown> {
   if (v instanceof Blob) return { __blobBytes: new Uint8Array(await v.arrayBuffer()), type: v.type };
   if (Array.isArray(v)) return Promise.all(v.map(blobsToBytes));
   if (v && typeof v === "object" && !(v instanceof Uint8Array) && !(v instanceof Float32Array) && !(v instanceof Date)) {

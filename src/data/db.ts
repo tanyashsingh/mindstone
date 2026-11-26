@@ -35,6 +35,7 @@ export class ReaDB extends Dexie {
   settings!: Table<SettingRow, string>;
   syncedBlocks!: Table<SyncedBlock, string>;
   meta!: Table<{ key: string; value: unknown }, string>;
+  syncState!: Table<{ key: string; t: string; k: string; r: string; ts: number; h: string; d: 0 | 1 }, string>;
 
   constructor(name = "rea") {
     super(name);
@@ -75,6 +76,7 @@ export class ReaDB extends Dexie {
       aiConversations: "id, workspaceId",
       aiMessages: "id, conversationId",
       meta: "key",
+      syncState: "key, t", // sync bookkeeping: last exchanged version of each row
     });
     this.use(encryptionMiddleware);
   }
