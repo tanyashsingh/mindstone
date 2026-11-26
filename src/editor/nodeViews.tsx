@@ -3,7 +3,8 @@ import { NodeViewContent, NodeViewWrapper, type ReactNodeViewProps } from "@tipt
 import { useLiveQuery } from "dexie-react-hooks";
 import katex from "katex";
 import DOMPurify from "dompurify";
-import { Info, Lightbulb, AlertTriangle, AlertOctagon, FileText, Download, ExternalLink, Link2, Table2 } from "lucide-react";
+import { Info, Lightbulb, AlertTriangle, AlertOctagon, FileText, Download, ExternalLink, Link2, Table2, AudioLines, Loader2 } from "lucide-react";
+import { transcribeAttachment } from "@/voice/VoiceNoteView";
 import { db } from "@/data/db";
 import { useApp } from "@/store/app";
 import { cx, downloadBlob, fmtBytes } from "@/lib/util";
@@ -125,6 +126,7 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
   const url = useMemo(() => (att ? URL.createObjectURL(att.blob) : ""), [att]);
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
   const wrap = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
   if (att === undefined) return <NodeViewWrapper className="my-2"><div className="skeleton h-10" /></NodeViewWrapper>;
   if (!att) return <NodeViewWrapper className="my-2 rounded-md border border-dashed border-line p-3 text-[13px] text-faint">Attachment missing: {node.attrs.name}</NodeViewWrapper>;
   const kind = att.mime.split("/")[0];
@@ -149,11 +151,20 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
         )}
         {kind === "video" && <video src={url} controls className="max-w-full rounded-md" />}
         {kind === "audio" && <audio src={url} controls className="w-[min(480px,100%)]" />}
-        {kind !== "image" && (
+        {(kind === "audio" || kind === "video") && att.textStatus === "ok" && att.text && (
+          <details className="mt-1 rounded-[10px] bg-sunken px-3 py-2 text-[13px] shadow-[var(--inset)]"><summary className="cursor-pointer text-muted">Transcript</summary><p className="mt-1 whitespace-pre-wrap">{att.text}</p></details>
+        )}
+      {kind !== "image" && (
           <div className="mt-1 flex items-center gap-2 rounded-md border border-line px-3 py-2 text-[13px]">
             <FileText size={16} className="text-muted" />
             <span className="flex-1 truncate">{att.name}</span>
             <span className="text-faint">{fmtBytes(att.size)}</span>
+            {(kind === "audio" || kind === "video") && att.textStatus !== "ok" && (
+              <button className="btn h-6" disabled={busy} title="Transcribe on this computer" onClick={async () => {
+                setBusy(true);
+                try { await transcribeAttachment(att.id); } catch (e) { useApp.getState().toast(e instanceof Error ? e.message : String(e), "error"); } finally { setBusy(false); }
+              }}>{busy ? <Loader2 size={13} className="animate-spin" /> : <AudioLines size={13} />} {busy ? "Transcribing…" : "Transcribe"}</button>
+            )}
             <button className="icon-btn size-6" title="Download" onClick={() => downloadBlob(att.blob, att.name)}><Download size={14} /></button>
           </div>
         )}

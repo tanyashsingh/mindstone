@@ -4,7 +4,7 @@
  * locked to the bundled app, external links opened in the system browser, permission requests
  * denied, IPC senders verified, API keys encrypted with OS facilities (DPAPI on Windows).
  */
-import { app, BrowserWindow, ipcMain, Menu, Notification, safeStorage, session, shell, Tray, nativeImage, dialog, type IpcMainInvokeEvent } from "electron";
+import { app, BrowserWindow, desktopCapturer, ipcMain, Menu, Notification, protocol, safeStorage, session, shell, Tray, nativeImage, dialog, type IpcMainInvokeEvent } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import { streamChat, embed, listModels, AiError, PROVIDER_LABELS, type ChatRequest } from "../src/ai/providers";
@@ -23,6 +23,23 @@ const legacyData = path.join(app.getPath("appData"), "REA");
 if (!fs.existsSync(app.getPath("userData")) && fs.existsSync(legacyData)) app.setPath("userData", legacyData);
 
 if (!app.requestSingleInstanceLock()) app.quit();
+
+// Private read-only scheme for the bundled speech model and runtime (fetch() cannot read file:// URLs).
+protocol.registerSchemesAsPrivileged([{ scheme: "cairn-asset", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
+const ASSET_ROOT = path.join(__dirname, "../dist/voice");
+const MIME: Record<string, string> = { ".wasm": "application/wasm", ".mjs": "text/javascript", ".js": "text/javascript", ".json": "application/json", ".txt": "text/plain", ".onnx": "application/octet-stream" };
+function serveAsset(req: Request): Response {
+  const url = new URL(req.url);
+  if (url.hostname !== "voice") return new Response("Not found", { status: 404 });
+  const file = path.normalize(path.join(ASSET_ROOT, decodeURIComponent(url.pathname)));
+  if (!file.startsWith(ASSET_ROOT + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Not found", { status: 404 });
+  return new Response(fs.readFileSync(file), { headers: { "content-type": MIME[path.extname(file)] ?? "application/octet-stream", "access-control-allow-origin": "*" } });
+}
+
+/** Our own page: the bundled app, or the dev server during development. */
+function isAppUrl(url: string): boolean {
+  return DEV_URL ? url.startsWith(DEV_URL) : url.startsWith("file://");
+}
 
 function isTrustedSender(e: IpcMainInvokeEvent): boolean {
   const url = e.senderFrame?.url ?? "";
@@ -157,8 +174,27 @@ app.on("web-contents-created", (_e, contents) => {
 
 void app.whenReady().then(() => {
   app.setAppUserModelId("app.cairn.workspace"); // Windows notifications and taskbar grouping
-  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
-  session.defaultSession.setPermissionCheckHandler(() => false);
+  protocol.handle("cairn-asset", serveAsset);
+  // Only the microphone (audio only) and screen-audio capture for voice notes, and only for our own page.
+  session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => {
+    const ours = isAppUrl(details.requestingUrl ?? wc.getURL());
+    if (perm === "media") {
+      const types = (details as { mediaTypes?: string[] }).mediaTypes ?? [];
+      return cb(ours && types.length > 0 && types.every((t) => t === "audio"));
+    }
+    if (perm === "display-capture") return cb(ours);
+    cb(false);
+  });
+  session.defaultSession.setPermissionCheckHandler((_wc, perm, origin) => (perm === "media" || perm === "display-capture") && (origin === "file:///" || isAppUrl(origin)));
+  // "Include computer audio": Windows loopback capture; the video track is discarded by the page.
+  session.defaultSession.setDisplayMediaRequestHandler((req, cb) => {
+    if (!isAppUrl(req.frame?.url ?? "")) return cb({});
+    void desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
+      const screen = sources[0];
+      if (!screen) return cb({});
+      cb(process.platform === "win32" ? { video: screen, audio: "loopback" } : { video: screen });
+    });
+  });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: "File", submenu: [{ label: "New window", accelerator: "CmdOrCtrl+Shift+N", click: () => createWindow() }, { type: "separator" }, { role: "quit" }] },
     { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },

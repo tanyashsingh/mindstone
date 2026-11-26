@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { MoreHorizontal, Star, Lock, Unlock, Copy, Trash2, History, Download, Image as ImageIcon, Smile, PanelRight, Maximize2, ChevronRight, FileText, Network, LayoutTemplate } from "lucide-react";
+import { Mic, MoreHorizontal, Star, Lock, Unlock, Copy, Trash2, History, Download, Image as ImageIcon, Smile, PanelRight, Maximize2, ChevronRight, FileText, Network, LayoutTemplate } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { Page } from "@/data/types";
@@ -102,6 +102,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
         <span className="flex-1" />
         <span className="hidden text-[12px] text-faint md:inline">Edited {relTime(page.updatedAt)}</span>
         {locked && <span className="chip c-gray"><Lock size={11} className="mr-1" /> Locked</span>}
+        {page.kind === "page" && !locked && <button className="icon-btn" title="Dictate (Ctrl+Shift+M)" aria-label="Dictate" onClick={() => { (document.querySelector(".rea-editor") as HTMLElement | null)?.focus(); window.dispatchEvent(new CustomEvent("cairn:dictate")); }}><Mic size={16} /></button>}
         <button className="icon-btn" title={page.favorite ? "Remove from favorites" : "Add to favorites"} onClick={() => repo.updatePageMeta(page.id, { favorite: page.favorite ? 0 : 1 })}>
           <Star size={16} className={page.favorite ? "fill-current text-warning" : ""} />
         </button>

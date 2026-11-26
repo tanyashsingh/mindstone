@@ -199,6 +199,8 @@ export interface Attachment {
   createdAt: number;
   /** Extracted plain text (PDF, Word, text-like files) for search and AI. */
   text?: string;
+  /** Timestamped transcript segments, for audio and video. */
+  segments?: { text: string; start: number; end: number | null }[];
   /** undefined = not processed yet. */
   textStatus?: "ok" | "empty" | "unsupported" | "error";
 }

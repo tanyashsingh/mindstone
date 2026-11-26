@@ -165,6 +165,9 @@ export function docToMarkdown(doc: JSONContent | null | undefined, resolveTitle:
       case "toc":
         lines.push("[TOC]");
         break;
+      case "voiceNote":
+        lines.push(`🎙️ [${String(n.attrs?.title ?? "Voice note")}](attachment:${String(n.attrs?.attachmentId ?? "")})`);
+        break;
       case "details": {
         const [summary, ...rest] = n.content ?? [];
         lines.push("<details>", `<summary>${inline(summary?.content?.[0]?.content ?? summary?.content)}</summary>`, "");

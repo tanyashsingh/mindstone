@@ -21,6 +21,7 @@ personal knowledge, with optional AI. Everything runs on your machine; no accoun
 - **Knowledge**: fuzzy full-text search (Ctrl+K), tags, related pages, interactive knowledge graph.
 - **Cairn Intelligence (optional)**: Claude, OpenAI, Gemini, Ollama or any OpenAI-compatible local server.
   Workspace-aware chat with citations, writing tools with preview, tasks from notes. Cloud AI is off until you enable it.
+- **Voice**: dictate into any page (Ctrl+Shift+M), record voice notes and meetings (optionally with computer audio on Windows), and get timestamped transcripts, summaries and action items. Speech is transcribed on your computer with Whisper; audio never leaves it.
 - **Portability**: versioned full backups, Markdown/HTML/PDF/CSV/JSON export, Markdown/Obsidian/Notion import.
 
 See [FEATURES.md](FEATURES.md) and the honest status matrix in [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
@@ -35,6 +36,7 @@ See [FEATURES.md](FEATURES.md) and the honest status matrix in [IMPLEMENTATION_S
 
 ```powershell
 npm install
+npm run voice:setup    # once: downloads and verifies the local speech model (Whisper base, 73 MB) into public/voice/
 npm run dev            # browser build at http://localhost:5183
 npm test               # unit and integration tests
 npm run typecheck

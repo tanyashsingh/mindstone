@@ -5,8 +5,9 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import Suggestion, { type SuggestionOptions } from "@tiptap/suggestion";
 import { uid } from "@/lib/util";
 import { CalloutView, MathView, MermaidView, PageEmbedView, TocView, AttachmentView, BookmarkView } from "./nodeViews";
+import { VoiceNoteView } from "@/voice/VoiceNoteView";
 
-const ID_TYPES = ["paragraph", "heading", "bulletList", "orderedList", "listItem", "taskList", "taskItem", "blockquote", "codeBlock", "horizontalRule", "table", "image", "callout", "mathBlock", "mermaid", "pageEmbed", "toc", "attachment", "bookmark", "details"];
+const ID_TYPES = ["voiceNote", "paragraph", "heading", "bulletList", "orderedList", "listItem", "taskList", "taskItem", "blockquote", "codeBlock", "horizontalRule", "table", "image", "callout", "mathBlock", "mermaid", "pageEmbed", "toc", "attachment", "bookmark", "details"];
 
 /** Gives every block a stable, unique `id` attribute; fixes duplicates created by copy/paste or splits. */
 export const BlockId = Extension.create({
@@ -110,6 +111,19 @@ export const Bookmark = Node.create({
   addNodeView() { return ReactNodeViewRenderer(BookmarkView); },
 });
 
+/** Recorded voice note or meeting: the audio is an attachment, its transcript lives on that attachment. */
+export const VoiceNote = Node.create({
+  name: "voiceNote",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() { return { attachmentId: { default: null }, title: { default: "Voice note" }, duration: { default: 0 }, recordedAt: { default: null } }; },
+  addStorage() { return { pageId: null as string | null }; },
+  parseHTML() { return [{ tag: "div[data-voice-note]", getAttrs: (el) => ({ attachmentId: (el as HTMLElement).getAttribute("data-voice-note") || null }) }]; },
+  renderHTML({ node }) { return ["div", { "data-voice-note": node.attrs.attachmentId ?? "" }]; },
+  addNodeView() { return ReactNodeViewRenderer(VoiceNoteView); },
+});
+
 /** Inline link to another page. Rendered as a pill; clicking opens the page. */
 export const PageMention = Node.create({
   name: "pageMention",
@@ -139,7 +153,12 @@ export function suggestionRenderer<T>(listen: () => Listener | null): Suggestion
         if (!state) return false;
         if (event.key === "ArrowDown") { state = { ...state, selected: (state.selected + 1) % Math.max(1, state.items.length) }; emit(); return true; }
         if (event.key === "ArrowUp") { state = { ...state, selected: (state.selected - 1 + state.items.length) % Math.max(1, state.items.length) }; emit(); return true; }
-        if (event.key === "Enter" || event.key === "Tab") { const it = state.items[state.selected]; if (it) state.command(it); return true; }
+        if (event.key === "Enter" || event.key === "Tab") {
+          const it = state.items[state.selected];
+          if (!it) return false; // nothing matches: let Enter/Tab reach the editor
+          state.command(it);
+          return true;
+        }
         if (event.key === "Escape") { state = null; emit(); return true; }
         return false;
       },
@@ -158,6 +177,7 @@ export function SlashCommand(items: () => SlashItem[], listen: () => Listener | 
         Suggestion<SlashItem>({
           editor: this.editor,
           char: "/",
+          allowSpaces: true, // multi-word commands like "/meeting notes"
           pluginKey: new PluginKey("slash"),
           startOfLine: false,
           allow: ({ state, range }) => {

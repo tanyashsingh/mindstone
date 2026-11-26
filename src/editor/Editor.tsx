@@ -9,6 +9,8 @@ import { schemaExtensions } from "./schema";
 import { SlashCommand, PageLinkSuggest, FindReplace, findKey, type SlashItem, type PageItem, type SuggestState } from "./extensions";
 import { BlockCommands } from "./blockCommands";
 import { DragHandle } from "./DragHandle";
+import { DictationPill } from "@/voice/VoiceUI";
+import { matchShortcut } from "@/lib/shortcuts";
 import { slashItems } from "./slashItems";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
@@ -23,7 +25,7 @@ import { AiRewriteDialog } from "@/views/AiRewrite";
 function SuggestMenu<T>({ state, render, label }: { state: SuggestState<T> | null; render: (item: T, active: boolean) => React.ReactNode; label: string }) {
   const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => { listRef.current?.querySelector("[data-active=true]")?.scrollIntoView({ block: "nearest" }); }, [state?.selected]);
-  if (!state || !state.rect) return null;
+  if (!state || !state.rect || state.items.length === 0) return null;
   const top = Math.min(state.rect.bottom + 6, innerHeight - 330);
   return (
     <div ref={listRef} role="listbox" aria-label={label} className="menu fixed z-50 max-h-[320px] w-[300px] overflow-y-auto anim-in" style={{ left: Math.min(state.rect.left, innerWidth - 310), top }}>
@@ -101,6 +103,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
   pageRef.current = page;
   const listeners = useRef({ slash: setSlash, links: setLinks });
   const wrapRef = useRef<HTMLDivElement>(null);
+  const [dictateAt, setDictateAt] = useState<number | null>(null);
 
   const save = useMemo(
     () => debounce(async (id: string, json: JSONContent) => {
@@ -194,6 +197,25 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
   }
 
   useEffect(() => { editor?.setEditable(editable); }, [editor, editable]);
+  useEffect(() => {
+    if (editor) (editor.storage as unknown as { voiceNote: { pageId: string | null } }).voiceNote.pageId = page.id;
+  }, [editor, page.id]);
+
+  // Dictation: Ctrl+Shift+M (configurable), the /dictate command, or the page's mic button.
+  useEffect(() => {
+    if (!editor || !editable) return;
+    const toggle = () => {
+      if (dictateAt !== null) return void window.dispatchEvent(new CustomEvent("cairn:dictate-stop"));
+      setDictateAt(editor.state.selection.to);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const spec = useSettings.getState().s.shortcuts.dictate;
+      if (spec && matchShortcut(e, spec) && (editor.isFocused || dictateAt !== null)) { e.preventDefault(); toggle(); }
+    };
+    addEventListener("keydown", onKey);
+    addEventListener("cairn:dictate", toggle);
+    return () => { removeEventListener("keydown", onKey); removeEventListener("cairn:dictate", toggle); };
+  }, [editor, editable, dictateAt]);
 
   // Stats on load, flush pending save on unmount / page change / Ctrl+S
   useEffect(() => {
@@ -282,6 +304,16 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
         <span className="flex items-center gap-2"><span className="w-5 text-center">{it.create ? "+" : it.icon || "📄"}</span><span className="truncate">{it.create ? `Create “${it.title}”` : it.title}</span></span>
       )} />
       {aiOpen && <AiRewriteDialog editor={editor} onClose={() => setAiOpen(false)} />}
+      {dictateAt !== null && (
+        <DictationPill
+          onClose={() => setDictateAt(null)}
+          onText={(text) => {
+            const at = Math.min(dictateAt, editor.state.doc.content.size);
+            const before = editor.state.doc.textBetween(Math.max(0, at - 1), at);
+            editor.chain().focus().insertContentAt(at, (before && !/\s/.test(before) ? " " : "") + text).run();
+          }}
+        />
+      )}
       <PageStatsSync editor={editor} pageId={page.id} />
     </div>
   );

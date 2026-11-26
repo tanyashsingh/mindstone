@@ -15,7 +15,7 @@ import { cx, downloadBlob, fmtBytes, safeFileName } from "@/lib/util";
 import cairnMark from "@/assets/cairn-mark.png";
 
 const SECTIONS = [
-  ["general", "General"], ["appearance", "Appearance"], ["editor", "Editor"], ["workspace", "Workspace"], ["notifications", "Notifications"], ["shortcuts", "Keyboard shortcuts"],
+  ["general", "General"], ["appearance", "Appearance"], ["editor", "Editor"], ["workspace", "Workspace"], ["notifications", "Notifications"], ["voice", "Voice"], ["shortcuts", "Keyboard shortcuts"],
   ["ai", "Artificial intelligence"], ["providers", "AI providers"], ["privacy", "Privacy"], ["security", "Security"], ["storage", "Storage"], ["backup", "Backup & restore"],
   ["import", "Import & export"], ["integrations", "Integrations"], ["sync", "Synchronization"], ["accessibility", "Accessibility"], ["about", "About Cairn"],
 ] as const;
@@ -172,6 +172,16 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Contents" desc={counts ? `${counts.pages} pages · ${counts.tasks} tasks · ${counts.files} files` : ""}><span /></Row>
           </>}
           {sec === "notifications" && <Row label="Desktop notifications" desc="Task reminders, event reminders and focus-timer alerts. Shown in-app as well."><Toggle checked={s.notifications} onChange={(v) => set("notifications", v)} label="Notifications" /></Row>}
+          {sec === "voice" && <>
+            <Row label="Transcription language" desc="Detecting automatically works for most recordings; choose a language if words come out translated or garbled.">
+              <select className="input w-48" value={s.voice.language} onChange={(e) => update((x) => ({ ...x, voice: { ...x.voice, language: e.target.value } }))}>
+                {[["", "Detect automatically"], ["en", "English"], ["hi", "Hindi"], ["es", "Spanish"], ["fr", "French"], ["de", "German"], ["pt", "Portuguese"], ["ja", "Japanese"], ["zh", "Chinese"], ["ar", "Arabic"], ["bn", "Bengali"], ["ta", "Tamil"], ["te", "Telugu"], ["mr", "Marathi"], ["ur", "Urdu"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </Row>
+            {window.rea && <Row label="Include computer audio by default" desc="For meeting notes: also record what your computer plays, such as the other people on a call. You can change it per recording."><Toggle checked={s.voice.systemAudio} onChange={(v) => update((x) => ({ ...x, voice: { ...x.voice, systemAudio: v } }))} label="Include computer audio" /></Row>}
+            <Row label="Speech model" desc="Whisper base (OpenAI, Apache-2.0), running on this computer. Audio and transcripts never leave your device."><span className="text-[12px] text-faint">Built in</span></Row>
+            <p className="mt-3 text-[12.5px] text-muted">Dictate with Ctrl+Shift+M or the microphone button on a page. Type /voice note or /meeting notes to record, then transcribe and summarize. Transcripts are searchable with Ctrl+K and used by Cairn Intelligence.</p>
+          </>}
           {sec === "shortcuts" && <ShortcutEditor />}
           {sec === "ai" && <>
             <Row label="Active provider" desc="Cairn works fully without AI."><select className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>

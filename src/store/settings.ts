@@ -22,6 +22,7 @@ export interface Settings {
     confirmWorkspaceContext: boolean;
     providers: Record<AiProviderId, AiProviderConfig>;
   };
+  voice: { language: string; systemAudio: boolean }; // language "" = detect automatically
   shortcuts: Record<string, string>;
 }
 
@@ -37,6 +38,7 @@ export const DEFAULT_SHORTCUTS: Record<string, string> = {
   toggleRight: "mod+shift+\\",
   focusMode: "mod+shift+enter",
   newWindow: "mod+shift+n",
+  dictate: "mod+shift+m",
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -63,6 +65,7 @@ export const DEFAULT_SETTINGS: Settings = {
       openaiCompatible: { enabled: false, model: "", baseUrl: "http://localhost:1234/v1", embedModel: "" },
     },
   },
+  voice: { language: "", systemAudio: false },
   shortcuts: DEFAULT_SHORTCUTS,
 };
 
