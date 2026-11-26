@@ -1,15 +1,15 @@
-import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { X, ListTree, Link2, Info, MessageSquare, History, Sparkles, Shapes, Check } from "lucide-react";
+import { X, ListTree, Link2, Info, MessageSquare, History, Sparkles, Shapes } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import { searchIndex } from "@/data/search";
 import { ensureSearchIndex } from "@/bootstrap";
 import { useApp } from "@/store/app";
 import { headings } from "@/lib/doc";
-import { cx, relTime, uid, wordCount } from "@/lib/util";
+import { cx, relTime, wordCount } from "@/lib/util";
 import { AiChat } from "@/views/AiView";
 import { EmptyState } from "./ui";
+import { CommentsPanel } from "./CommentsPanel";
 
 type TabId = ReturnType<typeof useApp.getState>["rightTab"];
 const TABS: { id: TabId; icon: React.ReactNode; label: string }[] = [
@@ -27,7 +27,6 @@ export function RightPanel() {
   const route = tabs[active]?.route;
   const pageId = route?.kind === "page" ? route.id : undefined;
   const page = useLiveQuery(() => (pageId ? db().pages.get(pageId) : undefined), [pageId]);
-  const [comment, setComment] = useState("");
 
   const backlinks = useLiveQuery(async () => {
     if (!pageId) return [];
@@ -51,7 +50,6 @@ export function RightPanel() {
     const hits = q.trim() ? searchIndex.search(q, { kinds: ["page"], limit: 12 }).filter((h) => h.refId !== page.id).slice(0, 8) : [];
     return hits;
   }, [page?.id, page?.updatedAt]);
-  const comments = useLiveQuery(() => (pageId ? db().comments.where("pageId").equals(pageId).sortBy("createdAt") : []), [pageId]);
   const activity = useLiveQuery(async () => (pageId ? (await db().activity.where("entityId").equals(pageId).toArray()).sort((a, b) => b.at - a.at).slice(0, 20) : []), [pageId]);
   const revisions = useLiveQuery(() => (pageId ? db().revisions.where("pageId").equals(pageId).count() : 0), [pageId]);
 
@@ -88,23 +86,7 @@ export function RightPanel() {
                 <dd><input className="input mt-1" key={page.tags.join(",")} defaultValue={page.tags.join(", ")} onBlur={(e) => repo.updatePageMeta(page.id, { tags: e.target.value.split(",").map((t) => t.trim().toLowerCase().replace(/^#/, "")).filter(Boolean) })} /></dd></div>
             </dl>
           )}
-          {rightTab === "comments" && (
-            <>
-              <div className="mb-2 text-[11.5px] text-faint">Comments are stored locally on this device.</div>
-              {comments?.map((c) => (
-                <div key={c.id} className={cx("mb-2 rounded-md border border-line bg-elev p-2", c.resolved && "opacity-50")}>
-                  <div className="mb-1 flex text-[11.5px] text-faint"><span className="flex-1">{c.author} · {relTime(c.createdAt)}</span>
-                    <button className="hover:text-fg" title={c.resolved ? "Reopen" : "Resolve"} onClick={() => db().comments.update(c.id, { resolved: c.resolved ? 0 : 1 })}><Check size={13} /></button>
-                    <button className="ml-1 hover:text-danger" title="Delete" onClick={() => db().comments.delete(c.id)}><X size={13} /></button></div>
-                  <div className="whitespace-pre-wrap">{c.body}</div>
-                </div>
-              ))}
-              <form onSubmit={async (e) => { e.preventDefault(); if (!comment.trim()) return; await db().comments.add({ id: uid(), pageId: page.id, body: comment.trim(), author: "You", resolved: 0, createdAt: Date.now() }); setComment(""); }}>
-                <textarea className="textarea" rows={2} placeholder="Add a comment" value={comment} onChange={(e) => setComment(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && e.ctrlKey) (e.currentTarget.form as HTMLFormElement).requestSubmit(); }} />
-                <button className="btn-primary mt-1">Comment</button>
-              </form>
-            </>
-          )}
+          {rightTab === "comments" && <CommentsPanel page={page} />}
           {rightTab === "activity" && activity?.map((a) => <div key={a.id} className="py-0.5 text-muted">{a.action} · {relTime(a.at)}</div>)}
           {rightTab === "ai" && <div className="-mx-3 -mb-3 h-[calc(100vh-140px)]"><AiChat compact pageId={page.id} /></div>}
         </>}

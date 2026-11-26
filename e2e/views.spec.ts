@@ -55,7 +55,7 @@ test("right panel tabs and split view", async ({ page }) => {
     await noCrash(page);
   }
   await panel.getByRole("button", { name: "Comments" }).click();
-  await panel.getByPlaceholder("Add a comment").fill("Looks good");
+  await panel.getByLabel("Comment on this page").fill("Looks good");
   await panel.getByRole("button", { name: "Comment", exact: true }).click();
   await expect(panel).toContainText("Looks good");
 

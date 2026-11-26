@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Mic, MoreHorizontal, Star, Lock, Unlock, Copy, Trash2, History, Download, Image as ImageIcon, Smile, PanelRight, Maximize2, ChevronRight, FileText, Network, LayoutTemplate } from "lucide-react";
+import { Mic, MoreHorizontal, Star, Lock, Unlock, Copy, Trash2, History, Download, Image as ImageIcon, Smile, PanelRight, Maximize2, ChevronRight, FileText, Network, LayoutTemplate, PenLine } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { Page } from "@/data/types";
@@ -110,6 +110,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
         <button className="icon-btn" aria-label="Page actions" onClick={menu.openAt}><MoreHorizontal size={16} /></button>
         <Popover anchor={menu.anchor} onClose={menu.close} className="w-60" align="end">
           <MenuItem icon={locked ? <Unlock /> : <Lock />} onClick={() => { void repo.updatePageMeta(page.id, { locked: locked ? 0 : 1 }); menu.close(); }}>{locked ? "Unlock page" : "Lock page"}</MenuItem>
+          {page.kind === "page" && !locked && <MenuItem icon={<PenLine />} onClick={() => { void repo.updatePageMeta(page.id, { suggesting: page.suggesting ? 0 : 1 }); menu.close(); }}>{page.suggesting ? "Stop suggesting" : "Suggest edits"}</MenuItem>}
           <MenuItem icon={<Maximize2 />} shortcut="Ctrl+Shift+Enter" onClick={() => { app.set("focusMode", !app.focusMode); menu.close(); }}>Focus mode</MenuItem>
           <MenuItem icon={<PanelRight />} onClick={() => { app.open({ kind: "page", id: page.id }, { split: true }); menu.close(); }}>Open in split view</MenuItem>
           <MenuItem icon={<Network />} onClick={() => { app.open({ kind: "graph", id: page.id }); menu.close(); }}>Local graph</MenuItem>

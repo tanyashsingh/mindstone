@@ -56,7 +56,9 @@ Last updated: 2026-11-25.
 | Feature | Status |
 |---|---|
 | Full-text fuzzy search, filters, highlighting, recent and saved searches, Ctrl+K palette with commands | Tested (index); Verified (palette) |
-| Tags (inline `#tag` and manual), related pages, outline, comments (local) | Tested (tags); Implemented |
+| Tags (inline `#tag` and manual), related pages, outline | Tested (tags); Implemented |
+| Comments on text (threads, replies, resolve, reopen, delete, Ctrl+Alt+M) and page comments | Tested (E2E) |
+| Suggestion mode (tracked insertions and deletions, accept or reject each or all) | Tested (unit + E2E) |
 | Knowledge graph: global/local, depth, filters, orphans, edge types, zoom/pan | Implemented |
 | Research collections | Partial: use nested pages, tags and saved searches; no dedicated object |
 

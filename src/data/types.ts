@@ -28,6 +28,7 @@ export interface Page {
   tags: string[];
   favorite: 0 | 1;
   locked: 0 | 1;
+  suggesting?: 0 | 1; // suggestion mode: edits become tracked suggestions
   sortKey: number;
   createdAt: number;
   updatedAt: number;
@@ -208,6 +209,9 @@ export interface Attachment {
 export interface Comment {
   id: ID;
   pageId: ID;
+  threadId?: ID; // the thread's first comment id (itself for the first comment); absent on pre-0.5 page comments
+  parentId?: ID | null; // null for the first comment of a thread
+  anchorText?: string; // the text the thread is attached to ("" for page comments)
   body: string;
   author: string;
   resolved: 0 | 1;

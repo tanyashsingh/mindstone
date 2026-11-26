@@ -86,7 +86,7 @@ export async function movePage(id: ID, newParentId: ID | null, sortKey?: number)
   return true;
 }
 
-export async function updatePageMeta(id: ID, changes: Partial<Pick<Page, "title" | "icon" | "cover" | "favorite" | "locked" | "tags">>) {
+export async function updatePageMeta(id: ID, changes: Partial<Pick<Page, "title" | "icon" | "cover" | "favorite" | "locked" | "tags" | "suggesting">>) {
   await db().pages.update(id, { ...changes, updatedAt: now() });
   if (changes.title !== undefined) {
     const p = await getPage(id);

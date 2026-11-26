@@ -3,11 +3,12 @@ import { EditorContent, useEditor, type Editor as TEditor } from "@tiptap/react"
 import { BubbleMenu } from "@tiptap/react/menus";
 import { Placeholder, CharacterCount, Focus } from "@tiptap/extensions";
 import {
-  Bold, Italic, Underline as UIcon, Strikethrough, Code, Highlighter, Link as LinkIcon, Sparkles, Heading1, Heading2, List, ListChecks, Quote, ChevronDown, Search, X, Replace,
+  Bold, Italic, Underline as UIcon, Strikethrough, Code, Highlighter, Link as LinkIcon, Sparkles, Heading1, Heading2, List, ListChecks, Quote, ChevronDown, Search, X, Replace, MessageSquarePlus,
 } from "lucide-react";
 import { schemaExtensions } from "./schema";
 import { SlashCommand, PageLinkSuggest, FindReplace, findKey, type SlashItem, type PageItem, type SuggestState } from "./extensions";
 import { BlockCommands } from "./blockCommands";
+import { SuggestionMode, liveEditors, requestThreadFocus, scrollToThread } from "./review";
 import { DragHandle } from "./DragHandle";
 import { DictationPill } from "@/voice/VoiceUI";
 import { matchShortcut } from "@/lib/shortcuts";
@@ -17,7 +18,8 @@ import * as repo from "@/data/repo";
 import type { JSONContent, Page } from "@/data/types";
 import { useApp } from "@/store/app";
 import { useSettings } from "@/store/settings";
-import { cx, debounce, wordCount } from "@/lib/util";
+import { cx, debounce, uid, wordCount } from "@/lib/util";
+import { useLiveQuery } from "dexie-react-hooks";
 import { promptDialog } from "@/components/ui";
 import { AiRewriteDialog } from "@/views/AiRewrite";
 
@@ -130,6 +132,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
       Focus.configure({ className: "has-focus", mode: "shallowest" }),
       BlockCommands,
       FindReplace,
+      SuggestionMode,
       SlashCommand(() => slashItems(pageRef.current), () => listeners.current.slash as never),
       PageLinkSuggest(
         async (q) => {
@@ -147,6 +150,15 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
     content: page.content ?? undefined,
     editorProps: {
       attributes: { class: "rea-editor", spellcheck: String(settings.spellcheck), "aria-label": "Page content" },
+      handleClick: (view, pos) => {
+        const mark = view.state.doc.resolve(pos).marks().find((m) => m.type.name === "comment");
+        if (!mark?.attrs.threadId) return false;
+        const app = useApp.getState();
+        app.set("rightOpen", true);
+        app.set("rightTab", "comments");
+        requestThreadFocus(String(mark.attrs.threadId));
+        return false;
+      },
       handleClickOn: (_view, _pos, node, _np, event) => {
         if (node.type.name === "pageMention" && node.attrs.pageId) {
           useApp.getState().open({ kind: "page", id: node.attrs.pageId }, { newTab: event.ctrlKey });
@@ -197,6 +209,42 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
   }
 
   useEffect(() => { editor?.setEditable(editable); }, [editor, editable]);
+  useEffect(() => {
+    if (!editor) return;
+    liveEditors.set(page.id, editor);
+    return () => { if (liveEditors.get(page.id) === editor) liveEditors.delete(page.id); };
+  }, [editor, page.id]);
+  useEffect(() => {
+    if (editor) (editor.storage as unknown as { suggestionMode: { enabled: boolean } }).suggestionMode.enabled = !!page.suggesting;
+  }, [editor, page.suggesting]);
+  const resolvedThreads = useLiveQuery(() => db().comments.where("pageId").equals(page.id).filter((c) => !!c.resolved && !c.parentId).toArray(), [page.id], []);
+
+  async function addComment() {
+    if (!editor || !editable) return;
+    const { from, to } = editor.state.selection;
+    if (from === to) return useApp.getState().toast("Select some text to comment on", "info");
+    const anchorText = editor.state.doc.textBetween(from, to, " ").slice(0, 200);
+    const body = await promptDialog("Add a comment", "", `On “${anchorText.slice(0, 80)}”`);
+    if (!body?.trim()) return;
+    const id = uid();
+    await db().comments.add({ id, pageId: page.id, threadId: id, parentId: null, anchorText, body: body.trim(), author: "You", resolved: 0, createdAt: Date.now() });
+    editor.chain().focus().setTextSelection({ from, to }).setMark("comment", { threadId: id }).run();
+    const app = useApp.getState();
+    app.set("rightOpen", true);
+    app.set("rightTab", "comments");
+    requestThreadFocus(id);
+  }
+  const addCommentRef = useRef(addComment);
+  addCommentRef.current = addComment;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (editor?.isFocused && e.ctrlKey && e.altKey && e.key.toLowerCase() === "m") { e.preventDefault(); void addCommentRef.current(); }
+    };
+    addEventListener("keydown", onKey);
+    const onFocus = (e: Event) => scrollToThread(String((e as CustomEvent).detail));
+    addEventListener("cairn:scroll-thread", onFocus);
+    return () => { removeEventListener("keydown", onKey); removeEventListener("cairn:scroll-thread", onFocus); };
+  }, [editor]);
   useEffect(() => {
     if (editor) (editor.storage as unknown as { voiceNote: { pageId: string | null } }).voiceNote.pageId = page.id;
   }, [editor, page.id]);
@@ -292,9 +340,12 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
             else if (/^(https?:|mailto:)/i.test(url)) editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
             else useApp.getState().toast("Only http, https and mailto links are allowed", "error");
           }}><LinkIcon size={15} /></Btn>
+          <Btn label="Comment (Ctrl+Alt+M)" on={() => void addComment()}><MessageSquarePlus size={15} /></Btn>
           <TurnInto editor={editor} />
         </div>
       </BubbleMenu>
+      {resolvedThreads.length > 0 && <style>{resolvedThreads.map((c) => `span.comment-mark[data-comment="${CSS.escape(c.threadId ?? c.id)}"]`).join(",") + "{background:none;border-bottom:0}"}</style>}
+      {page.suggesting ? <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-0.5 text-[12px] text-accent" role="note" aria-label="Suggestion mode">Suggesting: your edits are tracked for review</div> : null}
       <DragHandle editor={editor} container={wrapRef} />
       <EditorContent editor={editor} />
       <SuggestMenu label="Insert block" state={slash} render={(it) => (

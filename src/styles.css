@@ -274,3 +274,9 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 @media (max-width: 720px) { .rea-editor div[data-columns] { grid-auto-flow: row; } }
 /* A synced block's own editor sits inside the page editor */
 .rea-editor .synced-inner { padding-bottom: 0; min-height: 1.6em; }
+
+/* Comments and suggestions */
+.rea-editor span.comment-mark { background: color-mix(in srgb, var(--color-warning) 22%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--color-warning) 60%, transparent); cursor: pointer; border-radius: 2px; }
+.rea-editor span.comment-mark.comment-flash { outline: 2px solid var(--color-accent); }
+.sugg-ins { color: var(--color-success); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-success) 60%, transparent); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
+.sugg-del { color: var(--color-danger); text-decoration: line-through; background: color-mix(in srgb, var(--color-danger) 8%, transparent); }

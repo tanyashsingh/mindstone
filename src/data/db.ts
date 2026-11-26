@@ -59,7 +59,7 @@ export class ReaDB extends Dexie {
       settings: "key",
     });
     // v2 (0.5): synced blocks
-    this.version(2).stores({ syncedBlocks: "id, workspaceId, sourcePageId" });
+    this.version(2).stores({ syncedBlocks: "id, workspaceId, sourcePageId", comments: "id, pageId, createdAt, threadId" });
   }
 }
 

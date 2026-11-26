@@ -6,6 +6,7 @@ import Highlight from "@tiptap/extension-highlight";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { Details, DetailsContent, DetailsSummary } from "@tiptap/extension-details";
 import { common, createLowlight } from "lowlight";
+import { CommentMark, InsertionMark, DeletionMark } from "./review";
 import { BlockId, Callout, MathBlock, Mermaid, PageEmbed, Toc, Attachment, Bookmark, PageMention, VoiceNote, Columns, Column, SyncedBlock, ButtonBlock } from "./extensions";
 
 export const lowlight = createLowlight(common);
@@ -30,5 +31,6 @@ export function schemaExtensions() {
     BlockId,
     Callout, MathBlock, Mermaid, PageEmbed, Toc, Attachment, Bookmark, PageMention, VoiceNote,
     Columns, Column, SyncedBlock, ButtonBlock,
+    CommentMark, InsertionMark, DeletionMark,
   ];
 }
