@@ -24,7 +24,8 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 | `system.spec.ts` | Command palette search and commands; backup download and restore; Markdown import and export; themes; offline editing; AI-off messaging; templates, files (incl. blocked .exe), graph, inbox |
 | `ai-live.spec.ts` | Opt-in (`$env:REA_LIVE_AI="1"`, needs Ollama with `llama3.2` and `nomic-embed-text`): chat, writing tool preview/replace/undo, semantic index + cited workspace answer, unreachable-server error |
 | `features.spec.ts` | Block drag handle (move, undo, select + duplicate); record templates; PDF and Word attachments become searchable |
-| `e2e-electron/desktop.spec.ts` | Built desktop app: file:// boot, preload bridge, no Node in renderer, PDF/Word extraction (throwaway profile) |
+| `e2e-electron/desktop.spec.ts` | Built desktop app: file:// boot, preload bridge, no Node in renderer, PDF/Word extraction; with `CAIRN_SPEECH_WAV`, a voice note recorded and transcribed in the desktop app |
+| `voice.spec.ts` | Opt-in (`$env:CAIRN_SPEECH_WAV` = a speech WAV, plus `npm run voice:setup`): records a meeting note from a fake microphone playing real speech, checks the local transcript and search; dictation at the cursor |
 | `screens.spec.ts` | Optional screenshots for visual review (`$env:REA_SCREENS="<dir>"`); skipped otherwise |
 
 ## Suites
@@ -46,7 +47,10 @@ IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses
 - Unit: 56 / 56 passing; type check clean.
 - End-to-end: 21 / 21 passing (the opt-in live AI and screenshot tests are skipped by default).
 - Live AI (Ollama 0.40.18, llama3.2): 7 / 7 passing, including an answer drawn from an uploaded PDF, a task proposal from a natural request, and no placeholder citations.
-- Desktop (Electron): 1 / 1 passing.
+- Desktop (Electron): 2 / 2 passing, including a voice note transcribed locally.
+- Voice (real speech generated with Windows SAPI): 2 / 2 passing; transcript matched the spoken sentence word for word.
+
+To make a test WAV: `Add-Type -AssemblyName System.Speech`, then use `SpeechSynthesizer.SetOutputToWaveFile` at 16 kHz mono.
 - Performance (Node + fake-indexeddb, slower than Chromium): index of 13,001 documents built in 170 ms,
   search query 5.2 ms, filter + sort of 10,000 records 6 ms.
 

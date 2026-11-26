@@ -12,6 +12,7 @@ MiniSearch · Zustand · provider-independent AI layer (`src/ai/providers.ts`; C
 ## Commands (PowerShell)
 - `npm run dev` (browser, port 5183) · `npm test` · `npm run test:e2e` (Playwright, installed Chrome) · `npm run typecheck` · `npm run check:all` · `npm run test:desktop` (built app in Electron)
 - `npm run build` (typecheck + web + electron bundles) · `npm run dist:win` (NSIS installer in `release/`)
+- `npm run voice:setup` once per checkout: downloads and SHA-256-verifies the Whisper model into git-ignored `public/voice/` (needed for voice features and builds)
 - `node scripts/render-logo.mjs` re-renders the 3D logo (brand/, build/icon.png, public/favicon.png, src/assets/)
 
 ## Conventions

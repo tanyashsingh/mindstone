@@ -2,6 +2,8 @@
 
 ## 0.3.0 (unreleased)
 
+- Voice: dictation (Ctrl+Shift+M), voice notes and meeting notes with local Whisper transcription, timestamps, summaries and action items; computer-audio capture for meetings on Windows; Transcribe for audio and video files. Audio never leaves the computer.
+- Slash commands accept spaces ("/meeting notes"); Enter is no longer swallowed when nothing matches.
 - New refined editorial interface: "ivory and ink" in light, "graphite and brass" in dark. Page titles and headings in the Newsreader serif (bundled, works offline), hairline borders with soft warm shadows, and one deep accent per theme. The accent follows the theme by default.
 - Renamed from REA to **Cairn**, with a new 3D logo (three stacked stones and a light) used for the app icon, favicon, start-up screen and About.
 - Cairn Intelligence can now propose tasks: ask for them in chat ("make a task for my flight tomorrow at 12 am") and a card lists each task with its date and time; nothing is created until you click. Tasks with a time get a reminder.

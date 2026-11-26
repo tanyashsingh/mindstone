@@ -38,6 +38,13 @@ sub-pages and tags, with local and global modes and orphan detection.
 ## Files
 PDF, Word (.docx), text and HTML attachments have their text extracted on upload, so Ctrl+K finds words inside them and AI answers can cite them. Scanned PDFs without a text layer are not read (no OCR).
 
+## Voice
+Press Ctrl+Shift+M (or the microphone on a page) to dictate: speak, press Enter, and the text appears at the cursor.
+Type /voice note or /meeting notes to record. Recordings are saved as audio, transcribed with timestamps, and can be
+summarized into key points, decisions and action items (which you can turn into tasks). On Windows, meeting notes can
+also capture the computer's audio, so both sides of a call are recorded. Audio and video files in a page have a
+Transcribe button. Transcripts are searchable and used by AI answers. Everything is transcribed locally with Whisper.
+
 ## Cairn Intelligence
 Choose Claude, OpenAI, Gemini, Ollama or an OpenAI-compatible local server in Settings. Cloud use requires
 an explicit opt-in. Chat about a page or your whole workspace with cited sources, rewrite or translate a

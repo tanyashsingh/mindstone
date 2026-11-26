@@ -54,6 +54,15 @@ Everything except AI calls is local. Network loss changes only the status-bar in
 debounced (default 600 ms); each keystroke also writes a crash-recovery draft to `localStorage`, offered back
 on next open if it is newer than the stored page. Errors in a view are contained by error boundaries.
 
+## Voice
+
+Recording uses MediaRecorder (Opus/WebM); meetings can mix in Windows loopback audio via `getDisplayMedia`, whose
+request is answered in the main process. Audio is decoded to 16 kHz mono and transcribed by Whisper base (q8) in a
+Web Worker (Transformers.js + ONNX Runtime Web, WebGPU first, CPU fallback) with remote model loading disabled.
+The desktop app serves the model and runtime on a private read-only `cairn-asset://voice/` scheme, because
+Chromium's fetch cannot read `file://`. Transcripts are stored on the audio attachment (`text`, `segments`), so the
+existing search and RAG pipelines index them.
+
 ## Sync readiness (not implemented)
 
 IDs are ULID-style (time-sortable, collision-resistant), every row has `createdAt` and `updatedAt`, and

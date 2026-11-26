@@ -90,6 +90,16 @@ Last updated: 2026-11-25.
 | Public release | 0.2.0 published: https://github.com/tanyashsingh/notion_rea/releases/tag/v0.2.0 |
 | Code signing, auto-update | Deferred (needs certificate; auto-update needs your approval) |
 
+## Voice
+| Feature | Status |
+|---|---|
+| Local transcription: Whisper base (q8) in a worker via Transformers.js, WebGPU with CPU fallback, 30 s chunks, timestamps, language setting | Tested live (browser and desktop) with synthesized speech |
+| Dictation at the cursor (Ctrl+Shift+M, page mic button, /dictate) | Tested (E2E, real speech) |
+| Voice note and meeting blocks: record, pause, save audio, transcribe, insert transcript, summarize, tasks from action items | Tested (E2E, real speech); summary path uses the verified AI layer |
+| Computer audio (Windows loopback) for meetings | Implemented; not testable headless |
+| Transcribe button on audio/video attachments; transcripts searchable and used by AI | Implemented (search tested via voice note) |
+| Desktop: cairn-asset:// scheme for model files, microphone permission limited to audio for the app's own page | Tested (desktop E2E) |
+
 ## Collaboration
 | Feature | Status |
 |---|---|
