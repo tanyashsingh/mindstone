@@ -305,10 +305,63 @@ export async function addRecordFromTemplate(databaseId: ID, templateId: ID): Pro
 
 export async function updateRecord(id: ID, propertyId: ID, value: unknown) {
   const d = db();
-  await d.transaction("rw", d.records, async () => {
+  await d.transaction("rw", d.records, d.databases, async () => {
     const r = await d.records.get(id);
     if (!r) return;
+    const prev = r.values[propertyId];
     await d.records.update(id, { values: { ...r.values, [propertyId]: value }, updatedAt: now() });
+    // Two-way relation: keep the mirror property on the linked records in step.
+    const prop = (await d.databases.get(r.databaseId))?.properties.find((p) => p.id === propertyId);
+    if (prop?.type !== "relation" || !prop.relationMirrorId) return;
+    const before = new Set(Array.isArray(prev) ? (prev as ID[]) : []), after = new Set(Array.isArray(value) ? (value as ID[]) : []);
+    const mirror = prop.relationMirrorId;
+    for (const tid of new Set([...before, ...after])) {
+      if (before.has(tid) === after.has(tid) || tid === id) continue;
+      const t = await d.records.get(tid);
+      if (!t) continue;
+      const cur = new Set(Array.isArray(t.values[mirror]) ? (t.values[mirror] as ID[]) : []);
+      if (after.has(tid)) cur.add(id); else cur.delete(id);
+      await d.records.update(tid, { values: { ...t.values, [mirror]: [...cur] }, updatedAt: now() });
+    }
+  });
+}
+
+/** Turns a relation into a two-way relation by adding a matching property to the target database (or removes it). */
+export async function setRelationTwoWay(databaseId: ID, propertyId: ID, on: boolean) {
+  const d = db();
+  await d.transaction("rw", d.databases, d.records, async () => {
+    const src = await d.databases.get(databaseId);
+    const prop = src?.properties.find((p) => p.id === propertyId);
+    if (!src || !prop?.relationDatabaseId) return;
+    const target = prop.relationDatabaseId === src.id ? src : await d.databases.get(prop.relationDatabaseId);
+    if (!target) return;
+    if (on && !prop.relationMirrorId) {
+      const mirror = { ...newProperty(src.id === target.id ? `${prop.name} (back)` : src.name, "relation"), relationDatabaseId: src.id, relationMirrorId: prop.id };
+      const srcProps = src.properties.map((p) => (p.id === prop.id ? { ...p, relationMirrorId: mirror.id } : p));
+      if (target.id === src.id) await patch(d.databases, src.id, { properties: [...srcProps, mirror], updatedAt: now() });
+      else {
+        await patch(d.databases, src.id, { properties: srcProps, updatedAt: now() });
+        await patch(d.databases, target.id, { properties: [...target.properties, mirror], updatedAt: now() });
+      }
+      // Fill the new property from the existing links.
+      const back = new Map<ID, ID[]>();
+      for (const r of await d.records.where("databaseId").equals(src.id).toArray()) {
+        for (const tid of (r.values[prop.id] as ID[] | undefined) ?? []) back.set(tid, [...(back.get(tid) ?? []), r.id]);
+      }
+      for (const [tid, ids] of back) {
+        const t = await d.records.get(tid);
+        if (t) await d.records.update(tid, { values: { ...t.values, [mirror.id]: ids } });
+      }
+    } else if (!on && prop.relationMirrorId) {
+      const mid = prop.relationMirrorId;
+      const fresh = target.id === src.id ? src.properties : target.properties;
+      const cleaned = fresh.filter((p) => p.id !== mid).map((p) => (p.id === prop.id ? { ...p, relationMirrorId: undefined } : p));
+      if (target.id === src.id) await patch(d.databases, src.id, { properties: cleaned, updatedAt: now() });
+      else {
+        await patch(d.databases, src.id, { properties: src.properties.map((p) => (p.id === prop.id ? { ...p, relationMirrorId: undefined } : p)), updatedAt: now() });
+        await patch(d.databases, target.id, { properties: cleaned, updatedAt: now() });
+      }
+    }
   });
 }
 

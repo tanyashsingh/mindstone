@@ -3,7 +3,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Check, Trash2, EyeOff, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
-import type { Database, DbRecord, Property, PropertyType, SelectOption } from "@/data/types";
+import type { Database, DbRecord, Property, PropertyType, RollupFn, SelectOption } from "@/data/types";
 import { cellValue, displayValue, recordTitle, type QueryContext } from "@/lib/dbquery";
 import { FORMULA_FUNCTIONS, runFormula } from "@/lib/formula";
 import { Chip, MenuItem, MenuSep, Popover, confirmDialog, useAnchor } from "@/components/ui";
@@ -17,6 +17,8 @@ export const PROPERTY_TYPES: { type: PropertyType; label: string }[] = [
   { type: "rollup", label: "Rollup" }, { type: "formula", label: "Formula" }, { type: "rating", label: "Rating" }, { type: "progress", label: "Progress" },
   { type: "createdTime", label: "Created time" }, { type: "editedTime", label: "Last edited" }, { type: "uniqueId", label: "Unique ID" },
 ];
+const ROLLUP_FNS: [RollupFn, string][] = [["count", "Count"], ["sum", "Sum"], ["avg", "Average"], ["min", "Minimum"], ["max", "Maximum"], ["percentChecked", "Percent checked"], ["earliest", "Earliest date"], ["latest", "Latest date"], ["showOriginal", "Show original"]];
+
 export const READONLY: PropertyType[] = ["formula", "rollup", "createdTime", "editedTime", "uniqueId"];
 
 export function useQueryContext(database: Database | undefined): QueryContext | undefined {
@@ -132,9 +134,10 @@ export function CellEditor({ database, record, prop, onDone }: { database: Datab
 }
 
 /** Header menu for a property: rename, change type, configure, sort, hide, delete. */
-export function PropertyMenu({ database, prop, anchor, onClose, onSort, onHide }: {
+export function PropertyMenu({ database, prop: opened, anchor, onClose, onSort, onHide }: {
   database: Database; prop: Property; anchor: DOMRect | { x: number; y: number } | null; onClose: () => void; onSort: (dir: "asc" | "desc") => void; onHide: () => void;
 }) {
+  const prop = database.properties.find((p) => p.id === opened.id) ?? opened; // show edits made while the menu is open
   const allDbs = useLiveQuery(() => db().databases.where("workspaceId").equals(database.workspaceId).toArray(), [database.workspaceId]);
   const update = (patch: Partial<Property>) => repo.updateDatabase(database.id, { properties: database.properties.map((p) => (p.id === prop.id ? { ...p, ...patch } : p)) });
   const [formula, setFormula] = useState(prop.formula ?? "");
@@ -160,15 +163,21 @@ export function PropertyMenu({ database, prop, anchor, onClose, onSort, onHide }
       {prop.type === "relation" && (
         <div className="p-1">
           <div className="label mb-1">Related database</div>
-          <select className="input" value={prop.relationDatabaseId ?? ""} onChange={(e) => update({ relationDatabaseId: e.target.value || undefined })}>
+          <select className="input" aria-label="Related database" value={prop.relationDatabaseId ?? ""} disabled={!!prop.relationMirrorId} onChange={(e) => update({ relationDatabaseId: e.target.value || undefined })}>
             <option value="">Choose…</option>
             {allDbs?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
+          {prop.relationDatabaseId && (
+            <label className="mt-1.5 flex items-center gap-1.5 text-[12.5px]">
+              <input type="checkbox" checked={!!prop.relationMirrorId} onChange={(e) => void repo.setRelationTwoWay(database.id, prop.id, e.target.checked)} />
+              Two-way: also show on {allDbs?.find((d) => d.id === prop.relationDatabaseId)?.name ?? "the related database"}
+            </label>
+          )}
         </div>
       )}
       {prop.type === "rollup" && (
         <div className="space-y-1 p-1">
-          <select className="input" value={prop.rollup?.relationPropertyId ?? ""} onChange={(e) => update({ rollup: { relationPropertyId: e.target.value, targetPropertyId: prop.rollup?.targetPropertyId ?? "", fn: prop.rollup?.fn ?? "count" } })}>
+          <select className="input" aria-label="Rollup relation" value={prop.rollup?.relationPropertyId ?? ""} onChange={(e) => update({ rollup: { relationPropertyId: e.target.value, targetPropertyId: prop.rollup?.targetPropertyId ?? "", fn: prop.rollup?.fn ?? "count" } })}>
             <option value="">Relation property…</option>{relations.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
           {(() => {
@@ -176,11 +185,11 @@ export function PropertyMenu({ database, prop, anchor, onClose, onSort, onHide }
             const target = allDbs?.find((d) => d.id === rel?.relationDatabaseId);
             return target && (
               <>
-                <select className="input" value={prop.rollup?.targetPropertyId ?? ""} onChange={(e) => update({ rollup: { ...prop.rollup!, targetPropertyId: e.target.value } })}>
+                <select className="input" aria-label="Rollup property" value={prop.rollup?.targetPropertyId ?? ""} onChange={(e) => update({ rollup: { ...prop.rollup!, targetPropertyId: e.target.value } })}>
                   <option value="">Property…</option>{target.properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <select className="input" value={prop.rollup?.fn ?? "count"} onChange={(e) => update({ rollup: { ...prop.rollup!, fn: e.target.value as "count" } })}>
-                  {["count", "sum", "avg", "min", "max", "showOriginal"].map((f) => <option key={f} value={f}>{f}</option>)}
+                <select className="input" aria-label="Rollup calculation" value={prop.rollup?.fn ?? "count"} onChange={(e) => update({ rollup: { ...prop.rollup!, fn: e.target.value as RollupFn } })}>
+                  {ROLLUP_FNS.map(([f, l]) => <option key={f} value={f}>{l}</option>)}
                 </select>
               </>
             );

@@ -7,11 +7,12 @@ import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { Database, DatabaseView as View, DbRecord, FilterGroup, FilterOp, FilterRule, Property, ViewType } from "@/data/types";
 import { groupRecords, queryView, recordTitle, type QueryContext } from "@/lib/dbquery";
+import { ChartView, TimelineView } from "./visual";
 import { CellDisplay, CellEditor, PropertyMenu, PROPERTY_TYPES, READONLY, useQueryContext } from "./cells";
 import { Chip, EmptyState, MenuItem, MenuSep, Modal, Popover, Skeleton, useAnchor, confirmDialog, promptDialog } from "@/components/ui";
 import { databaseToCSV, databaseToJSON, importCSV } from "@/data/portability";
 import { useApp } from "@/store/app";
-import { cx, downloadBlob, parseISODate, safeFileName, startOfWeek, toISODate, addDays, fmtDate } from "@/lib/util";
+import { cx, downloadBlob, parseISODate, safeFileName, startOfWeek, toISODate, addDays } from "@/lib/util";
 
 const VIEW_ICONS: Record<ViewType, React.ReactNode> = {
   table: <Table2 size={14} />, board: <Columns3 size={14} />, list: <ListIcon size={14} />, gallery: <LayoutGrid size={14} />,
@@ -313,59 +314,6 @@ function CalendarDbView({ database, view, records, onOpen }: { database: Databas
   );
 }
 
-function TimelineView({ database, view, records, onOpen }: { database: Database; view: View; records: DbRecord[]; onOpen: (r: DbRecord) => void }) {
-  const dp = database.properties.find((p) => p.id === view.dateProperty) ?? database.properties.find((p) => p.type === "dateRange" || p.type === "date");
-  if (!dp) return <EmptyState title="Add a Date or Date range property to use the timeline" />;
-  const items = records.map((r) => ({ r, ...recordDate(r, dp) })).filter((x) => x.start);
-  if (!items.length) return <EmptyState title="No dated records" />;
-  const min = items.reduce((a, x) => (x.start! < a ? x.start! : a), items[0]!.start!);
-  const first = startOfWeek(parseISODate(min));
-  const dayW = 28, days = 84;
-  const off = (s: string) => Math.round((parseISODate(s).getTime() - first.getTime()) / 864e5);
-  return (
-    <div className="overflow-x-auto rounded-md border border-line">
-      <div style={{ width: days * dayW + 200 }}>
-        <div className="flex border-b border-line text-[11px] text-faint">
-          <div className="w-[200px] shrink-0" />
-          {Array.from({ length: days / 7 }, (_, w) => <div key={w} style={{ width: dayW * 7 }} className="border-l border-line px-1 py-1">{fmtDate(addDays(toISODate(first), w * 7))}</div>)}
-        </div>
-        {items.map(({ r, start, end }) => {
-          const s = off(start!), e = Math.max(s, end ? off(end) : s);
-          return (
-            <div key={r.id} className="flex h-8 items-center border-b border-line">
-              <button className="w-[200px] shrink-0 truncate px-2 text-left text-[13px]" onClick={() => onOpen(r)}>{recordTitle(database, r)}</button>
-              <div className="relative h-full flex-1">
-                <button onClick={() => onOpen(r)} className="absolute top-1.5 h-5 rounded bg-accent/80 px-1.5 text-left text-[11px] text-on-accent" style={{ left: s * dayW, width: (e - s + 1) * dayW }} title={`${start} → ${end ?? start}`} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ChartView({ database, view, records }: { database: Database; view: View; records: DbRecord[] }) {
-  const p = database.properties.find((x) => x.id === view.groupBy) ?? database.properties.find((x) => x.type === "select" || x.type === "status");
-  if (!p) return <EmptyState title="Charts count records by a Select or Status property" body="Pick one with “Group” in the toolbar." />;
-  const groups = groupRecords(database, records, p.id);
-  const max = Math.max(1, ...groups.map((g) => g.records.length));
-  return (
-    <figure className="panel p-4" aria-label={`Records by ${p.name}`}>
-      <figcaption className="mb-3 text-[13px] text-muted">Records by {p.name}</figcaption>
-      <div className="space-y-2">
-        {groups.map((g) => (
-          <div key={g.key} className="flex items-center gap-3 text-[13px]">
-            <span className="w-32 truncate text-right text-muted">{g.label}</span>
-            <div className="h-5 flex-1"><div className={cx("h-full rounded-sm", `dot-${g.color}`)} style={{ width: `${(g.records.length / max) * 100}%`, minWidth: g.records.length ? 2 : 0 }} /></div>
-            <span className="w-10 tabular-nums">{g.records.length}</span>
-          </div>
-        ))}
-      </div>
-    </figure>
-  );
-}
-
 export function DatabaseView({ databaseId }: { databaseId: string }) {
   const database = useLiveQuery(() => db().databases.get(databaseId), [databaseId]);
   const records = useLiveQuery(() => db().records.where("databaseId").equals(databaseId).toArray(), [databaseId]);
@@ -407,7 +355,7 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
         <label className="flex h-7 items-center gap-1 rounded-md px-2 text-muted focus-within:bg-hover"><Search size={14} /><input className="w-32 bg-transparent text-[13px] outline-none" placeholder="Search" value={view.search ?? ""} onChange={(e) => updateView({ search: e.target.value })} /></label>
         <button className={cx("btn h-7", countRules(view.filter) > 0 && "text-accent")} onClick={filterMenu.openAt}><Filter size={14} /> Filter{countRules(view.filter) ? ` (${countRules(view.filter)})` : ""}</button>
         <button className={cx("btn h-7", view.sorts.length > 0 && "text-accent")} onClick={sortMenu.openAt}><ArrowUpDown size={14} /> Sort</button>
-        {(view.type === "board" || view.type === "chart") && <button className="btn h-7" onClick={groupMenu.openAt}>Group</button>}
+        {view.type === "board" && <button className="btn h-7" onClick={groupMenu.openAt}>Group</button>}
         <button className="btn h-7" onClick={propsMenu.openAt}><Eye size={14} /> Properties</button>
         <button className="icon-btn" aria-label="More database actions" onClick={moreMenu.openAt}><MoreHorizontal size={15} /></button>
         <span className="flex">
@@ -475,8 +423,8 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
       {view.type === "list" && <ListView database={database} view={view} records={rows} ctx={ctx} onOpen={setOpen} />}
       {view.type === "gallery" && <GalleryView database={database} view={view} records={rows} ctx={ctx} onOpen={setOpen} />}
       {view.type === "calendar" && <CalendarDbView database={database} view={view} records={rows} onOpen={setOpen} />}
-      {view.type === "timeline" && <TimelineView database={database} view={view} records={rows} onOpen={setOpen} />}
-      {view.type === "chart" && <ChartView database={database} view={view} records={rows} />}
+      {view.type === "timeline" && <TimelineView database={database} view={view} records={rows} onOpen={setOpen} updateView={updateView} />}
+      {view.type === "chart" && <ChartView database={database} view={view} records={rows} ctx={ctx} updateView={updateView} />}
       {open && <RecordModal database={database} record={open} ctx={ctx} onClose={() => setOpen(null)} />}
     </div>
   );

@@ -33,7 +33,10 @@ Last updated: 2026-11-25.
 | Feature | Status |
 |---|---|
 | 23 property types incl. relation, rollup, formula, unique ID | Tested (formula, query); Implemented (editors) |
-| Views: table (virtualised, resize, reorder, hide), board, list, gallery, calendar, timeline, chart | Verified (table, board); Implemented (others) |
+| Two-way relations (mirror property kept in step), rollups: count, sum, average, min, max, percent checked, earliest and latest date | Tested (unit + E2E) |
+| Views: table (virtualised, resize, reorder, hide), board, list, gallery, calendar, timeline, chart | Verified (table, board, chart, timeline); Implemented (others) |
+| Chart view: bars, horizontal bars, line, pie, donut; count, sum or average | Tested (unit + E2E) |
+| Timeline view: drag to move, drag ends to resize, day/week/month zoom, today line | Tested (E2E) |
 | Nested filter groups, multi-sort, grouping, search, bulk edit | Tested (engine); Implemented (UI) |
 | Safe formula engine (no eval) | Tested |
 | CSV/JSON import and export | Tested (CSV codec); Implemented (UI) |

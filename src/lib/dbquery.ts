@@ -49,6 +49,11 @@ export function cellValue(db: Database, r: DbRecord, p: Property, ctx?: QueryCon
         case "avg": return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null;
         case "min": return nums.length ? Math.min(...nums) : null;
         case "max": return nums.length ? Math.max(...nums) : null;
+        case "percentChecked": return linked.length ? Math.round((vals.filter((v) => v === true).length / linked.length) * 1000) / 10 : null;
+        case "earliest": case "latest": {
+          const dates = (tp ? linked.map((x) => x.values[tp.id]) : []).map((v) => (v && typeof v === "object" ? (v as { start?: string }).start : v)).filter((v): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v)).map((v) => v.slice(0, 10)).sort();
+          return dates.length ? (p.rollup.fn === "earliest" ? dates[0]! : dates[dates.length - 1]!) : null;
+        }
         default: return vals;
       }
     }
@@ -194,4 +199,20 @@ export function displayValue(db: Database, r: DbRecord, p: Property, ctx?: Query
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "number" && !Number.isInteger(v)) return String(Math.round(v * 1000) / 1000);
   return String(v);
+}
+
+export interface ChartPoint { key: string; label: string; color: string; value: number }
+/** Values for a chart view: one point per group, counting records or summing/averaging a number property. */
+export function chartData(db: Database, recs: DbRecord[], view: { groupBy?: string; chart?: { metric: "count" | "sum" | "avg"; valueProperty?: string } }, ctx?: QueryContext): ChartPoint[] {
+  const metric = view.chart?.metric ?? "count";
+  const vp = db.properties.find((p) => p.id === view.chart?.valueProperty);
+  return groupRecords(db, recs, view.groupBy).map((g) => {
+    let value = g.records.length;
+    if (metric !== "count") {
+      const nums = vp ? g.records.map((r) => Number(cellValue(db, r, vp, ctx))).filter((n) => Number.isFinite(n)) : [];
+      const sum = nums.reduce((a, b) => a + b, 0);
+      value = metric === "sum" ? sum : nums.length ? sum / nums.length : 0;
+    }
+    return { key: g.key, label: g.label, color: g.color, value: Math.round(value * 100) / 100 };
+  });
 }

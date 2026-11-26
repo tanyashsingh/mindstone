@@ -59,6 +59,9 @@ export type PropertyType =
   | "checkbox" | "date" | "dateRange" | "email" | "phone" | "url" | "files" | "person"
   | "relation" | "rollup" | "formula" | "rating" | "progress" | "createdTime" | "editedTime" | "uniqueId";
 
+export type RollupFn = "count" | "sum" | "avg" | "min" | "max" | "showOriginal" | "percentChecked" | "earliest" | "latest";
+export type ChartKind = "bar" | "hbar" | "line" | "pie" | "donut";
+
 export interface SelectOption { id: ID; name: string; color: string }
 
 export interface Property {
@@ -68,7 +71,8 @@ export interface Property {
   options?: SelectOption[]; // select / multiSelect / status
   formula?: string; // formula expression
   relationDatabaseId?: ID; // relation target
-  rollup?: { relationPropertyId: ID; targetPropertyId: ID; fn: "count" | "sum" | "avg" | "min" | "max" | "showOriginal" };
+  relationMirrorId?: ID; // two-way relation: the matching relation property in the target database
+  rollup?: { relationPropertyId: ID; targetPropertyId: ID; fn: RollupFn };
   currency?: string;
   width?: number;
   prefix?: string; // uniqueId prefix
@@ -91,6 +95,8 @@ export interface DatabaseView {
   dateProperty?: ID; // calendar / timeline
   hidden: ID[];
   order: ID[]; // column order
+  chart?: { kind: ChartKind; metric: "count" | "sum" | "avg"; valueProperty?: ID };
+  timelineZoom?: "day" | "week" | "month";
   search?: string;
 }
 
