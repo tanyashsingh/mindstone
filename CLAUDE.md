@@ -28,6 +28,8 @@ MiniSearch · Zustand · provider-independent AI layer (`src/ai/providers.ts`; C
 - Never commit secrets. AI keys live in `%APPDATA%\Mindstone\secrets.json`, encrypted with DPAPI via `safeStorage`.
 - Renderer stays sandboxed (contextIsolation, no nodeIntegration). New IPC channels go through `handle()` in
   `electron/main.ts` (sender check) and validate their inputs.
+- Release only through the tag-driven workflow (RELEASING.md). Keep `build.electronFuses` hardened.
+- Cloud AI calls go through `guardBegin` in `src/ai/client.ts` (spending guard); don't bypass it.
 - Workspace content goes to cloud AI only when `ai.allowCloud` is on; imported or retrieved content is wrapped as untrusted data.
 
 ## Database migrations

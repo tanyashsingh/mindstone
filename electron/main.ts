@@ -9,6 +9,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { streamChat, embed, listModels, AiError, PROVIDER_LABELS, type ChatRequest } from "../src/ai/providers";
 import type { AiProviderId } from "../src/data/types";
+import { checkForUpdates, configureUpdates, initUpdater, installCrashLogging, installUpdate, listBackups, log, openBackupFolder, openLogFolder, saveBackup, updateState } from "./ops";
 
 const DEV_URL = process.env.REA_DEV_URL; // e.g. http://localhost:5183 during development
 const INDEX = path.join(__dirname, "../dist/index.html");
@@ -24,7 +25,7 @@ let quitting = false;
 {
   const home = app.getPath("userData");
   const marker = path.join(home, ".mindstone-data");
-  if (!fs.existsSync(marker)) {
+  if (!app.commandLine.hasSwitch("user-data-dir") && !fs.existsSync(marker)) { // an explicit --user-data-dir is used as given
     const legacy = ["Cairn", "REA"].map((n) => path.join(app.getPath("appData"), n)).find((p) => fs.existsSync(path.join(p, "IndexedDB")));
     if (legacy) app.setPath("userData", legacy);
     else {
@@ -131,6 +132,18 @@ function registerIpc() {
   });
   handle("rea:newWindow", () => { createWindow(); });
   handle("rea:dataPath", () => app.getPath("userData"));
+  handle("rea:log", (_e, level: string, message: string) => {
+    if (level !== "error" && level !== "warn" && level !== "info") return;
+    log(level, String(message).slice(0, 4000), "renderer");
+  });
+  handle("rea:logs:open", () => openLogFolder());
+  handle("rea:backup:save", (_e, name: string, json: string) => saveBackup(String(name), String(json)));
+  handle("rea:backup:list", () => listBackups());
+  handle("rea:backup:open", () => openBackupFolder());
+  handle("rea:update:configure", (_e, enabled: boolean) => configureUpdates(enabled === true));
+  handle("rea:update:check", () => checkForUpdates());
+  handle("rea:update:state", () => updateState());
+  handle("rea:update:install", () => installUpdate());
   handle("rea:secrets:available", () => safeStorage.isEncryptionAvailable());
   handle("rea:secrets:set", (_e, name: string, value: string) => {
     if (!SECRET_NAME.test(name)) throw new Error("Invalid secret name");
@@ -184,7 +197,11 @@ app.on("web-contents-created", (_e, contents) => {
   contents.on("will-attach-webview", (ev) => ev.preventDefault());
 });
 
+installCrashLogging();
+
 void app.whenReady().then(() => {
+  log("info", `Mindstone ${app.getVersion()} started (${process.platform}, Electron ${process.versions.electron})`);
+  initUpdater();
   app.setAppUserModelId("app.cairn.workspace"); // Windows notifications and taskbar grouping
   protocol.handle("cairn-asset", serveAsset);
   // Only the microphone (audio only) and screen-audio capture for voice notes, and only for our own page.

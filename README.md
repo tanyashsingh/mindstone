@@ -75,18 +75,23 @@ move a workspace between machines.
 
 ## Releasing
 
-```powershell
-npm version minor --no-git-tag-version   # bump package.json, then update CHANGELOG.md
-npm run check:all
-npm run dist:win
-git tag -a vX.Y.Z -m "Mindstone X.Y.Z"; git push --follow-tags
-& "C:\Program Files\GitHub CLI\gh.exe" release create vX.Y.Z "release\Mindstone Setup X.Y.Z.exe" --notes-file notes.md
-```
+CI (GitHub Actions) tests every push and builds the installer; pushing a `vX.Y.Z` tag publishes a release. See
+[RELEASING.md](RELEASING.md), which also covers adding a code-signing certificate.
 
 ## Updating
 
-Install a newer `Mindstone Setup x.y.z.exe` over the existing one; data is preserved and the database migrates on
-first launch. Automatic updates are not configured.
+The installed app checks GitHub Releases shortly after start and every 12 hours, downloads new versions in the
+background and offers **Restart to update**. Turn it off in **Settings → About**. You can also install a newer
+`Mindstone-Setup-x.y.z.exe` over the existing one; data is preserved and the database migrates on first launch.
+
+## Reliability
+
+- **Automatic backups** (desktop): once a day each workspace is saved to the `backups` folder inside the data folder; the
+  newest 14 per workspace are kept. **Settings → Backup & restore** shows the latest and opens the folder.
+- **Error log**: crashes and errors go to `logs/mindstone.log` in the data folder (rotated at 1 MB, API keys redacted).
+  Nothing is sent anywhere. **Settings → About → Open log folder**.
+- **Cloud AI spending guard**: a cap on cloud requests per minute (default 20) and a daily token budget (default
+  300,000), both adjustable in **Settings → AI**. Local models are never limited.
 
 ## Environment variables
 
@@ -97,7 +102,8 @@ and stored with Windows DPAPI, never in files in this repository.
 
 Sandboxed renderer with context isolation, strict Content Security Policy, IPC sender verification,
 sanitised rich text and AI output, link protocol allow-list, blocked executable attachments, CSV
-formula-injection guard, and an `eval`-free formula engine. No telemetry. Mindstone does **not** encrypt data at
+formula-injection guard, an `eval`-free formula engine, and hardened Electron fuses (no `ELECTRON_RUN_AS_NODE`,
+no `--inspect`, app code loaded only from an integrity-checked asar). See [SECURITY.md](SECURITY.md) to report a problem. No telemetry. Mindstone does **not** encrypt data at
 rest beyond your Windows account protection and offers no end-to-end encryption.
 
 ## Documentation

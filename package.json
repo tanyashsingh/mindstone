@@ -15,7 +15,7 @@
     "build": "npm run typecheck && npm run build:web && npm run build:electron",
     "preview": "vite preview",
     "desktop": "npm run build && electron .",
-    "dist:win": "npm run build && electron-builder --win nsis --x64",
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -93,13 +93,31 @@
     "nsis": {
       "oneClick": false,
       "perMachine": false,
+      "artifactName": "Mindstone-Setup-${version}.${ext}",
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false
     },
-    "publish": null
+    "publish": { "provider": "github", "owner": "tanyashsingh", "repo": "mindstone", "releaseType": "release" },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": true
+    },
+    "asar": true
   },
   "allowScripts": {
     "onnxruntime-node": false,
     "protobufjs": false
+  },
+  "overrides": {
+    "minimatch@>=7.0.0 <11.0.1": "^11.0.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }

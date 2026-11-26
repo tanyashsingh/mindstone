@@ -7,6 +7,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode; label?: stri
   }
   componentDidCatch(error: Error) {
     console.error("[Mindstone] UI error", error);
+    void window.rea?.log("error", `UI error in ${this.props.label ?? "app"}: ${error.message}
+${error.stack ?? ""}`);
   }
   render() {
     if (!this.state.error) return this.props.children;

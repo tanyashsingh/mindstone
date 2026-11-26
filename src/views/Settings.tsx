@@ -8,7 +8,8 @@ import type { AiProviderId } from "@/data/types";
 import { useApp } from "@/store/app";
 import { DEFAULT_SHORTCUTS, useSettings, type Settings } from "@/store/settings";
 import { PROVIDER_LABELS, NEEDS_KEY, LOCAL_PROVIDERS } from "@/ai/providers";
-import { chat, deleteApiKey, hasApiKey, listModels, setApiKey } from "@/ai/client";
+import { chat, deleteApiKey, hasApiKey, listModels, setApiKey, spendGuard } from "@/ai/client";
+import { runAutoBackups } from "@/lib/autoBackup";
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
 import { Toggle, confirmDialog } from "@/components/ui";
 import { cx, downloadBlob, fmtBytes, safeFileName } from "@/lib/util";
@@ -187,6 +188,8 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Active provider" desc="Mindstone works fully without AI."><select className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>
             <Row label="Allow cloud AI providers" desc="Off by default. While off, nothing is sent to Claude, OpenAI or Gemini; local models still work."><Toggle checked={s.ai.allowCloud} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, allowCloud: v } }))} label="Allow cloud AI" /></Row>
             <Row label="Ask before sending workspace content" desc="Confirm each time page excerpts are attached to a cloud request."><Toggle checked={s.ai.confirmWorkspaceContext} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, confirmWorkspaceContext: v } }))} label="Confirm context" /></Row>
+            <Row label="Cloud requests per minute" desc="Stops runaway loops from running up your bill. 0 means no limit. Local models are never limited."><input type="number" min={0} max={600} className="input w-24" aria-label="Cloud requests per minute" value={s.ai.limits.maxRequestsPerMinute} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, limits: { ...x.ai.limits, maxRequestsPerMinute: Math.max(0, Math.round(Number(e.target.value) || 0)) } } }))} /></Row>
+            <Row label="Daily cloud token budget" desc={`Cloud AI stops for the day once this many tokens are used. 0 means no limit. Used today: ${spendGuard.usage().tokens.toLocaleString()}.`}><input type="number" min={0} step={10000} className="input w-32" aria-label="Daily cloud token budget" value={s.ai.limits.dailyTokenBudget} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, limits: { ...x.ai.limits, dailyTokenBudget: Math.max(0, Math.round(Number(e.target.value) || 0)) } } }))} /></Row>
             <p className="mt-3 text-[12.5px] text-muted">AI never edits your pages directly. Writing tools show a preview first, and inserted text can be undone with Ctrl+Z. Creating tasks from AI replies asks for confirmation. Imported documents are passed to models as quoted data, not instructions.</p>
           </>}
           {sec === "providers" && (Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <ProviderCard key={p} id={p} />)}
@@ -206,6 +209,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Database schema" desc={`Version ${DB_SCHEMA_VERSION}`}><span /></Row>
           </>}
           {sec === "backup" && <>
+            {window.rea && <AutoBackupRows />}
             <Row label="Create backup" desc={`Complete workspace (pages, history, databases, tasks, events, files, AI chats) as one .rea.json file. Format version ${BACKUP_VERSION}.`}>
               <button className="btn-primary" onClick={async () => { const b = await createBackup(ws); downloadBlob(new Blob([JSON.stringify(b)], { type: "application/json" }), `${safeFileName(workspace?.name ?? "workspace")}-${new Date().toISOString().slice(0, 10)}.rea.json`); }}>Download backup</button>
             </Row>
@@ -249,9 +253,47 @@ export default function SettingsView({ section }: { section?: string }) {
             <p>Build your mind, stone by stone. Mindstone stacks your notes, tasks, recordings and knowledge into something that lasts: built by you, on your own computer.</p>
             <p>Runtime: {window.rea ? `Desktop (${window.rea.platform}, Electron ${window.rea.version})` : "Browser"} · Database schema v{DB_SCHEMA_VERSION} · Backup format v{BACKUP_VERSION}</p>
             <p>Built with React, TipTap (ProseMirror), Dexie (IndexedDB), MiniSearch, KaTeX and Mermaid.</p>
+            {window.rea && <UpdateRows />}
           </div>}
         </div>
       </div>
     </div>
   );
+}
+
+function AutoBackupRows() {
+  const { s, update } = useSettings();
+  const [list, setList] = useState<{ name: string; size: number; at: number }[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const refresh = () => void window.rea!.backup.list().then(setList);
+  useEffect(refresh, []);
+  return <>
+    <Row label="Automatic daily backups" desc="Once a day, each workspace is saved to the backups folder inside Mindstone's data folder. The newest 14 per workspace are kept."><Toggle checked={s.backup.auto} onChange={(v) => update((x) => ({ ...x, backup: { auto: v } }))} label="Automatic backups" /></Row>
+    <Row label="Local backups" desc={list === null ? "Loading…" : list.length ? `${list.length} saved · latest ${new Date(list[0]!.at).toLocaleString()} (${fmtBytes(list[0]!.size)})` : "None yet."}>
+      <div className="flex gap-2">
+        <button className="btn-outline" disabled={busy || !s.backup.auto} onClick={async () => { setBusy(true); try { const n = await runAutoBackups(true); useApp.getState().toast(`Saved ${n} backup${n === 1 ? "" : "s"}`, "success"); } finally { setBusy(false); refresh(); } }}>{busy ? <Loader2 size={14} className="animate-spin" /> : "Back up now"}</button>
+        <button className="btn-outline" onClick={() => void window.rea!.backup.open()}>Open folder</button>
+      </div>
+    </Row>
+  </>;
+}
+
+const UPDATE_TEXT: Record<ReaUpdateState["status"], string> = {
+  idle: "Not checked yet.", checking: "Checking…", none: "You have the latest version.", downloading: "Downloading an update…",
+  ready: "An update is ready.", error: "The last check failed.", disabled: "",
+};
+
+function UpdateRows() {
+  const { s, update } = useSettings();
+  const [st, setSt] = useState<ReaUpdateState>({ status: "idle" });
+  useEffect(() => { void window.rea!.updates.state().then(setSt); return window.rea!.updates.onState(setSt); }, []);
+  return <div className="pt-3 text-fg">
+    <Row label="Check for updates automatically" desc="Looks for new versions on Mindstone's GitHub Releases page twice a day and downloads them in the background. Nothing else is sent."><Toggle checked={s.updates.auto} onChange={(v) => update((x) => ({ ...x, updates: { auto: v } }))} label="Automatic updates" /></Row>
+    <Row label="Updates" desc={[UPDATE_TEXT[st.status], st.version && `Version ${st.version}.`, st.message && `${st.message}.`].filter(Boolean).join(" ")}>
+      {st.status === "ready"
+        ? <button className="btn-primary" onClick={() => void window.rea!.updates.install()}>Restart to update</button>
+        : <button className="btn-outline" disabled={st.status === "checking" || st.status === "downloading"} onClick={async () => setSt(await window.rea!.updates.check())}>Check now</button>}
+    </Row>
+    <Row label="Error log" desc="Errors are written to a log file on this computer only. Share it when reporting a problem."><button className="btn-outline" onClick={() => void window.rea!.openLogs()}>Open log folder</button></Row>
+  </div>;
 }

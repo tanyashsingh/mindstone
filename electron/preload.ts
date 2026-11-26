@@ -7,6 +7,24 @@ contextBridge.exposeInMainWorld("rea", {
   notify: (title: string, body: string) => ipcRenderer.invoke("rea:notify", title, body),
   newWindow: () => ipcRenderer.invoke("rea:newWindow"),
   dataPath: () => ipcRenderer.invoke("rea:dataPath"),
+  log: (level: string, message: string) => ipcRenderer.invoke("rea:log", level, message),
+  openLogs: () => ipcRenderer.invoke("rea:logs:open"),
+  backup: {
+    save: (name: string, json: string) => ipcRenderer.invoke("rea:backup:save", name, json),
+    list: () => ipcRenderer.invoke("rea:backup:list"),
+    open: () => ipcRenderer.invoke("rea:backup:open"),
+  },
+  updates: {
+    configure: (enabled: boolean) => ipcRenderer.invoke("rea:update:configure", enabled),
+    check: () => ipcRenderer.invoke("rea:update:check"),
+    state: () => ipcRenderer.invoke("rea:update:state"),
+    install: () => ipcRenderer.invoke("rea:update:install"),
+    onState: (cb: (s: unknown) => void) => {
+      const fn = (_e: unknown, s: unknown) => cb(s);
+      ipcRenderer.on("rea:update:state", fn);
+      return () => ipcRenderer.removeListener("rea:update:state", fn);
+    },
+  },
   secrets: {
     available: () => ipcRenderer.invoke("rea:secrets:available"),
     set: (name: string, value: string) => ipcRenderer.invoke("rea:secrets:set", name, value),

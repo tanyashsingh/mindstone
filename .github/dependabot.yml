@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 8
+    groups:
+      tiptap:
+        patterns: ["@tiptap/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react*"]
+      build-tooling:
+        patterns: ["vite", "@vitejs/*", "vitest", "typescript", "tailwindcss", "@tailwindcss/*", "esbuild"]
+      electron:
+        patterns: ["electron", "electron-builder", "electron-updater"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

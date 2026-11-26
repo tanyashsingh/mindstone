@@ -20,7 +20,22 @@ interface ReaBridge {
     listModels(req: { provider: import("./data/types").AiProviderId; baseUrl: string }): Promise<string[] | { error: string }>;
   };
   dataPath(): Promise<string>;
+  log(level: "info" | "warn" | "error", message: string): Promise<void>;
+  openLogs(): Promise<string>;
+  backup: {
+    save(name: string, json: string): Promise<{ path: string }>;
+    list(): Promise<{ name: string; size: number; at: number }[]>;
+    open(): Promise<string>;
+  };
+  updates: {
+    configure(enabled: boolean): Promise<void>;
+    check(): Promise<ReaUpdateState>;
+    state(): Promise<ReaUpdateState>;
+    install(): Promise<void>;
+    onState(cb: (s: ReaUpdateState) => void): () => void;
+  };
 }
+interface ReaUpdateState { status: "idle" | "checking" | "none" | "downloading" | "ready" | "error" | "disabled"; version?: string; message?: string }
 interface Window { rea?: ReaBridge }
 /** App version from package.json, injected at build time. */
 declare const __APP_VERSION__: string;

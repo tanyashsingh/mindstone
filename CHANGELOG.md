@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Automatic updates: the desktop app checks GitHub Releases, downloads new versions in the background and offers "Restart to update". Turn it off in Settings → About.
+- Automatic daily backups of every workspace to the data folder (newest 14 kept), with "Back up now" and "Open folder" in Settings → Backup & restore.
+- A local error log for crashes and errors (API keys redacted, never sent anywhere); Settings → About → Open log folder.
+- Cloud AI spending guard: a requests-per-minute cap and a daily token budget, adjustable in Settings → AI. Local models are not limited.
+- Hardened Electron fuses, a security policy (SECURITY.md), CodeQL scanning and Dependabot.
+- CI on every push and tag-driven releases on GitHub Actions; installer file name is now `Mindstone-Setup-x.y.z.exe`.
+
 ## 0.3.0 (2026-11-26)
 
 - Renamed to **Mindstone** ("build your mind, stone by stone"). Data, backups and settings from Cairn and REA builds carry over.

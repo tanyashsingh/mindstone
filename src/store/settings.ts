@@ -21,7 +21,10 @@ export interface Settings {
     allowCloud: boolean; // must be explicitly enabled before workspace content leaves the device
     confirmWorkspaceContext: boolean;
     providers: Record<AiProviderId, AiProviderConfig>;
+    limits: { maxRequestsPerMinute: number; dailyTokenBudget: number }; // cloud providers only; 0 = unlimited
   };
+  backup: { auto: boolean }; // desktop: daily local backups
+  updates: { auto: boolean }; // desktop: check GitHub Releases for new versions
   voice: { language: string; systemAudio: boolean }; // language "" = detect automatically
   shortcuts: Record<string, string>;
 }
@@ -64,7 +67,10 @@ export const DEFAULT_SETTINGS: Settings = {
       ollama: { enabled: false, model: "llama3.2", baseUrl: "http://localhost:11434", embedModel: "nomic-embed-text" },
       openaiCompatible: { enabled: false, model: "", baseUrl: "http://localhost:1234/v1", embedModel: "" },
     },
+    limits: { maxRequestsPerMinute: 20, dailyTokenBudget: 300_000 },
   },
+  backup: { auto: true },
+  updates: { auto: true },
   voice: { language: "", systemAudio: false },
   shortcuts: DEFAULT_SHORTCUTS,
 };

@@ -48,6 +48,17 @@ while block IDs still allow addressing (outline, table of contents, future sync)
 - API keys are encrypted with `safeStorage` (DPAPI on Windows) in `%APPDATA%\Mindstone\secrets.json` and are
   only decrypted in the main process. AI requests run in the main process, so keys never reach page JavaScript.
 
+- `electron/ops.ts` holds operations: the local error log (`logs/mindstone.log`, rotated, keys redacted),
+  crash logging (`uncaughtException`, `render-process-gone`, `child-process-gone`), automatic backups written
+  atomically to `backups/` (newest 14 per workspace; the renderer builds the backup with `createBackup` and the
+  main process only validates the file name and writes it), and the updater (electron-updater, GitHub Releases
+  provider, off when the setting is off or the app is not packaged).
+- Electron fuses (set at build time in `package.json` → `build.electronFuses`): RunAsNode, NODE_OPTIONS and
+  inspector arguments disabled; asar integrity validation and asar-only loading on; cookie encryption on.
+  `GrantFileProtocolExtraPrivileges` stays on because pages load from `file://`.
+- Cloud AI requests pass a spending guard (`src/ai/guard.ts`): requests per minute and a daily token budget,
+  counted per device in `localStorage`. Local providers bypass it.
+
 ## Offline and failure behaviour
 
 Everything except AI calls is local. Network loss changes only the status-bar indicator. Saves are

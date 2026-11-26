@@ -16,6 +16,8 @@ import { createPage, extractPendingAttachments, setSetting } from "./data/repo";
 import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
+import { startAutoBackups } from "./lib/autoBackup";
+import { startUpdateWatch } from "./lib/updates";
 import cairnMark from "./assets/mindstone-mark.png";
 
 const PageView = lazy(() => import("./views/PageView"));
@@ -97,6 +99,8 @@ export function App() {
         useApp.getState().setWorkspace(ws);
         setReady(true);
         startReminders();
+        startAutoBackups();
+        startUpdateWatch();
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
       }

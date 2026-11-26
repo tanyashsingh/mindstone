@@ -79,6 +79,9 @@ Last updated: 2026-11-25.
 | Versioned workspace backup and restore | Tested |
 | Import Markdown, HTML, text, CSV, JSON, Obsidian vaults, unzipped Notion exports | Implemented (limitations listed in Settings → Import) |
 | Export Markdown, HTML, PDF (print), CSV, JSON, workspace ZIP | Tested (ZIP); Implemented |
+| Automatic daily local backups (desktop, newest 14 per workspace) | Verified (packaged build wrote one) |
+| Local error log with crash capture and key redaction | Verified (packaged build) |
+| Cloud AI spending guard (requests per minute, daily token budget) | Tested |
 
 ## Desktop and security
 | Feature | Status |
@@ -88,7 +91,10 @@ Last updated: 2026-11-25.
 | CSP, sanitised rendering (DOMPurify), link protocol allow-list, file-type validation, safe file names | Tested (file names, CSV injection); Implemented |
 | NSIS installer, install, launch, uninstall | Verified (0.1.0 and 0.2.0) |
 | Public release | 0.2.0 published: https://github.com/tanyashsingh/notion_rea/releases/tag/v0.2.0 |
-| Code signing, auto-update | Deferred (needs certificate; auto-update needs your approval) |
+| Electron fuses (no RunAsNode, no inspect, asar integrity) | Verified (`@electron/fuses read`) |
+| Auto-update from GitHub Releases, with an off switch | Implemented (verified once a newer release exists) |
+| CI (tests, audit, installer build), tag-driven releases, CodeQL, Dependabot | Implemented |
+| Code signing | Hooks ready (`CSC_LINK` secrets); needs a certificate purchase |
 
 ## Voice
 | Feature | Status |
@@ -139,4 +145,4 @@ The Playwright suite exercised the main controls of every view. Bugs found and f
 
 ## Next steps
 1. Columns, synced and button blocks; OCR for scanned PDFs.
-2. Code signing (removes the SmartScreen warning) and an update channel, both needing your decision.
+2. Code signing (removes the SmartScreen warning): needs a certificate, see RELEASING.md.

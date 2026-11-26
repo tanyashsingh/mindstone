@@ -42,9 +42,15 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 
 IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses a fresh database.
 
-## Latest results (2026-11-25)
+## Continuous integration
 
-- Unit: 56 / 56 passing; type check clean.
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request (windows-latest, Node 24): type check,
+unit tests, `npm audit --audit-level=moderate`, the Playwright suite in Chrome, and an installer build.
+
+## Latest results (2026-11-26)
+
+- Unit: 59 / 59 passing (adds the cloud AI spending guard); type check clean.
+- Packaged build: fuses read back as set; electron-updater packaged; a daily backup and the log file were written on first run.
 - End-to-end: 21 / 21 passing (the opt-in live AI and screenshot tests are skipped by default).
 - Live AI (Ollama 0.40.18, llama3.2): 7 / 7 passing, including an answer drawn from an uploaded PDF, a task proposal from a natural request, and no placeholder citations.
 - Desktop (Electron): 2 / 2 passing, including a voice note transcribed locally.

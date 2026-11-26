@@ -1,0 +1,60 @@
+name: Release
+
+# Runs when a version tag is pushed (git tag v0.4.0 && git push origin v0.4.0).
+# Builds the installer, then publishes a GitHub release with the files the in-app updater reads.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Check the tag matches package.json
+        shell: bash
+        run: |
+          v=$(node -p "require('./package.json').version")
+          if [ "v$v" != "${GITHUB_REF_NAME}" ]; then echo "Tag ${GITHUB_REF_NAME} does not match package.json version $v"; exit 1; fi
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+
+      - run: npm ci
+
+      - name: Cache the speech model
+        uses: actions/cache@v4
+        with:
+          path: public/voice
+          key: voice-${{ hashFiles('scripts/voice-setup.mjs', 'package-lock.json') }}
+
+      - run: npm run voice:setup
+      - run: npm test
+
+      # Code signing: add CSC_LINK (base64 .pfx or a URL) and CSC_KEY_PASSWORD as repository secrets and
+      # electron-builder signs automatically. Without them the installer is built unsigned. See RELEASING.md.
+      - name: Build the installer
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        run: |
+          if [ -z "$CSC_LINK" ]; then unset CSC_LINK CSC_KEY_PASSWORD; export CSC_IDENTITY_AUTO_DISCOVERY=false; echo "Building unsigned"; fi
+          npm run dist:win
+
+      - name: Publish the GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/changelog-section.mjs "$VERSION" > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "Mindstone $VERSION" --notes-file notes.md \
+            release/Mindstone-Setup-$VERSION.exe release/Mindstone-Setup-$VERSION.exe.blockmap release/latest.yml
