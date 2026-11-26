@@ -9,6 +9,7 @@ import { useApp, type RouteKind } from "@/store/app";
 import { resolvedDark, useSettings } from "@/store/settings";
 import { shortcutLabel } from "@/lib/shortcuts";
 import { cx } from "@/lib/util";
+import { useDigest } from "./DigestDialog";
 import { Highlight } from "@/views/SearchView";
 
 export function openHit(h: SearchHit, newTab = false) {
@@ -46,6 +47,8 @@ export function CommandPalette() {
     const nav = (kind: RouteKind, label: string): Cmd => ({ id: `go-${kind}`, label: `Go to ${label}`, run: () => st.open({ kind }) });
     return [
       { id: "new-page", label: "New page", hint: shortcutLabel(shortcuts.newPage ?? ""), run: async () => { const p = await repo.createPage(workspaceId!, null); st.open({ kind: "page", id: p.id }); } },
+      { id: "digest-today", label: "Today's digest", run: () => useDigest.getState().show("today") },
+      { id: "digest-week", label: "Weekly digest", run: () => useDigest.getState().show("week") },
       { id: "new-db", label: "New database", run: async () => { const { page } = await repo.createDatabase(workspaceId!, null); st.open({ kind: "page", id: page.id }); } },
       { id: "new-task", label: "New task", run: async () => { await repo.createTask(workspaceId!, { title: q.replace(/^>\s*/, "") || "New task" }); st.open({ kind: "tasks" }); } },
       { id: "new-project", label: "New project", run: async () => { const p = await repo.createProject(workspaceId!, { status: "active" }); st.open({ kind: "project", id: p.id }); } },

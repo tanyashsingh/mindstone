@@ -166,9 +166,9 @@ test("recording summaries can use the local model even when AI is off", async ({
   await newPage(page, "Call with Priya");
   // A recorded meeting whose transcript is already stored (speech-to-text is covered by voice.spec.ts).
   await page.evaluate(async () => {
-    const { db } = await import("/src/data/db.ts");
-    const { liveEditors } = await import("/src/editor/review.ts");
-    const { useApp } = await import("/src/store/app.ts");
+    const { db } = await import(/* @vite-ignore */ String("/src/data/db.ts"));
+    const { liveEditors } = await import(/* @vite-ignore */ String("/src/editor/review.ts"));
+    const { useApp } = await import(/* @vite-ignore */ String("/src/store/app.ts"));
     const ws = useApp.getState().workspaceId!;
     const id = "att-meeting-1";
     await db().attachments.add({ id, workspaceId: ws, pageId: null, name: "call.webm", mime: "audio/webm", size: 4, blob: new Blob(["0000"], { type: "audio/webm" }), createdAt: Date.now(),
@@ -185,4 +185,20 @@ test("recording summaries can use the local model even when AI is off", async ({
   await expect(page.locator(".rea-editor").first().getByRole("heading", { name: /Summary/i })).toBeVisible({ timeout: 180_000 });
   await expect(page.locator(".rea-editor").first()).toContainText(/budget/i);
   await expect(page.getByRole("status")).toContainText("AI off"); // the active provider was never switched on
+});
+
+test("digest gets a written summary from the local model", async ({ page }) => {
+  await boot(page);
+  await page.evaluate(async () => {
+    const repo = await import(/* @vite-ignore */ String("/src/data/repo.ts"));
+    const { useApp } = await import(/* @vite-ignore */ String("/src/store/app.ts"));
+    const ws = useApp.getState().workspaceId as string;
+    const x = new Date(Date.now() - 2 * 864e5);
+    await repo.createTask(ws, { title: "Renew passport", dueDate: `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}` });
+  });
+  await useOllama(page);
+  await nav(page, "Home");
+  await main(page).getByRole("button", { name: "Today's digest" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Write summary" }).click();
+  await expect(page.getByTestId("digest-ai")).toContainText(/passport/i, { timeout: 180_000 });
 });

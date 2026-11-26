@@ -17,6 +17,7 @@ import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
 import { startAutoBackups } from "./lib/autoBackup";
+import { DigestHost, maybeShowDailyDigest } from "./components/DigestDialog";
 import { startUpdateWatch } from "./lib/updates";
 import cairnMark from "./assets/mindstone-mark.png";
 
@@ -100,6 +101,7 @@ export function App() {
         setReady(true);
         startReminders();
         startAutoBackups();
+        void maybeShowDailyDigest(ws);
         startUpdateWatch();
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -194,6 +196,7 @@ export function App() {
       {!app.focusMode && <StatusBar />}
       <CommandPalette />
       <DialogHost />
+      <DigestHost />
       <Toasts />
     </div>
   );

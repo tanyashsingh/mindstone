@@ -208,6 +208,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Encryption at rest" desc="Data is protected by your Windows account. Mindstone does not add its own encryption at rest or end-to-end encryption."><span /></Row>
           </>}
           {sec === "storage" && <>
+            <Row label="Daily digest on start" desc="Shows today's digest the first time you open Mindstone each day: tasks done, overdue and due, events, decisions and action items from your notes."><Toggle checked={s.digest.daily} onChange={(v) => update((x) => ({ ...x, digest: { daily: v } }))} label="Daily digest" /></Row>
             <Row label="Recognise text in images and scanned PDFs" desc="Runs on this computer when you add a picture or a PDF without a text layer, so search and AI can find their words. English. Uses no network."><Toggle checked={s.ocr.auto} onChange={(v) => update((x) => ({ ...x, ocr: { auto: v } }))} label="Automatic text recognition" /></Row>
             <Row label="Storage used" desc={est?.usage !== undefined ? `${fmtBytes(est.usage)} of ${fmtBytes(est.quota ?? 0)} available to Mindstone` : "Unavailable"}><span /></Row>
             <Row label="Persistent storage" desc="Prevents the browser from evicting data under storage pressure."><button className="btn-outline" disabled={!!persisted} onClick={async () => setPersisted((await navigator.storage?.persist?.()) ?? false)}>{persisted ? "Granted" : "Request"}</button></Row>

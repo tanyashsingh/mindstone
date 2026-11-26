@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Sun, Moon, Sunrise, CalendarDays, Star, Clock, FolderKanban, NotebookPen, Timer, Target, Flame, Plus, Play, Pause, RotateCcw, Trash2, ListChecks } from "lucide-react";
+import { Sun, Moon, Sunrise, CalendarDays, Star, Clock, FolderKanban, NotebookPen, Timer, Target, Flame, Plus, Play, Pause, RotateCcw, Trash2, ListChecks, Newspaper } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { Task } from "@/data/types";
@@ -8,6 +8,7 @@ import { useApp } from "@/store/app";
 import { expandEvent } from "@/lib/recurrence";
 import { addDays, cx, fmtDate, fmtTime, parseISODate, relTime, startOfWeek, toISODate, today, uid } from "@/lib/util";
 import { QuickAdd, TaskDetail, TaskRow } from "./Tasks";
+import { useDigest } from "@/components/DigestDialog";
 import { EmptyState, promptDialog } from "@/components/ui";
 
 function Card({ title, icon, children, action }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
@@ -158,7 +159,11 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-10 py-10">
       <div className="mb-1 flex items-center gap-2 text-faint">{greet[1]}<span className="text-[13px]">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</span></div>
-      <h1 className="mb-6 text-[30px] font-bold tracking-tight">{greet[0]}</h1>
+      <div className="mb-6 flex items-end gap-2">
+        <h1 className="flex-1 text-[30px] font-bold tracking-tight">{greet[0]}</h1>
+        <button className="btn-outline" onClick={() => useDigest.getState().show("today")}><Newspaper size={14} /> Today's digest</button>
+        <button className="btn" onClick={() => useDigest.getState().show("week")}>This week</button>
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="panel p-3"><div className="mb-1 text-[12px] text-muted">Quick capture: task</div><QuickAdd /></div>

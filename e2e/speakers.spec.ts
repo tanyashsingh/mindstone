@@ -25,15 +25,15 @@ test("meeting recordings keep the microphone on the left and the computer audio 
   });
   await boot(page);
   const r = await page.evaluate(async () => {
-    const { startRecording } = await import("/src/voice/recorder.ts");
-    const { decodeStereo } = await import("/src/voice/transcribe.ts");
-    const { attributeSpeakers } = await import("/src/voice/speakers.ts");
+    const { startRecording } = await import(/* @vite-ignore */ String("/src/voice/recorder.ts"));
+    const { decodeStereo } = await import(/* @vite-ignore */ String("/src/voice/transcribe.ts"));
+    const { attributeSpeakers } = await import(/* @vite-ignore */ String("/src/voice/speakers.ts"));
     const rec = await startRecording({ systemAudio: true });
     await new Promise((res) => setTimeout(res, 3500));
     const blob = await rec.stop();
     const [left, right] = await decodeStereo(blob);
     const energy = (ch: Float32Array, from: number, to: number) => { let s = 0; for (let i = from * 16000; i < to * 16000; i++) s += ch[i]! * ch[i]!; return Math.sqrt(s / ((to - from) * 16000)); };
-    const labels = attributeSpeakers([{ text: "a", start: 0.1, end: 1.3 }, { text: "b", start: 2, end: 3.2 }], left, right, 16000).map((s) => s.speaker);
+    const labels = attributeSpeakers([{ text: "a", start: 0.1, end: 1.3 }, { text: "b", start: 2, end: 3.2 }], left, right, 16000).map((s: { speaker?: string }) => s.speaker);
     return { systemAudio: rec.systemAudio, earlyRight: energy(right, 0.1, 1.3), lateRight: energy(right, 2, 3.2), left: energy(left, 0.1, 3.2), labels };
   });
   expect(r.systemAudio).toBe(true);

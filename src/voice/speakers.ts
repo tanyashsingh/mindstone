@@ -14,7 +14,7 @@ function rms(ch: Float32Array, from: number, to: number): number {
 }
 
 /** Labels each segment "left" (microphone) or "right" (computer audio); near-silent segments stay unlabelled. */
-export function attributeSpeakers<T extends Seg>(segs: T[], left: Float32Array, right: Float32Array, sampleRate: number): T[] {
+export function attributeSpeakers<T extends Seg>(segs: T[], left: Float32Array, right: Float32Array, sampleRate: number): (T & Pick<Seg, "speaker">)[] {
   const total = Math.max(left.length, right.length) / sampleRate;
   return segs.map((s, i) => {
     const end = s.end ?? segs[i + 1]?.start ?? total;
