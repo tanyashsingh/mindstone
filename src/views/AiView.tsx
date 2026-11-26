@@ -272,7 +272,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
             <textarea className="textarea max-h-40 min-h-10 flex-1" rows={1} placeholder="Ask Mindstone Intelligence…" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} aria-label="Message" />
             {busy ? <button type="button" className="btn-outline h-10" onClick={() => abort.current?.abort()}><Square size={14} /> Stop</button>
-              : <button className="btn-primary h-10" disabled={!input.trim()}><Send size={14} /></button>}
+              : <button className="btn-primary h-10" disabled={!input.trim()} aria-label="Send" title="Send (Enter)"><Send size={14} /></button>}
           </div>
           {!compact && <div className="mx-auto mt-1.5 flex max-w-3xl flex-wrap gap-1">
             {["Summarize what I worked on this week", "Which notes look like duplicates?", "Suggest a project plan from my notes", "Turn my meeting notes into action items"].map((s) => <button type="button" key={s} className="btn h-6 text-[12px] text-muted" onClick={() => setInput(s)}>{s}</button>)}

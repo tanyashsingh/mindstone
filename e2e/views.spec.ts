@@ -7,14 +7,14 @@ test("every database view type and a formula property work", async ({ page }) =>
   await main(page).getByRole("button", { name: "New database" }).click();
   const grid = page.getByRole("grid");
   await page.getByRole("button", { name: "New record" }).click();
-  await grid.getByRole("row").nth(1).getByRole("gridcell").first().click();
+  await grid.getByRole("row").nth(1).getByRole("gridcell").nth(1).click();
   await page.keyboard.type("Alpha");
   await page.keyboard.press("Enter");
 
   // Add a Number property, then a Formula using it
   await grid.getByRole("button", { name: "Add" }).click();
   await page.getByRole("button", { name: "Number", exact: true }).click();
-  await grid.getByRole("row").nth(1).getByRole("gridcell").nth(4).click();
+  await grid.getByRole("row").nth(1).getByRole("gridcell").nth(5).click();
   await page.keyboard.type("21");
   await page.keyboard.press("Enter");
   await grid.getByRole("button", { name: "Add" }).click();

@@ -156,22 +156,22 @@ export default function SettingsView({ section }: { section?: string }) {
         <div className="max-w-2xl">
           <h1 className="mb-4 text-[22px] font-bold">{SECTIONS.find(([id]) => id === sec)?.[1]}</h1>
           {sec === "general" && <>
-            <Row label="Week starts on"><select className="input w-32" value={s.weekStartsOn} onChange={(e) => set("weekStartsOn", Number(e.target.value) as 0 | 1)}><option value={1}>Monday</option><option value={0}>Sunday</option></select></Row>
+            <Row label="Week starts on"><select aria-label="Week starts on" className="input w-32" value={s.weekStartsOn} onChange={(e) => set("weekStartsOn", Number(e.target.value) as 0 | 1)}><option value={1}>Monday</option><option value={0}>Sunday</option></select></Row>
             <Row label="Reset all settings" desc="Restores defaults. Your pages and data are not touched."><button className="btn-outline" onClick={async () => { if (await confirmDialog("Reset all settings to defaults?")) reset(); }}>Reset</button></Row>
           </>}
           {sec === "appearance" && <>
-            <Row label="Theme"><div className="flex gap-0.5 rounded-[10px] bg-sunken p-0.5 shadow-[var(--inset)]">{(["system", "light", "dark", "oled"] as const).map((t) => <button key={t} className={cx("btn h-6 capitalize", s.theme === t && "bg-active")} onClick={() => set("theme", t)}>{t === "oled" ? "OLED black" : t}</button>)}</div></Row>
+            <Row label="Theme"><div className="flex gap-0.5 rounded-[10px] bg-sunken p-0.5 shadow-[var(--inset)]">{(["system", "light", "dark", "oled", "contrast", "contrast-dark"] as const).map((t) => <button key={t} aria-pressed={s.theme === t} className={cx("btn h-6", s.theme === t && "bg-active")} onClick={() => set("theme", t)}>{({ system: "System", light: "Light", dark: "Dark", oled: "OLED black", contrast: "High contrast", "contrast-dark": "High contrast dark" } as const)[t]}</button>)}</div></Row>
             <Row label="Accent colour" desc="Theme default is ink in light mode and brass in dark mode."><div className="flex items-center gap-1.5">
               <button aria-label="Theme default" title="Theme default" className={cx("size-6 rounded-full", !s.accent && "ring-2 ring-offset-2 ring-fg")} style={{ background: "linear-gradient(135deg, #1f2a44 50%, #c9a96e 50%)" }} onClick={() => set("accent", "")} />
               {["#2c5d4f", "#7a3b2e", "#4b3f72", "#2f5d8a", "#8a6a2f"].map((c) => <button key={c} aria-label={c} className={cx("size-6 rounded-full", s.accent === c && "ring-2 ring-offset-2 ring-fg")} style={{ background: c }} onClick={() => set("accent", c)} />)}
               <input type="color" value={s.accent || "#1f2a44"} onChange={(e) => set("accent", e.target.value)} aria-label="Custom accent" /></div></Row>
-            <Row label="Page width"><select className="input w-32" value={s.editorWidth} onChange={(e) => set("editorWidth", e.target.value as Settings["editorWidth"])}><option value="narrow">Narrow</option><option value="normal">Normal</option><option value="wide">Wide</option></select></Row>
+            <Row label="Page width"><select aria-label="Page width" className="input w-32" value={s.editorWidth} onChange={(e) => set("editorWidth", e.target.value as Settings["editorWidth"])}><option value="narrow">Narrow</option><option value="normal">Normal</option><option value="wide">Wide</option></select></Row>
           </>}
           {sec === "editor" && <>
-            <Row label="Font"><select className="input w-32" value={s.editorFont} onChange={(e) => set("editorFont", e.target.value as Settings["editorFont"])}><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></Row>
+            <Row label="Font"><select aria-label="Font" className="input w-32" value={s.editorFont} onChange={(e) => set("editorFont", e.target.value as Settings["editorFont"])}><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Mono</option></select></Row>
             <Row label="Font size"><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Font size" /> <span className="ml-2 tabular-nums">{s.editorSize}px</span></Row>
             <Row label="Spell check"><Toggle checked={s.spellcheck} onChange={(v) => set("spellcheck", v)} label="Spell check" /></Row>
-            <Row label="Autosave delay" desc="How long after you stop typing before changes are written to disk. An unsaved-draft copy is kept for crash recovery."><select className="input w-32" value={s.autosaveMs} onChange={(e) => set("autosaveMs", Number(e.target.value))}>{[300, 600, 1000, 2000].map((m) => <option key={m} value={m}>{m} ms</option>)}</select></Row>
+            <Row label="Autosave delay" desc="How long after you stop typing before changes are written to disk. An unsaved-draft copy is kept for crash recovery."><select aria-label="Autosave delay" className="input w-32" value={s.autosaveMs} onChange={(e) => set("autosaveMs", Number(e.target.value))}>{[300, 600, 1000, 2000].map((m) => <option key={m} value={m}>{m} ms</option>)}</select></Row>
           </>}
           {sec === "workspace" && <>
             <Row label="Workspace name"><input className="input w-56" key={workspace?.id} defaultValue={workspace?.name} onBlur={(e) => e.target.value && db().workspaces.update(ws, { name: e.target.value, updatedAt: Date.now() })} /></Row>
@@ -180,7 +180,7 @@ export default function SettingsView({ section }: { section?: string }) {
           {sec === "notifications" && <Row label="Desktop notifications" desc="Task reminders, event reminders and focus-timer alerts. Shown in-app as well."><Toggle checked={s.notifications} onChange={(v) => set("notifications", v)} label="Notifications" /></Row>}
           {sec === "voice" && <>
             <Row label="Transcription language" desc="Detecting automatically works for most recordings; choose a language if words come out translated or garbled.">
-              <select className="input w-48" value={s.voice.language} onChange={(e) => update((x) => ({ ...x, voice: { ...x.voice, language: e.target.value } }))}>
+              <select aria-label="Transcription language" className="input w-48" value={s.voice.language} onChange={(e) => update((x) => ({ ...x, voice: { ...x.voice, language: e.target.value } }))}>
                 {[["", "Detect automatically"], ["en", "English"], ["hi", "Hindi"], ["es", "Spanish"], ["fr", "French"], ["de", "German"], ["pt", "Portuguese"], ["ja", "Japanese"], ["zh", "Chinese"], ["ar", "Arabic"], ["bn", "Bengali"], ["ta", "Tamil"], ["te", "Telugu"], ["mr", "Marathi"], ["ur", "Urdu"]].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </Row>
@@ -195,7 +195,7 @@ export default function SettingsView({ section }: { section?: string }) {
           </>}
           {sec === "shortcuts" && <ShortcutEditor />}
           {sec === "ai" && <>
-            <Row label="Active provider" desc="Mindstone works fully without AI."><select className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>
+            <Row label="Active provider" desc="Mindstone works fully without AI."><select aria-label="Active provider" className="input w-56" value={s.ai.active} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, active: e.target.value as Settings["ai"]["active"] } }))}><option value="none">Off</option>{(Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <option key={p} value={p}>{PROVIDER_LABELS[p]}</option>)}</select></Row>
             <Row label="Allow cloud AI providers" desc="Off by default. While off, nothing is sent to Claude, OpenAI or Gemini; local models still work."><Toggle checked={s.ai.allowCloud} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, allowCloud: v } }))} label="Allow cloud AI" /></Row>
             <Row label="Ask before sending workspace content" desc="Confirm each time page excerpts are attached to a cloud request."><Toggle checked={s.ai.confirmWorkspaceContext} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, confirmWorkspaceContext: v } }))} label="Confirm context" /></Row>
             <Row label="Cloud requests per minute" desc="Stops runaway loops from running up your bill. 0 means no limit. Local models are never limited."><input type="number" min={0} max={600} className="input w-24" aria-label="Cloud requests per minute" value={s.ai.limits.maxRequestsPerMinute} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, limits: { ...x.ai.limits, maxRequestsPerMinute: Math.max(0, Math.round(Number(e.target.value) || 0)) } } }))} /></Row>

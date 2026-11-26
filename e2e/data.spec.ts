@@ -12,16 +12,16 @@ test("database records stay consistent across table and board, with filter and s
 
   const names = ["Banana", "Apple", "Cherry"];
   for (let i = 0; i < 3; i++) {
-    await grid.getByRole("row").nth(i + 1).getByRole("gridcell").first().click();
+    await grid.getByRole("row").nth(i + 1).getByRole("gridcell").nth(1).click();
     await page.keyboard.type(names[i]!);
     await page.keyboard.press("Enter");
   }
   // Status on the first row
-  await grid.getByRole("row").nth(1).getByRole("gridcell").nth(1).click();
+  await grid.getByRole("row").nth(1).getByRole("gridcell").nth(2).click();
   await page.getByRole("button", { name: "In progress" }).click();
 
   // Sort by name via the header menu
-  await grid.getByRole("columnheader").first().getByRole("button").click();
+  await grid.getByRole("columnheader").nth(1).getByRole("button").click();
   await page.getByRole("button", { name: "Sort ascending" }).click();
   await expect(grid.getByRole("row").nth(1)).toContainText("Apple");
   await expect(grid.getByRole("row").nth(3)).toContainText("Cherry");

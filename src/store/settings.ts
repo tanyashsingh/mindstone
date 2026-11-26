@@ -120,7 +120,14 @@ export const useSettings = create<SettingsState>((set, get) => ({
 }));
 
 export function resolvedDark(theme: ThemeMode): boolean {
-  if (theme === "dark" || theme === "oled") return true;
-  if (theme === "light") return false;
+  if (theme === "dark" || theme === "oled" || theme === "contrast-dark") return true;
+  if (theme === "light" || theme === "contrast") return false;
   return typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+/** High contrast: chosen in Settings, or (with the System theme) asked for by Windows' contrast settings. */
+export function resolvedHighContrast(theme: ThemeMode): boolean {
+  if (theme === "contrast" || theme === "contrast-dark") return true;
+  if (theme !== "system" || typeof matchMedia === "undefined") return false;
+  return matchMedia("(prefers-contrast: more)").matches || matchMedia("(forced-colors: active)").matches;
 }

@@ -180,7 +180,7 @@ export default function CalendarView() {
               </div>
             ))}
           </div>
-          <div ref={hoursRef} className="relative min-h-0 flex-1 overflow-y-auto">
+          <div ref={hoursRef} className="relative min-h-0 flex-1 overflow-y-auto" tabIndex={0} role="region" aria-label="Hours">
             <div className="flex" style={{ height: 24 * 48 }}>
               <div className="w-14 shrink-0">{Array.from({ length: 24 }, (_, h) => <div key={h} className="h-12 pr-2 text-right text-[10.5px] text-faint">{h ? `${h}:00` : ""}</div>)}</div>
               {days.map((d) => (

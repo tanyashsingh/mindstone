@@ -77,7 +77,7 @@ test("the assistant can fill database fields from a database page", async ({ pag
   await main(page).getByRole("button", { name: "New database" }).click();
   await page.getByLabel("Page title").fill("Leads");
   await page.getByRole("button", { name: "New record" }).click();
-  await page.getByRole("grid").getByRole("row").nth(1).getByRole("gridcell").first().click();
+  await page.getByRole("grid").getByRole("row").nth(1).getByRole("gridcell").nth(1).click();
   await page.keyboard.type("Acme Corp");
   await page.keyboard.press("Enter");
   const bodies = await stubModel(page, 'Updating it.\n```cairn-actions\n[{"op":"field","ref":"R1","field":"Status","value":"In progress"},{"op":"field","ref":"R1","field":"Date","value":"2026-12-24"}]\n```');

@@ -126,8 +126,8 @@ export function CommandPalette() {
         {!q && recent.length > 0 && paletteMode === "all" && (
           <div className="flex flex-wrap gap-1 border-b border-line px-3 py-2">{recent.map((r) => <button key={r} className="btn h-6 text-[12px] text-muted" onClick={() => setQ(r)}><Clock size={12} />{r}</button>)}</div>
         )}
-        <div ref={listRef} id="palette-list" role="listbox" className="max-h-[52vh] overflow-y-auto p-1.5">
-          {!q && hits.length > 0 && <div className="label px-2 py-1">Recent pages</div>}
+        {!q && hits.length > 0 && <div className="label px-3.5 pt-2" id="palette-recent">Recent pages</div>}
+        <div ref={listRef} id="palette-list" role="listbox" aria-label={!q && hits.length > 0 ? "Recent pages" : "Results"} className="max-h-[52vh] overflow-y-auto p-1.5">
           {items.map((it, i) => (
             <button key={it.t === "hit" ? it.h.id : it.c.id} id={`pi-${i}`} role="option" aria-selected={i === sel} data-sel={i === sel}
               className={cx("flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left", i === sel && "bg-hover")}
@@ -143,8 +143,8 @@ export function CommandPalette() {
               )}
             </button>
           ))}
-          {items.length === 0 && <div className="px-3 py-6 text-center text-[13px] text-muted">No matches</div>}
         </div>
+        {items.length === 0 && <div className="px-3 py-6 text-center text-[13px] text-muted" role="status">No matches</div>}
         <div className="flex gap-3 border-t border-line px-3 py-1.5 text-[11px] text-faint"><span>↑↓ navigate</span><span>Enter open</span><span>Ctrl+Enter new tab</span><span>&gt; commands</span><span>Esc close</span></div>
       </div>
     </div>,

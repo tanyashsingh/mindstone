@@ -7,7 +7,7 @@ export type RouteKind =
 export interface Route { kind: RouteKind; id?: string; sub?: string }
 export interface Tab { key: string; route: Route }
 
-export type ThemeMode = "system" | "light" | "dark" | "oled";
+export type ThemeMode = "system" | "light" | "dark" | "oled" | "contrast" | "contrast-dark";
 export type SaveState = "saved" | "saving" | "unsaved" | "error";
 
 export interface Toast { id: string; text: string; tone: "info" | "success" | "error"; action?: { label: string; run: () => void } }

@@ -146,9 +146,9 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
         </div>
       )}
       <div className="max-h-[70vh] overflow-auto rounded-[12px] bg-elev shadow-[var(--elev-sm)]" onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)} role="grid" aria-rowcount={records.length}>
-        <div style={{ width: total + 120 }}>
+        <div style={{ width: total + 120 }} role="presentation">
           <div className="sticky top-0 z-[1] flex border-b border-line bg-sunken text-[12.5px] text-muted" role="row">
-            <div className="flex w-10 shrink-0 items-center justify-center"><input type="checkbox" aria-label="Select all" checked={selected.size > 0 && selected.size === records.length} onChange={(e) => setSelected(e.target.checked ? new Set(records.map((r) => r.id)) : new Set())} /></div>
+            <div className="flex w-10 shrink-0 items-center justify-center" role="columnheader" aria-label="Select"><input type="checkbox" aria-label="Select all" checked={selected.size > 0 && selected.size === records.length} onChange={(e) => setSelected(e.target.checked ? new Set(records.map((r) => r.id)) : new Set())} /></div>
             {ordered.map((p) => (
               <div key={p.id} role="columnheader" draggable onDragStart={() => (dragCol.current = p.id)} onDragOver={(e) => e.preventDefault()}
                 onDrop={() => {
@@ -170,12 +170,12 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
                 }} />
               </div>
             ))}
-            <button className="flex h-8 w-24 items-center gap-1 px-2 hover:bg-hover" onClick={addProp.openAt}><Plus size={13} /> Add</button>
+            <div role="columnheader" aria-label="Add a property"><button className="flex h-8 w-24 items-center gap-1 px-2 hover:bg-hover" onClick={addProp.openAt}><Plus size={13} /> Add</button></div>
           </div>
-          <div style={{ height: records.length * ROW_H, position: "relative" }}>
+          <div style={{ height: records.length * ROW_H, position: "relative" }} role="rowgroup">
             {visible.map((r, i) => (
               <div key={r.id} role="row" className={cx("group absolute left-0 flex w-full border-b border-line text-[13.5px] hover:bg-hover/50", selected.has(r.id) && "bg-accent-soft")} style={{ top: (visibleStart + i) * ROW_H, height: ROW_H }}>
-                <div className="flex w-10 shrink-0 items-center justify-center">
+                <div className="flex w-10 shrink-0 items-center justify-center" role="gridcell">
                   <input type="checkbox" aria-label="Select row" className="opacity-0 group-hover:opacity-100 checked:opacity-100" checked={selected.has(r.id)} onChange={(e) => { const s = new Set(selected); if (e.target.checked) s.add(r.id); else s.delete(r.id); setSelected(s); }} />
                 </div>
                 {ordered.map((p) => (
@@ -193,9 +193,9 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
               </div>
             ))}
           </div>
-          <button className="flex h-8 w-full items-center gap-1.5 px-3 text-[13px] text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id)}><Plus size={14} /> New record</button>
         </div>
       </div>
+      <button className="flex h-8 w-full items-center gap-1.5 px-3 text-[13px] text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id)}><Plus size={14} /> New record</button>
       <div className="mt-1 px-1 text-[12px] text-faint">{records.length.toLocaleString()} records</div>
       {editing && editRec && editProp && (
         <Popover anchor={editing.rect} onClose={() => setEditing(null)} className="p-1">

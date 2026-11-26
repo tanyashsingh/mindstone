@@ -79,9 +79,9 @@ test("theme switching applies dark, light and OLED", async ({ page }) => {
   await boot(page);
   await nav(page, "Settings");
   await main(page).getByRole("button", { name: "Appearance" }).click();
-  await main(page).getByRole("button", { name: "dark", exact: true }).click();
+  await main(page).getByRole("button", { name: "Dark", exact: true }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
-  await main(page).getByRole("button", { name: "light", exact: true }).click();
+  await main(page).getByRole("button", { name: "Light", exact: true }).click();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
   await main(page).getByRole("button", { name: "OLED black" }).click();
   await expect(page.locator("html")).toHaveClass(/oled/);

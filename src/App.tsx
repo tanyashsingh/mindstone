@@ -3,7 +3,7 @@ import { X, Columns2 } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { bootstrap } from "./bootstrap";
 import { useApp, type Route } from "./store/app";
-import { resolvedDark, useSettings } from "./store/settings";
+import { resolvedDark, resolvedHighContrast, useSettings } from "./store/settings";
 import { Sidebar } from "./components/Sidebar";
 import { StatusBar } from "./components/StatusBar";
 import { CommandPalette } from "./components/CommandPalette";
@@ -137,8 +137,10 @@ export function App() {
       const root = document.documentElement;
       root.classList.toggle("dark", resolvedDark(s.theme));
       root.classList.toggle("oled", s.theme === "oled");
+      const hc = resolvedHighContrast(s.theme);
+      root.classList.toggle("hc", hc);
       root.classList.toggle("reduce-motion", s.reduceMotion);
-      if (s.accent) root.style.setProperty("--accent", s.accent);
+      if (s.accent && !hc) root.style.setProperty("--accent", s.accent);
       else root.style.removeProperty("--accent");
       root.style.setProperty("--editor-font", `var(--font-${s.editorFont})`);
       root.style.setProperty("--editor-size", `${s.editorSize}px`);
@@ -146,7 +148,10 @@ export function App() {
     apply();
     const mq = matchMedia("(prefers-color-scheme: dark)");
     mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    const mqc = matchMedia("(prefers-contrast: more)"), mqf = matchMedia("(forced-colors: active)");
+    mqc.addEventListener("change", apply);
+    mqf.addEventListener("change", apply);
+    return () => { mq.removeEventListener("change", apply); mqc.removeEventListener("change", apply); mqf.removeEventListener("change", apply); };
   }, [s.theme, s.accent, s.reduceMotion, s.editorFont, s.editorSize]);
 
   useEffect(() => {

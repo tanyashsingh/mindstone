@@ -139,7 +139,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
       <div className={cx("mx-auto px-4 pb-6 sm:px-12", maxW, page.cover ? "pt-4" : "pt-8 sm:pt-14")}>
         {page.icon && <button className={cx("mb-2 text-[54px] leading-none", page.cover && "-mt-14 relative")} onClick={iconPick.openAt} disabled={locked}>{page.icon}</button>}
         {!locked && (
-          <div className="mb-1 flex gap-1 text-[13px] text-faint opacity-60 hover:opacity-100">
+          <div className="mb-1 flex gap-1 text-[13px] text-faint">
             {!page.icon && <button className="btn h-6 text-faint" onClick={iconPick.openAt}><Smile size={14} /> Add icon</button>}
             {!page.cover && <button className="btn h-6 text-faint" onClick={() => repo.updatePageMeta(page.id, { cover: COVERS[Math.floor(Math.random() * COVERS.length)]! })}><ImageIcon size={14} /> Add cover</button>}
             {page.cover && <button className="btn h-6 text-faint" onClick={() => repo.updatePageMeta(page.id, { cover: "" })}>Remove cover</button>}

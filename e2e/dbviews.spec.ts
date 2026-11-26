@@ -12,7 +12,7 @@ async function newDatabase(page: Page, title: string, records: string[]) {
   for (const name of records) {
     await page.getByRole("button", { name: "New record" }).click();
     const r = row(page, records.indexOf(name) + 1);
-    await r.getByRole("gridcell").first().click();
+    await r.getByRole("gridcell").nth(1).click();
     await page.keyboard.type(name);
     await page.keyboard.press("Enter");
     await expect(r).toContainText(name);
@@ -26,7 +26,7 @@ async function addProperty(page: Page, type: string) {
 }
 
 async function setDate(page: Page, rowIndex: number, col: number, iso: string) {
-  await row(page, rowIndex).getByRole("gridcell").nth(col).click();
+  await row(page, rowIndex).getByRole("gridcell").nth(col + 1).click(); // cell 0 is the row's selection checkbox
   const input = page.locator('input[type="date"]').first();
   await input.fill(iso);
   await input.press("Enter");
@@ -46,7 +46,7 @@ test("two-way relations and rollups across databases", async ({ page }) => {
 
   // Link records with the picker
   const link = async (i: number, target: string) => {
-    await row(page, i).getByRole("gridcell").nth(4).click();
+    await row(page, i).getByRole("gridcell").nth(5).click();
     await page.getByRole("button", { name: target }).click();
     await page.keyboard.press("Escape");
   };
@@ -73,7 +73,7 @@ test("two-way relations and rollups across databases", async ({ page }) => {
   await expect(row(page, 2).getByRole("gridcell").last()).toHaveText("1");
 
   // Unlink from the Projects side: Work follows
-  await row(page, 2).getByRole("gridcell").nth(4).click();
+  await row(page, 2).getByRole("gridcell").nth(5).click();
   await page.getByRole("button", { name: "Interview" }).click();
   await page.keyboard.press("Escape");
   await expect(row(page, 2).getByRole("gridcell").last()).toHaveText("0");
@@ -87,12 +87,12 @@ test("chart view: bars, horizontal bars, line, pie and donut with real values", 
   await newDatabase(page, "Pipeline", ["A", "B", "C"]);
   // Status: two "In progress", one "Done"
   for (const [i, s] of [[1, "In progress"], [2, "In progress"], [3, "Done"]] as const) {
-    await row(page, i).getByRole("gridcell").nth(1).click();
+    await row(page, i).getByRole("gridcell").nth(2).click();
     await page.getByRole("button", { name: s }).click();
   }
   await addProperty(page, "Number");
   for (const [i, v] of [[1, "10"], [2, "30"], [3, "5"]] as const) {
-    await row(page, i).getByRole("gridcell").nth(4).click();
+    await row(page, i).getByRole("gridcell").nth(5).click();
     await page.keyboard.type(v);
     await page.keyboard.press("Enter");
   }
@@ -128,7 +128,7 @@ test("timeline view: drag to move, drag ends to resize, zoom and today line", as
   await newDatabase(page, "Roadmap", ["Alpha", "Beta"]);
   await addProperty(page, "Date range");
   // Alpha: Dec 1 → Dec 3 (date range, column 4); Beta: single date Dec 10 (Date, column 3)
-  await row(page, 1).getByRole("gridcell").nth(4).click();
+  await row(page, 1).getByRole("gridcell").nth(5).click();
   const [s, e] = [page.locator('input[type="date"]').nth(0), page.locator('input[type="date"]').nth(1)];
   await s.fill("2026-12-01");
   await e.fill("2026-12-03");

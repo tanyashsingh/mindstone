@@ -17,7 +17,7 @@
   --bg-active: rgba(31, 42, 68, 0.085);
   --fg: #1c2333;
   --fg-muted: #5d5850;
-  --fg-faint: #857e72;
+  --fg-faint: #6b6459; /* 4.9:1 on the page, 4.5:1 on sunken panels */
   --border: rgba(70, 52, 24, 0.13);
   --border-strong: rgba(70, 52, 24, 0.22);
   --accent: #1f2a44;
@@ -50,7 +50,7 @@
   --bg-active: rgba(236, 230, 220, 0.09);
   --fg: #ece6dc;
   --fg-muted: #aba397;
-  --fg-faint: #8a8377;
+  --fg-faint: #a39c8f; /* 6.4:1 on the page, 6.9:1 on sunken panels */
   --border: rgba(236, 230, 220, 0.1);
   --border-strong: rgba(236, 230, 220, 0.18);
   --accent: #c9a96e;
@@ -280,3 +280,31 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 .rea-editor span.comment-mark.comment-flash { outline: 2px solid var(--color-accent); }
 .sugg-ins { color: var(--color-success); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-success) 60%, transparent); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
 .sugg-del { color: var(--color-danger); text-decoration: line-through; background: color-mix(in srgb, var(--color-danger) 8%, transparent); }
+
+/* High contrast (Settings → Appearance, or System with Windows' "more contrast" setting): 7:1 text, solid borders,
+   thicker focus rings, underlined links, no decorative shadows. */
+.hc {
+  --bg: #ffffff; --bg-elev: #ffffff; --bg-sunken: #f0f0f0;
+  --bg-hover: rgba(0, 0, 0, 0.08); --bg-active: rgba(0, 0, 0, 0.16);
+  --fg: #000000; --fg-muted: #1a1a1a; --fg-faint: #333333;
+  --border: rgba(0, 0, 0, 0.7); --border-strong: #000000;
+  --accent: #0036b3; --accent-fg: #ffffff; --accent-soft: rgba(0, 54, 179, 0.12);
+  --danger: #a1120a; --success: #0b5a2a; --warning: #6b4500;
+  --elev: 0 0 0 1px var(--border-strong); --elev-sm: 0 0 0 1px var(--border-strong); --pop: 0 0 0 2px var(--border-strong);
+  --inset: inset 0 0 0 1px var(--border-strong); --inset-sm: inset 0 0 0 1px var(--border-strong);
+}
+.dark.hc {
+  --bg: #000000; --bg-elev: #0a0a0a; --bg-sunken: #000000;
+  --bg-hover: rgba(255, 255, 255, 0.12); --bg-active: rgba(255, 255, 255, 0.22);
+  --fg: #ffffff; --fg-muted: #f0f0f0; --fg-faint: #d6d6d6;
+  --border: rgba(255, 255, 255, 0.75); --border-strong: #ffffff;
+  --accent: #ffd23f; --accent-fg: #000000; --accent-soft: rgba(255, 210, 63, 0.18);
+  --danger: #ff8f84; --success: #7dffad; --warning: #ffd23f;
+}
+.hc :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.hc .rea-editor a, .hc a.mention { text-decoration: underline; }
+.hc .chip, .hc [class*="c-"] { box-shadow: inset 0 0 0 1px var(--border-strong); }
+@media (forced-colors: active) {
+  :focus-visible { outline: 3px solid Highlight; }
+  .btn-primary { forced-color-adjust: none; background: ButtonText; color: ButtonFace; }
+}

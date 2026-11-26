@@ -81,6 +81,7 @@ function PageRow({ page, depth, childrenOf, expanded, toggle, onDrop }: {
         )}
         style={{ paddingLeft: 4 + depth * 14 }}
         role="treeitem"
+        aria-level={depth + 1}
         aria-expanded={kids.length ? isOpen : undefined}
         aria-selected={isActive}
       >
@@ -112,7 +113,7 @@ function PageRow({ page, depth, childrenOf, expanded, toggle, onDrop }: {
         }}>Move to trash</MenuItem>
       </Popover>
       {isOpen && kids.map((k) => <PageRow key={k.id} page={k} depth={depth + 1} childrenOf={childrenOf} expanded={expanded} toggle={toggle} onDrop={onDrop} />)}
-      {isOpen && kids.length === 0 && <div className="h-6 text-[12px] text-faint" style={{ paddingLeft: 30 + depth * 14 }}>No pages inside</div>}
+
     </>
   );
 }
@@ -228,7 +229,7 @@ export function Sidebar() {
         <NavItem icon={<Inbox />} label="Inbox" kind="inbox" badge={inboxCount} />
         <NavItem icon={<Sparkles />} label="Mindstone Intelligence" kind="ai" />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3" role="tree"
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3"
         onDragOver={(e) => e.dataTransfer.types.includes("application/x-rea-page") && e.preventDefault()}
         onDrop={async (e) => { if (e.target === e.currentTarget) { const id = e.dataTransfer.getData("application/x-rea-page"); if (id) await repo.movePage(id, null, Date.now()); } }}>
         <Section title="Workspace">
@@ -257,7 +258,7 @@ export function Sidebar() {
           ))}
         </Section>
         <Section title="Private" action={<span className="flex"><button className="icon-btn size-5" title="New database" onClick={newDatabase}><Table2 size={13} /></button><button className="icon-btn size-5" title="New page (Ctrl+N)" onClick={newPage}><Plus size={14} /></button></span>}>
-          {pages === undefined ? <div className="skeleton mx-2 h-5" /> : roots.map((p) => <PageRow key={p.id} page={p} depth={0} childrenOf={childrenOf} expanded={expanded} toggle={toggle} onDrop={onDrop} />)}
+          {pages === undefined ? <div className="skeleton mx-2 h-5" /> : <div role="tree" aria-label="Pages">{roots.map((p) => <PageRow key={p.id} page={p} depth={0} childrenOf={childrenOf} expanded={expanded} toggle={toggle} onDrop={onDrop} />)}</div>}
           <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-faint hover:bg-hover hover:text-muted" onClick={newPage}><Plus size={14} /> New page</button>
         </Section>
         <Section title="Shared" defaultOpen={false}>
