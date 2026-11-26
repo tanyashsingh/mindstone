@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { Sparkles, Plus, Send, Square, Trash2, ListChecks, Database as DbIcon, Copy, CheckSquare, Check, Clock } from "lucide-react";
+import { Sparkles, Plus, Send, Square, Trash2, ListChecks, Database as DbIcon, Copy, CheckSquare, Check, Clock, Wand2, Undo2 } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { AiConversation, AiMessage, Citation } from "@/data/types";
@@ -12,11 +12,12 @@ import { activeProvider, chat, requiresCloudConsent } from "@/ai/client";
 import { PROVIDER_LABELS } from "@/ai/providers";
 import { contextBlock, indexWorkspace, retrieve } from "@/ai/rag";
 import { groundedSources, parseTaskProposal, reminderAt, systemPrompt, type ProposedTask } from "@/ai/actions";
+import { ACTIONS_PROMPT, applyChanges, databaseContext, pageRefs, planActions, stripActions, tasksContext, undoChanges, type ActionRefs, type Change } from "@/ai/agentActions";
 import { confirmDialog, EmptyState } from "@/components/ui";
 import { cx, fmtDate, relTime, uid } from "@/lib/util";
 import { PRIORITY } from "./Tasks";
 
-type Scope = "general" | "page" | "workspace";
+type Scope = "general" | "page" | "workspace" | "tasks";
 
 /** Confirmation card for tasks the assistant proposed. Nothing is created until the user clicks. */
 function TaskProposal({ tasks, message }: { tasks: ProposedTask[]; message?: AiMessage }) {
@@ -56,9 +57,56 @@ function TaskProposal({ tasks, message }: { tasks: ProposedTask[]; message?: AiM
   );
 }
 
+/** Review card for changes the assistant proposed: each with before and after; nothing changes until Apply. */
+function ActionProposal({ raw, message }: { raw: unknown[]; message: AiMessage }) {
+  const [plan, setPlan] = useState<{ changes: Change[]; skipped: number } | null>(null);
+  const [off, setOff] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { void planActions(raw, message.actionRefs ?? {}).then(setPlan); }, [raw, message.actionRefs, message.appliedAt, message.undoneAt]);
+  if (!plan) return null;
+  const applied = !!message.appliedAt && !message.undoneAt;
+  const chosen = plan.changes.filter((c) => !off.has(c.key));
+  const apply = async () => {
+    setBusy(true);
+    try {
+      const undo = await applyChanges(chosen);
+      await db().aiMessages.update(message.id, { appliedAt: Date.now(), undo, undoneAt: undefined });
+      useApp.getState().toast(`Applied ${undo.length} change${undo.length === 1 ? "" : "s"}`, "success");
+    } catch (e) { useApp.getState().toast(e instanceof Error ? e.message : String(e), "error"); }
+    finally { setBusy(false); }
+  };
+  const undo = async () => {
+    setBusy(true);
+    try { await undoChanges(message.undo ?? []); await db().aiMessages.update(message.id, { undoneAt: Date.now(), undo: [] }); useApp.getState().toast("Changes undone", "info"); }
+    finally { setBusy(false); }
+  };
+  if (!plan.changes.length && !applied) return <div className="mt-3 rounded-lg border border-line p-2 text-[12.5px] text-muted">The assistant proposed changes, but none matched items it was shown or valid values{plan.skipped ? ` (${plan.skipped} ignored)` : ""}.</div>;
+  return (
+    <div className="mt-3 rounded-lg border border-accent/40 bg-accent-soft p-3" role="group" aria-label="Proposed changes">
+      <div className="mb-2 flex items-center gap-2 text-[13px] font-medium"><Wand2 size={15} className="text-accent" /> {applied ? "Changes applied" : `Proposed change${plan.changes.length === 1 ? "" : "s"}: review before applying`}</div>
+      {!applied && <ul className="space-y-1">
+        {plan.changes.map((c) => (
+          <li key={c.key} className="flex items-start gap-2 rounded-md bg-elev px-2 py-1.5 text-[13px]" data-testid="proposed-change">
+            <input type="checkbox" className="mt-1" aria-label={`Include: ${c.label}`} checked={!off.has(c.key)} onChange={(e) => setOff((s) => { const n = new Set(s); if (e.target.checked) n.delete(c.key); else n.add(c.key); return n; })} />
+            <span className="min-w-0 flex-1"><span className="font-medium">{c.label}</span><span className="block text-[12.5px]"><span className="text-muted line-through decoration-danger/60">{c.before}</span> → <span className="text-success">{c.after}</span></span></span>
+          </li>
+        ))}
+      </ul>}
+      <div className="mt-2 flex items-center gap-2">
+        {applied
+          ? <><span className="flex items-center gap-1 text-[12.5px] text-success"><Check size={14} /> {message.undo?.length ?? 0} change{message.undo?.length === 1 ? "" : "s"} applied.</span><button className="btn-outline h-7" disabled={busy || !message.undo?.length} onClick={() => void undo()}><Undo2 size={13} /> Undo</button></>
+          : <button className="btn-primary" disabled={busy || !chosen.length} onClick={() => void apply()}>Apply {chosen.length} change{chosen.length === 1 ? "" : "s"}</button>}
+        {!applied && plan.skipped > 0 && <span className="text-[12px] text-faint">{plan.skipped} proposal{plan.skipped === 1 ? "" : "s"} ignored: unknown item or invalid value.</span>}
+        {message.undoneAt && <span className="text-[12px] text-faint">Undone.</span>}
+      </div>
+    </div>
+  );
+}
+
 function Markdown({ text, citations, message }: { text: string; citations: Citation[]; message?: AiMessage }) {
   const open = useApp((s) => s.open);
-  const { display, tasks } = parseTaskProposal(text);
+  const stripped = stripActions(text);
+  const { display, tasks } = parseTaskProposal(stripped.display);
   const html = DOMPurify.sanitize(marked.parse(display, { async: false }) as string);
   // Show sources the reply cites or visibly draws on, so unrelated retrieval results don't look like evidence.
   const used = new Set(groundedSources(display, citations));
@@ -67,6 +115,7 @@ function Markdown({ text, citations, message }: { text: string; citations: Citat
     <div>
       <div className="rea-editor !pb-0 !text-[14px]" dangerouslySetInnerHTML={{ __html: html }} />
       {tasks.length > 0 && <TaskProposal tasks={tasks} message={message} />}
+      {stripped.raw && message && <ActionProposal raw={stripped.raw} message={message} />}
       {shown.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">{shown.map(({ c, i }) => <button key={i} className="chip c-blue" title={c.snippet} onClick={() => open(c.pageId ? { kind: "page", id: c.pageId } : { kind: "files" })}>[{i + 1}] {c.attachmentId ? "📎 " : ""}{c.title}</button>)}</div>
       )}
@@ -105,12 +154,24 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
     if (!p) return setErr("No AI provider is enabled. Open Settings → AI providers.");
     if (requiresCloudConsent()) return setErr(`Cloud AI is off. Allow it in Settings → AI to send content to ${PROVIDER_LABELS[p.id]}, or choose a local model.`);
     let context = "", citations: Citation[] = [];
+    let refs: ActionRefs | undefined;
     if (scope === "page" && pageId) {
       const page = await repo.getPage(pageId);
-      if (page) { context = contextBlock([{ pageId: page.id, title: page.title || "Untitled", text: page.text.slice(0, 24000), score: 1 }]).text; citations = [{ pageId: page.id, title: page.title || "Untitled", snippet: page.text.slice(0, 160) }]; }
+      if (page?.kind === "database" && page.databaseId) {
+        const dc = await databaseContext(page.databaseId);
+        if (dc) { context = dc.text; refs = dc.refs; citations = [{ pageId: page.id, title: page.title || "Untitled", snippet: "" }]; }
+      } else if (page) {
+        context = `${contextBlock([{ pageId: page.id, title: page.title || "Untitled", text: page.text.slice(0, 24000), score: 1 }]).text}\nThis page is P1; its tags: ${page.tags.join(", ") || "none"}.`;
+        citations = [{ pageId: page.id, title: page.title || "Untitled", snippet: page.text.slice(0, 160) }];
+        refs = pageRefs([page.id]);
+      }
+    } else if (scope === "tasks") {
+      ({ text: context, refs } = await tasksContext(ws));
     } else if (scope === "workspace") {
       const chunks = await retrieve(ws, text);
       ({ text: context, citations } = contextBlock(chunks));
+      const ids = [...new Set(citations.map((c) => c.pageId).filter(Boolean))];
+      if (ids.length) { refs = pageRefs(ids); context += `\nPages you may tag: ${ids.map((id, i) => `P${i + 1} = ${JSON.stringify(citations.find((c) => c.pageId === id)?.title ?? "")}`).join(", ")}.`; }
     }
     if (context && !p.isLocal && useSettingsConfirm()) {
       const ok = await confirmDialog(`Send workspace content to ${PROVIDER_LABELS[p.id]}?`, `${citations.length} source excerpt(s) (${context.length.toLocaleString()} characters) from your workspace will be sent with your question. Turn this prompt off in Settings → AI.`);
@@ -128,8 +189,9 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
     setInput(""); setBusy(true); setStreaming("");
     abort.current = new AbortController();
     try {
-      const res = await chat(systemPrompt(), [...history, { role: "user", content: context ? `${context}\n\nQuestion: ${text}` : text }], (t) => setStreaming((s) => s + t), abort.current.signal);
-      await db().aiMessages.add({ id: uid(), conversationId: cid, role: "assistant", content: res.text, provider: res.provider, model: res.servedBy || res.model, citations, inputTokens: res.inputTokens, outputTokens: res.outputTokens, createdAt: Date.now() });
+      const system = refs ? `${systemPrompt()}\n\n${ACTIONS_PROMPT}` : systemPrompt();
+      const res = await chat(system, [...history, { role: "user", content: context ? `${context}\n\nQuestion: ${text}` : text }], (t) => setStreaming((s) => s + t), abort.current.signal);
+      await db().aiMessages.add({ id: uid(), conversationId: cid, role: "assistant", content: res.text, provider: res.provider, model: res.servedBy || res.model, citations, inputTokens: res.inputTokens, outputTokens: res.outputTokens, createdAt: Date.now(), ...(refs ? { actionRefs: refs } : {}) });
       await db().aiConversations.update(cid, { updatedAt: Date.now() });
       await repo.logActivity(ws, "ai", cid, "asked", text.slice(0, 80));
     } catch (e) {
@@ -169,6 +231,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
             <option value="general">General chat</option>
             {pageId && <option value="page">This page</option>}
             <option value="workspace">Search my workspace</option>
+            <option value="tasks">My tasks</option>
           </select>
           <span className="flex-1 truncate text-faint">{p ? `${PROVIDER_LABELS[p.id]} · ${p.cfg.model}${p.isLocal ? " · stays on this device" : " · sent over the internet"}` : "AI is off"}</span>
           {!compact && usage && <span className="text-faint" title="Token usage reported by providers">{(usage.i + usage.o).toLocaleString()} tokens used</span>}

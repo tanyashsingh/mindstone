@@ -78,6 +78,14 @@ Last updated: 2026-11-25.
 | Cloud opt-in, per-request consent, local-only mode | Implemented |
 | PDF, Word (.docx), text and HTML attachments: text extracted on upload, found by Ctrl+K and used (with 📎 citations) by AI | Tested (unit + E2E + live AI + desktop). Scanned PDFs without a text layer and legacy .doc are not supported (no OCR) |
 
+## AI additions (0.5)
+| Feature | Status |
+|---|---|
+| Digest (today / this week) from real data, optional AI summary, save as page, daily on start | Tested (unit + E2E + live) |
+| Assistant-proposed changes (tasks, page tags, database fields) with review, apply and undo | Tested (unit + E2E + live) |
+| Meeting speaker labels (microphone vs computer audio channels), editable names | Tested (unit + browser recording) |
+| Recording summaries with the local model (Ollama), even when AI is off | Tested (live) |
+
 ## Portability and resilience
 | Feature | Status |
 |---|---|

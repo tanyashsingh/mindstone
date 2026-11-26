@@ -202,3 +202,25 @@ test("digest gets a written summary from the local model", async ({ page }) => {
   await page.getByRole("dialog").getByRole("button", { name: "Write summary" }).click();
   await expect(page.getByTestId("digest-ai")).toContainText(/passport/i, { timeout: 180_000 });
 });
+
+test("a local model proposes task changes the app can apply", async ({ page }) => {
+  await boot(page);
+  await page.evaluate(async () => {
+    const repo = await import(/* @vite-ignore */ String("/src/data/repo.ts"));
+    const { useApp } = await import(/* @vite-ignore */ String("/src/store/app.ts"));
+    const ws = useApp.getState().workspaceId as string;
+    await repo.createTask(ws, { title: "Renew passport", dueDate: "2026-11-20" });
+    await repo.createTask(ws, { title: "Book dentist", dueDate: "2026-12-01" });
+  });
+  await useOllama(page);
+  await nav(page, "Mindstone Intelligence");
+  await main(page).getByLabel("Context").selectOption("tasks");
+  await main(page).getByLabel("Message").fill("Mark the Renew passport task as done.");
+  await main(page).getByLabel("Message").press("Enter");
+  const card = main(page).getByRole("group", { name: "Proposed changes" });
+  await expect(card.getByTestId("proposed-change").first()).toContainText("Renew passport", { timeout: 180_000 });
+  await card.getByRole("button", { name: /^Apply/ }).click();
+  await expect(card).toContainText(/applied/);
+  const tasks = await idb<{ title: string; status: string }>(page, "tasks");
+  expect(tasks.find((t) => t.title === "Renew passport")?.status).toBe("done");
+});

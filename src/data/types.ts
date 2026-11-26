@@ -271,6 +271,11 @@ export interface AiMessage {
   createdAt: number;
   /** Set once the user creates the tasks the assistant proposed in this message. */
   appliedAt?: number;
+  /** References (T1, P1, R1) the assistant was given, so proposed changes can be resolved later. */
+  actionRefs?: import("@/ai/agentActions").ActionRefs;
+  /** Values from before applied changes, for Undo; cleared once undone. */
+  undo?: import("@/ai/agentActions").UndoEntry[];
+  undoneAt?: number;
 }
 export interface Embedding {
   id: ID; // `${pageId}:${chunkIndex}`
