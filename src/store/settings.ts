@@ -24,6 +24,7 @@ export interface Settings {
     limits: { maxRequestsPerMinute: number; dailyTokenBudget: number }; // cloud providers only; 0 = unlimited
   };
   backup: { auto: boolean }; // desktop: daily local backups
+  ocr: { auto: boolean }; // recognise text in images and scanned PDFs when they are added
   updates: { auto: boolean }; // desktop: check GitHub Releases for new versions
   voice: { language: string; systemAudio: boolean }; // language "" = detect automatically
   shortcuts: Record<string, string>;
@@ -70,6 +71,7 @@ export const DEFAULT_SETTINGS: Settings = {
     limits: { maxRequestsPerMinute: 20, dailyTokenBudget: 300_000 },
   },
   backup: { auto: true },
+  ocr: { auto: true },
   updates: { auto: true },
   voice: { language: "", systemAudio: false },
   shortcuts: DEFAULT_SHORTCUTS,

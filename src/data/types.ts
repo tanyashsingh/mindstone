@@ -210,6 +210,8 @@ export interface Attachment {
   segments?: { text: string; start: number; end: number | null }[];
   /** undefined = not processed yet. */
   textStatus?: "ok" | "empty" | "unsupported" | "error";
+  /** Text recognition (OCR) result for images and scanned PDFs. */
+  ocr?: "done" | "error";
 }
 
 export interface Comment {

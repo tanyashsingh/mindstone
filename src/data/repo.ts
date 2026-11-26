@@ -514,6 +514,7 @@ export async function extractAttachmentText(id: ID): Promise<void> {
     const text = await extractText(a.name, a.mime, a.blob);
     const status = text === null ? "unsupported" : text.trim() ? "ok" : "empty";
     await patch(db().attachments, id, { text: text ?? undefined, textStatus: status });
+    void import("@/lib/ocrAttach").then((m) => m.autoRecognize(id)); // images and scanned PDFs
   } catch (e) {
     console.warn("[Mindstone] text extraction failed", a.name, e);
     await patch(db().attachments, id, { textStatus: "error" });

@@ -39,13 +39,14 @@ if (!app.requestSingleInstanceLock()) app.quit();
 
 // Private read-only scheme for the bundled speech model and runtime (fetch() cannot read file:// URLs).
 protocol.registerSchemesAsPrivileged([{ scheme: "cairn-asset", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
-const ASSET_ROOT = path.join(__dirname, "../dist/voice");
-const MIME: Record<string, string> = { ".wasm": "application/wasm", ".mjs": "text/javascript", ".js": "text/javascript", ".json": "application/json", ".txt": "text/plain", ".onnx": "application/octet-stream" };
+const ASSET_ROOTS: Record<string, string> = { voice: path.join(__dirname, "../dist/voice"), ocr: path.join(__dirname, "../dist/ocr") };
+const MIME: Record<string, string> = { ".wasm": "application/wasm", ".mjs": "text/javascript", ".js": "text/javascript", ".json": "application/json", ".txt": "text/plain", ".onnx": "application/octet-stream", ".gz": "application/gzip" };
 function serveAsset(req: Request): Response {
   const url = new URL(req.url);
-  if (url.hostname !== "voice") return new Response("Not found", { status: 404 });
-  const file = path.normalize(path.join(ASSET_ROOT, decodeURIComponent(url.pathname)));
-  if (!file.startsWith(ASSET_ROOT + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Not found", { status: 404 });
+  const root = Object.hasOwn(ASSET_ROOTS, url.hostname) ? ASSET_ROOTS[url.hostname]! : null;
+  if (!root) return new Response("Not found", { status: 404 });
+  const file = path.normalize(path.join(root, decodeURIComponent(url.pathname)));
+  if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Not found", { status: 404 });
   return new Response(fs.readFileSync(file), { headers: { "content-type": MIME[path.extname(file)] ?? "application/octet-stream", "access-control-allow-origin": "*" } });
 }
 

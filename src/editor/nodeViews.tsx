@@ -5,6 +5,7 @@ import katex from "katex";
 import DOMPurify from "dompurify";
 import { Info, Lightbulb, AlertTriangle, AlertOctagon, FileText, Download, ExternalLink, Link2, Table2, AudioLines, Loader2 } from "lucide-react";
 import { transcribeAttachment } from "@/voice/VoiceNoteView";
+import { OcrButton } from "@/components/OcrButton";
 import { db } from "@/data/db";
 import { useApp } from "@/store/app";
 import { cx, downloadBlob, fmtBytes } from "@/lib/util";
@@ -136,6 +137,7 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
         {kind === "image" && (
           <>
             <img src={url} alt={att.name} style={{ width: node.attrs.width ?? undefined }} className="max-w-full rounded-md" />
+            {editor.isEditable && <span className="absolute left-1 top-1 opacity-0 transition-opacity [div:hover>&]:opacity-100 has-[[role=progressbar]]:opacity-100"><OcrButton a={att} compact /></span>}
             {editor.isEditable && (
               <span className="absolute bottom-1 right-1 h-4 w-4 cursor-nwse-resize rounded-sm border border-white/70 bg-black/40" title="Drag to resize"
                 onMouseDown={(e) => {
@@ -159,6 +161,7 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
             <FileText size={16} className="text-muted" />
             <span className="flex-1 truncate">{att.name}</span>
             <span className="text-faint">{fmtBytes(att.size)}</span>
+            {kind === "application" && att.textStatus === "empty" && <OcrButton a={att} compact />}
             {(kind === "audio" || kind === "video") && att.textStatus !== "ok" && (
               <button className="btn h-6" disabled={busy} title="Transcribe on this computer" onClick={async () => {
                 setBusy(true);

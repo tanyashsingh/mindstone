@@ -13,5 +13,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   server: { port: 5183, strictPort: true },
+  // Pre-bundle lazily imported libraries so the dev server never reloads the page mid-session to optimise them.
+  optimizeDeps: { include: ["tesseract.js", "pdfjs-dist"] },
   build: { outDir: "dist", chunkSizeWarningLimit: 1500 },
 });

@@ -82,6 +82,7 @@ Last updated: 2026-11-25.
 | Feature | Status |
 |---|---|
 | Versioned workspace backup and restore | Tested |
+| OCR: text in images and scanned PDFs (offline Tesseract, English), automatic or on request | Tested (E2E browser + desktop) |
 | Import Markdown, HTML, text, CSV, JSON, Obsidian vaults, unzipped Notion exports | Implemented (limitations listed in Settings → Import) |
 | Export Markdown, HTML, PDF (print), CSV, JSON, workspace ZIP | Tested (ZIP); Implemented |
 | Automatic daily local backups (desktop, newest 14 per workspace) | Verified (packaged build wrote one) |
@@ -149,5 +150,4 @@ The Playwright suite exercised the main controls of every view. Bugs found and f
 - In the browser build, AI keys are kept in memory only and Ollama needs `OLLAMA_ORIGINS` to allow the page origin.
 
 ## Next steps
-1. Columns, synced and button blocks; OCR for scanned PDFs.
 2. Code signing (removes the SmartScreen warning): needs a certificate, see RELEASING.md.

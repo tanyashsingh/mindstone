@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Paperclip, Upload, Download, Trash2, FileText, Image as ImageIcon, Film, Music, Eye } from "lucide-react";
 import { db } from "@/data/db";
@@ -6,6 +6,7 @@ import * as repo from "@/data/repo";
 import type { Attachment } from "@/data/types";
 import { useApp } from "@/store/app";
 import { EmptyState, Modal, confirmDialog } from "@/components/ui";
+import { OcrButton } from "@/components/OcrButton";
 import { cx, downloadBlob, fmtBytes, relTime } from "@/lib/util";
 
 const icon = (m: string) => m.startsWith("image/") ? <ImageIcon size={16} /> : m.startsWith("video/") ? <Film size={16} /> : m.startsWith("audio/") ? <Music size={16} /> : <FileText size={16} />;
@@ -14,7 +15,7 @@ function Preview({ a, onClose }: { a: Attachment; onClose: () => void }) {
   const url = useMemo(() => URL.createObjectURL(a.blob), [a]);
   const [text, setText] = useState<string | null>(null);
   const isText = /^text\/|json|csv|markdown/.test(a.mime) || /\.(md|txt|csv|json)$/i.test(a.name);
-  if (isText && text === null) void a.blob.slice(0, 200_000).text().then(setText);
+  useEffect(() => { if (isText) void a.blob.slice(0, 200_000).text().then(setText); }, [a, isText]);
   return (
     <Modal open onClose={() => { URL.revokeObjectURL(url); onClose(); }} title={a.name} width={820}
       footer={<button className="btn-primary" onClick={() => downloadBlob(a.blob, a.name)}><Download size={14} /> Save as…</button>}>
@@ -74,8 +75,9 @@ export default function Files() {
               <span className="text-muted">{icon(f.mime)}</span>
               <button className="flex-1 truncate text-left hover:underline" onClick={() => setPreview(f)}>{f.name}</button>
               {f.pageId && <button className="max-w-40 truncate text-[12px] text-accent" onClick={() => open({ kind: "page", id: f.pageId! })}>↗ {pages?.get(f.pageId) ?? "page"}</button>}
-              {f.textStatus === "ok" && <span className="chip c-green" title="Text extracted: found by search and AI">Searchable</span>}
-              {f.textStatus === "empty" && <span className="chip c-gray" title="No text layer (e.g. a scanned PDF)">No text</span>}
+              {f.textStatus === "ok" && <span className="chip c-green" title={f.ocr === "done" ? "Text recognised (OCR): found by search and AI" : "Text extracted: found by search and AI"}>{f.ocr === "done" ? "Searchable (OCR)" : "Searchable"}</span>}
+              {f.textStatus === "empty" && <span className="chip c-gray" title="No text found (for example a scanned PDF or a photo)">No text</span>}
+              {f.textStatus !== "ok" || f.ocr === "done" || f.mime.startsWith("image/") ? <OcrButton a={f} compact /> : null}
               {f.textStatus === "error" && <span className="chip c-red" title="The file could not be read">Unreadable</span>}
               <span className="w-20 text-right text-faint">{fmtBytes(f.size)}</span>
               <span className="w-20 text-right text-faint">{relTime(f.createdAt)}</span>

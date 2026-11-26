@@ -27,6 +27,21 @@ test("desktop app boots from file://, persists data, and extracts PDF and Word t
       { name: "memo.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", buffer: makeDocx(["Codeword OSPREY"]) },
     ]);
     await expect(win.getByRole("region", { name: "Main view" }).getByText("Searchable")).toHaveCount(2, { timeout: 30_000 });
+
+    // OCR runs offline from cairn-asset://ocr/ in the desktop app.
+    const png = await win.evaluate(async () => {
+      const c = document.createElement("canvas"); c.width = 900; c.height = 160;
+      const g = c.getContext("2d")!; g.fillStyle = "#fff"; g.fillRect(0, 0, 900, 160); g.fillStyle = "#000"; g.font = "56px Arial"; g.fillText("Codeword KESTREL 77", 40, 100);
+      const b: Blob = await new Promise((r) => c.toBlob((x) => r(x!), "image/png"));
+      return Array.from(new Uint8Array(await b.arrayBuffer()));
+    });
+    const chooser2 = win.waitForEvent("filechooser");
+    await win.getByRole("region", { name: "Main view" }).getByRole("button", { name: "Upload" }).click();
+    await (await chooser2).setFiles([{ name: "photo.png", mimeType: "image/png", buffer: Buffer.from(png) }]);
+    await expect(win.getByRole("region", { name: "Main view" }).getByText("Searchable (OCR)")).toBeVisible({ timeout: 60_000 });
+    await win.keyboard.press("Control+k");
+    await win.keyboard.type("kestrel");
+    await expect(win.getByRole("dialog").getByText("photo.png")).toBeVisible();
   } finally {
     await app.close();
     rmSync(profile, { recursive: true, force: true });
