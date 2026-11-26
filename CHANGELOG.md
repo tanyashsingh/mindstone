@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 (2026-11-26)
 
 - Automatic updates: the desktop app checks GitHub Releases, downloads new versions in the background and offers "Restart to update". Turn it off in Settings → About.
 - Automatic daily backups of every workspace to the data folder (newest 14 kept), with "Back up now" and "Open folder" in Settings → Backup & restore.

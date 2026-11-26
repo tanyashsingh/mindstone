@@ -1,7 +1,7 @@
 {
   "name": "mindstone",
   "productName": "Mindstone",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Mindstone: a local-first, privacy-first workspace for notes, tasks, databases, voice and knowledge.",
   "private": true,
   "license": "UNLICENSED",
@@ -97,7 +97,12 @@
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false
     },
-    "publish": { "provider": "github", "owner": "tanyashsingh", "repo": "mindstone", "releaseType": "release" },
+    "publish": {
+      "provider": "github",
+      "owner": "tanyashsingh",
+      "repo": "mindstone",
+      "releaseType": "release"
+    },
     "electronFuses": {
       "runAsNode": false,
       "enableCookieEncryption": true,
