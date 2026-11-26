@@ -2,13 +2,17 @@ import { defineConfig } from "@playwright/test";
 
 // End-to-end tests run against the Vite dev server in the locally installed Chrome
 // (no Playwright browser download). Each test gets a fresh profile, so a fresh IndexedDB.
+// CI runners are slower (2 cores, cold dev server): fewer workers, longer waits, and retries for timing flakes.
+const CI = !!process.env.CI;
+
 export default defineConfig({
   testDir: "e2e",
-  timeout: 45_000,
-  expect: { timeout: 7_000 },
+  timeout: CI ? 90_000 : 45_000,
+  expect: { timeout: CI ? 20_000 : 7_000 },
   fullyParallel: true,
-  workers: 4,
-  reporter: [["list"]],
+  workers: CI ? 2 : 4,
+  retries: CI ? 2 : 0,
+  reporter: CI ? [["list"], ["html", { open: "never" }]] : [["list"]],
   use: {
     baseURL: "http://localhost:5183/",
     channel: "chrome",
