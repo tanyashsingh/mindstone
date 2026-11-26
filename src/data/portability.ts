@@ -101,7 +101,7 @@ export async function importFiles(workspaceId: ID, files: File[], parentId: ID |
         report.databases++;
       } else if (ext === "json") {
         const ok = await importJSONRecords(workspaceId, parent, base, await f.text());
-        if (ok) report.databases++; else report.skipped.push(`${rel} (not an array of records; use Settings → Backup to restore a Cairn backup)`);
+        if (ok) report.databases++; else report.skipped.push(`${rel} (not an array of records; use Settings → Backup to restore a Mindstone backup)`);
       } else if (repo.validateFile(f) === null) {
         await repo.addAttachment(workspaceId, parent, f);
         report.notes.push(`${rel} stored as an attachment`);

@@ -44,7 +44,7 @@ describe("assistant task proposals", () => {
 });
 
 describe("grounded sources", () => {
-  const welcome = { title: "Welcome to Cairn", snippet: "", excerpt: "Cairn is a local-first workspace. Pages nest without limit. Tasks, projects and the calendar live in the sidebar." };
+  const welcome = { title: "Welcome to Mindstone", snippet: "", excerpt: "Mindstone is a local-first workspace. Pages nest without limit. Tasks, projects and the calendar live in the sidebar." };
   const launch = { title: "Launch logistics", snippet: "", excerpt: "Internal notes. The launch codename is BLUEFIN and the venue is the Harbour Hall in Lisbon." };
   const warranty = { title: "warranty.pdf", snippet: "", excerpt: "The warranty period for the KX-9 drill is 36 months." };
   it("keeps sources the answer uses even without [n] markers", () => {

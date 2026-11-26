@@ -56,7 +56,7 @@ export function CommandPalette() {
       { id: "right", label: "Toggle right panel", hint: shortcutLabel(shortcuts.toggleRight ?? ""), run: () => st.set("rightOpen", !st.rightOpen) },
       { id: "backup", label: "Create workspace backup", run: () => st.open({ kind: "settings", sub: "backup" }) },
       { id: "import", label: "Import files…", run: () => st.open({ kind: "settings", sub: "import" }) },
-      { id: "ai", label: "Ask Cairn Intelligence", run: () => st.open({ kind: "ai" }) },
+      { id: "ai", label: "Ask Mindstone Intelligence", run: () => st.open({ kind: "ai" }) },
       nav("home", "Home"), nav("inbox", "Inbox"), nav("tasks", "Tasks"), nav("projects", "Projects"), nav("calendar", "Calendar"), nav("databases", "Databases"),
       nav("graph", "Knowledge graph"), nav("files", "Files"), nav("templates", "Templates"), nav("trash", "Trash"),
       { id: "settings", label: "Open settings", hint: shortcutLabel(shortcuts.settings ?? ""), run: () => st.open({ kind: "settings" }) },

@@ -52,14 +52,14 @@ export async function createBackup(workspaceId: ID): Promise<BackupFile> {
   const atts = await d.attachments.where("workspaceId").equals(workspaceId).toArray();
   const attachments = [];
   for (const a of atts) attachments.push({ id: a.id, workspaceId: a.workspaceId, pageId: a.pageId, name: a.name, mime: a.mime, size: a.size, createdAt: a.createdAt, data: await blobToBase64(a.blob) });
-  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, schemaVersion: DB_SCHEMA_VERSION, exportedAt: new Date().toISOString(), app: "Cairn", workspace, tables, attachments };
+  return { format: BACKUP_FORMAT, version: BACKUP_VERSION, schemaVersion: DB_SCHEMA_VERSION, exportedAt: new Date().toISOString(), app: "Mindstone", workspace, tables, attachments };
 }
 
 export class BackupError extends Error {}
 
 export function validateBackup(raw: unknown): BackupFile {
   const b = raw as Partial<BackupFile>;
-  if (!b || typeof b !== "object" || b.format !== BACKUP_FORMAT) throw new BackupError("Not a Cairn backup file");
+  if (!b || typeof b !== "object" || b.format !== BACKUP_FORMAT) throw new BackupError("Not a Mindstone backup file");
   if (typeof b.version !== "number" || b.version > BACKUP_VERSION) throw new BackupError(`Unsupported backup version ${String(b.version)}`);
   if (!b.workspace || typeof b.workspace.id !== "string") throw new BackupError("Backup has no workspace");
   if (!b.tables || typeof b.tables !== "object") throw new BackupError("Backup has no tables");

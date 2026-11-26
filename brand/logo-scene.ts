@@ -1,4 +1,4 @@
-// Cairn logo: three pebbles stacked on a rounded app tile, rendered with three.js.
+// Mindstone logo: three pebbles stacked on a rounded app tile, rendered with three.js.
 // Rendered by scripts/render-logo.mjs; outputs are committed (brand/, build/, public/, src/assets/).
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";

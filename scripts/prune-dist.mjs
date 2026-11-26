@@ -1,5 +1,5 @@
 // Removes the ONNX Runtime WebAssembly copy that Vite emits from the speech library's import graph.
-// Cairn loads the runtime from dist/voice/ort/ instead (served on cairn-asset:// in the desktop app),
+// Mindstone loads the runtime from dist/voice/ort/ instead (served on cairn-asset:// in the desktop app),
 // so this second ~25 MB copy is never requested.
 import { readdirSync, rmSync, statSync } from "node:fs";
 import path from "node:path";

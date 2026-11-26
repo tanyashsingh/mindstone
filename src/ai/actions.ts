@@ -16,7 +16,7 @@ export function systemPrompt(now = new Date()): string {
   const weekday = now.toLocaleDateString("en-US", { weekday: "long" });
   const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return `You are Cairn Intelligence, the assistant inside Cairn, a local-first notes, tasks and knowledge workspace.
+  return `You are Mindstone Intelligence, the assistant inside Mindstone, a local-first notes, tasks and knowledge workspace.
 Today is ${weekday} ${date}; the local time is ${time} (${zone}). Tomorrow is ${addDays(date, 1)}.
 Be concise and concrete. Use Markdown.
 If workspace sources are provided, cite the ones you use as [1], [2] and so on. If they do not answer the question, say so; never invent notes the user does not have.
@@ -94,7 +94,7 @@ export function citedIndices(text: string): Set<number> {
   return new Set([...text.matchAll(/\[(\d{1,2})\]/g)].map((m) => Number(m[1]) - 1));
 }
 
-const COMMON = new Set("about above after again against also always another because before being below between both could does doing down during each every first from further have having here into itself just like made make many more most much must need never only other over same should some such than that their them then there these they thing things this those through under until very want were what when where which while will with would your yours you're task tasks page pages note notes project projects workspace cairn today tomorrow please thanks".split(" "));
+const COMMON = new Set("about above after again against also always another because before being below between both could does doing down during each every first from further have having here into itself just like made make many more most much must need never only other over same should some such than that their them then there these they thing things this those through under until very want were what when where which while will with would your yours you're task tasks page pages note notes project projects workspace cairn mindstone today tomorrow please thanks".split(" "));
 
 /** Distinctive tokens: words of 5+ letters not in a common-word list, and anything containing a digit. */
 function tokens(s: string): Set<string> {

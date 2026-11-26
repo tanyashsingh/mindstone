@@ -56,7 +56,7 @@ test("imports Markdown and exports a page as Markdown", async ({ page }) => {
   await main(page).getByRole("button", { name: "Choose files…" }).click();
   await (await chooser).setFiles({
     name: "Meeting.md", mimeType: "text/markdown",
-    buffer: Buffer.from("# Agenda\n\n- [ ] Budget\n- [x] Hiring\n\n> [!TIP]\n> Be brief\n\n$$\nE=mc^2\n$$\n\nSee [[Welcome to Cairn]]\n"),
+    buffer: Buffer.from("# Agenda\n\n- [ ] Budget\n- [x] Hiring\n\n> [!TIP]\n> Be brief\n\n$$\nE=mc^2\n$$\n\nSee [[Welcome to Mindstone]]\n"),
   });
   await expect(page.getByText(/Imported 1 pages/)).toBeVisible();
   await sidebar(page).getByRole("treeitem", { name: /Meeting/ }).click();
@@ -92,7 +92,7 @@ test("theme switching applies dark, light and OLED", async ({ page }) => {
 test("works offline: edits save and the status bar reports it", async ({ page, context }) => {
   await boot(page);
   // The dev server serves view code lazily; open a page once so its code is loaded (the desktop build loads from disk).
-  await nav(page, "Welcome to Cairn");
+  await nav(page, "Welcome to Mindstone");
   await expect(page.locator(".rea-editor")).toBeVisible();
   await context.setOffline(true);
   await expect(page.getByRole("status")).toContainText("Offline");
@@ -105,7 +105,7 @@ test("works offline: edits save and the status bar reports it", async ({ page, c
 
 test("AI is off by default and explains how to enable it", async ({ page }) => {
   await boot(page);
-  await nav(page, "Cairn Intelligence");
+  await nav(page, "Mindstone Intelligence");
   await expect(main(page).getByRole("button", { name: "Set up AI" })).toBeVisible();
   await main(page).getByLabel("Message").fill("hello");
   await main(page).getByLabel("Message").press("Enter");

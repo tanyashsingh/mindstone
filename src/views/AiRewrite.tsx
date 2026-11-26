@@ -69,7 +69,7 @@ export function AiRewriteDialog({ editor, onClose }: { editor: Editor; onClose: 
   };
 
   return (
-    <Modal open onClose={() => { abort.current?.abort(); onClose(); }} width={680} title={<span className="flex items-center gap-2"><Sparkles size={15} className="text-accent" /> Cairn Intelligence</span>}
+    <Modal open onClose={() => { abort.current?.abort(); onClose(); }} width={680} title={<span className="flex items-center gap-2"><Sparkles size={15} className="text-accent" /> Mindstone Intelligence</span>}
       footer={out && !busy ? <>
         <button className="btn-outline" onClick={() => setOut("")}>Discard</button>
         <button className="btn-outline" onClick={() => apply("below")}>Insert below</button>

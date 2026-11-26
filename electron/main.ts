@@ -1,5 +1,5 @@
 /**
- * Cairn desktop shell (Electron main process).
+ * Mindstone desktop shell (Electron main process).
  * Security posture: context isolation + sandboxed renderer, no Node in the renderer, navigation
  * locked to the bundled app, external links opened in the system browser, permission requests
  * denied, IPC senders verified, API keys encrypted with OS facilities (DPAPI on Windows).
@@ -17,10 +17,12 @@ const windows = new Set<BrowserWindow>();
 let tray: Tray | null = null;
 let quitting = false;
 
-// The data folder follows the product name. Builds from before the rename stored data in %APPDATA%\REA:
-// keep using that folder rather than starting with an empty workspace.
-const legacyData = path.join(app.getPath("appData"), "REA");
-if (!fs.existsSync(app.getPath("userData")) && fs.existsSync(legacyData)) app.setPath("userData", legacyData);
+// The data folder follows the product name. Earlier builds were called Cairn and, before that, REA:
+// keep using an existing folder rather than starting with an empty workspace.
+if (!fs.existsSync(app.getPath("userData"))) {
+  const legacy = ["Cairn", "REA"].map((n) => path.join(app.getPath("appData"), n)).find((p) => fs.existsSync(p));
+  if (legacy) app.setPath("userData", legacy);
+}
 
 if (!app.requestSingleInstanceLock()) app.quit();
 
@@ -55,7 +57,7 @@ function handle<A extends unknown[], R>(channel: string, fn: (e: IpcMainInvokeEv
 function createWindow() {
   const win = new BrowserWindow({
     width: 1360, height: 880, minWidth: 900, minHeight: 600,
-    title: "Cairn",
+    title: "Mindstone",
     backgroundColor: "#191919",
     icon: fs.existsSync(ICON) ? ICON : undefined,
     autoHideMenuBar: true,
@@ -155,13 +157,13 @@ function registerIpc() {
 function createTray() {
   const img = fs.existsSync(ICON) ? nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 }) : nativeImage.createEmpty();
   tray = new Tray(img);
-  tray.setToolTip("Cairn");
+  tray.setToolTip("Mindstone");
   const show = () => { const w = [...windows][0] ?? createWindow(); w.show(); w.focus(); };
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: "Open Cairn", click: show },
+    { label: "Open Mindstone", click: show },
     { label: "New window", click: () => createWindow() },
     { type: "separator" },
-    { label: "Quit Cairn", click: () => { quitting = true; app.quit(); } },
+    { label: "Quit Mindstone", click: () => { quitting = true; app.quit(); } },
   ]));
   tray.on("click", show);
 }
@@ -199,7 +201,7 @@ void app.whenReady().then(() => {
     { label: "File", submenu: [{ label: "New window", accelerator: "CmdOrCtrl+Shift+N", click: () => createWindow() }, { type: "separator" }, { role: "quit" }] },
     { label: "Edit", submenu: [{ role: "undo" }, { role: "redo" }, { type: "separator" }, { role: "cut" }, { role: "copy" }, { role: "paste" }, { role: "selectAll" }] },
     { label: "View", submenu: [{ role: "reload" }, { role: "toggleDevTools" }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { role: "togglefullscreen" }] },
-    { label: "Help", submenu: [{ label: "Data folder", click: () => void dialog.showMessageBox({ message: `Cairn stores its data in:\n${app.getPath("userData")}` }) }] },
+    { label: "Help", submenu: [{ label: "Data folder", click: () => void dialog.showMessageBox({ message: `Mindstone stores its data in:\n${app.getPath("userData")}` }) }] },
   ]));
   registerIpc();
   createWindow();

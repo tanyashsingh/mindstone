@@ -27,7 +27,7 @@ function TaskProposal({ tasks, message }: { tasks: ProposedTask[]; message?: AiM
     setBusy(true);
     try {
       for (const t of tasks) {
-        await repo.createTask(ws, { title: t.title, dueDate: t.due, reminderAt: reminderAt(t), priority: t.priority, description: [t.notes, "Created from Cairn Intelligence"].filter(Boolean).join("\n\n") });
+        await repo.createTask(ws, { title: t.title, dueDate: t.due, reminderAt: reminderAt(t), priority: t.priority, description: [t.notes, "Created from Mindstone Intelligence"].filter(Boolean).join("\n\n") });
       }
       if (message) await db().aiMessages.update(message.id, { appliedAt: Date.now() });
       useApp.getState().toast(`Created ${tasks.length} task${tasks.length === 1 ? "" : "s"}`, "success", { label: "View", run: () => useApp.getState().open({ kind: "tasks" }) });
@@ -141,7 +141,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
     const items = extractActionItems(m.content);
     if (!items.length) return useApp.getState().toast("No list items found in this reply", "error");
     if (!(await confirmDialog(`Create ${items.length} tasks?`, items.map((i) => `• ${i}`).join("\n")))) return;
-    for (const title of items) await repo.createTask(ws, { title, description: "Created from Cairn Intelligence" });
+    for (const title of items) await repo.createTask(ws, { title, description: "Created from Mindstone Intelligence" });
     useApp.getState().toast(`${items.length} tasks created`, "success");
   };
   const toPage = async (m: AiMessage) => {
@@ -179,7 +179,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           {!messages?.length && !streaming && (
-            <EmptyState icon={<Sparkles />} title="Cairn Intelligence" body={p ? "Ask about your notes, draft content, or plan work. With “Search my workspace”, answers cite your pages." : "Connect Claude, OpenAI, Gemini or a local Ollama model in Settings → AI providers. Everything else in Cairn works without AI."}
+            <EmptyState icon={<Sparkles />} title="Mindstone Intelligence" body={p ? "Ask about your notes, draft content, or plan work. With “Search my workspace”, answers cite your pages." : "Connect Claude, OpenAI, Gemini or a local Ollama model in Settings → AI providers. Everything else in Mindstone works without AI."}
               action={!p && <button className="btn-primary" onClick={() => useApp.getState().open({ kind: "settings", sub: "ai" })}>Set up AI</button>} />
           )}
           <div className="mx-auto max-w-3xl space-y-4">
@@ -206,7 +206,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
         </div>
         <form className="border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); void send(); }}>
           <div className="mx-auto flex max-w-3xl items-end gap-2">
-            <textarea className="textarea max-h-40 min-h-10 flex-1" rows={1} placeholder="Ask Cairn Intelligence…" value={input} onChange={(e) => setInput(e.target.value)}
+            <textarea className="textarea max-h-40 min-h-10 flex-1" rows={1} placeholder="Ask Mindstone Intelligence…" value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(); } }} aria-label="Message" />
             {busy ? <button type="button" className="btn-outline h-10" onClick={() => abort.current?.abort()}><Square size={14} /> Stop</button>
               : <button className="btn-primary h-10" disabled={!input.trim()}><Send size={14} /></button>}

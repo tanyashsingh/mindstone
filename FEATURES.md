@@ -45,7 +45,7 @@ summarized into key points, decisions and action items (which you can turn into 
 also capture the computer's audio, so both sides of a call are recorded. Audio and video files in a page have a
 Transcribe button. Transcripts are searchable and used by AI answers. Everything is transcribed locally with Whisper.
 
-## Cairn Intelligence
+## Mindstone Intelligence
 Choose Claude, OpenAI, Gemini, Ollama or an OpenAI-compatible local server in Settings. Cloud use requires
 an explicit opt-in. Chat about a page or your whole workspace with cited sources, rewrite or translate a
 selection with a side-by-side preview, turn replies into tasks or pages, and build semantic-search embeddings.

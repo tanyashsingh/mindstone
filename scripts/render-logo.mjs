@@ -20,10 +20,10 @@ mkdirSync("brand", { recursive: true });
 mkdirSync("build", { recursive: true });
 mkdirSync("public", { recursive: true });
 mkdirSync("src/assets", { recursive: true });
-writeFileSync("brand/cairn-logo-1024.png", png(1024));
-writeFileSync("brand/cairn-logo-512.png", png(512));
+writeFileSync("brand/mindstone-logo-1024.png", png(1024));
+writeFileSync("brand/mindstone-logo-512.png", png(512));
 writeFileSync("build/icon.png", png(512)); // electron-builder builds the .ico (256 and below) from this
 writeFileSync("public/favicon.png", png(64));
-writeFileSync("src/assets/cairn-mark.png", png(128)); // in-app mark (sidebar, welcome, about)
-writeFileSync("src/assets/cairn-mark-32.png", png(32));
-console.log("wrote brand/cairn-logo-{1024,512}.png, build/icon.png, public/favicon.png, src/assets/cairn-mark*.png");
+writeFileSync("src/assets/mindstone-mark.png", png(128)); // in-app mark (sidebar, welcome, about)
+writeFileSync("src/assets/mindstone-mark-32.png", png(32));
+console.log("wrote brand/mindstone-logo-{1024,512}.png, build/icon.png, public/favicon.png, src/assets/mindstone-mark*.png");

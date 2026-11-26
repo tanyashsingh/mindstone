@@ -16,7 +16,7 @@ import { createPage, extractPendingAttachments, setSetting } from "./data/repo";
 import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
-import cairnMark from "./assets/cairn-mark.png";
+import cairnMark from "./assets/mindstone-mark.png";
 
 const PageView = lazy(() => import("./views/PageView"));
 const Home = lazy(() => import("./views/Home"));
@@ -158,7 +158,7 @@ export function App() {
     return () => removeEventListener("keydown", onKey);
   }, [update]);
 
-  if (error) return <div className="p-10 text-danger">Cairn could not open its local database: {error}</div>;
+  if (error) return <div className="p-10 text-danger">Mindstone could not open its local database: {error}</div>;
   if (!ready || !loaded) return (
     <div className="flex h-full flex-col items-center justify-center gap-3 text-muted">
       <img src={cairnMark} alt="" width={72} height={72} className="animate-pulse" />

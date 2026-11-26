@@ -1,11 +1,11 @@
 {
-  "name": "cairn",
-  "productName": "Cairn",
+  "name": "mindstone",
+  "productName": "Mindstone",
   "version": "0.3.0",
-  "description": "Cairn: a local-first, privacy-first workspace for notes, tasks, databases and knowledge.",
+  "description": "Mindstone: a local-first, privacy-first workspace for notes, tasks, databases, voice and knowledge.",
   "private": true,
   "license": "UNLICENSED",
-  "author": "Cairn",
+  "author": "Mindstone",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
@@ -74,7 +74,7 @@
   },
   "build": {
     "appId": "app.cairn.workspace",
-    "productName": "Cairn",
+    "productName": "Mindstone",
     "directories": {
       "output": "release"
     },

@@ -65,7 +65,7 @@ In the browser build (Vite dev server):
 - Smoke test of every view, applying the CRM template, and task quick-add parsing; plus knowledge graph rendering.
 
 In the packaged Windows build:
-- `REA Setup 0.1.0.exe /S` installs per user to `%LOCALAPPDATA%\Programs\Cairn`; Cairn.exe starts, opens a window titled "Cairn" and creates its IndexedDB; the silent uninstall removes the app and shortcut and keeps user data by design.
+- `REA Setup 0.1.0.exe /S` installs per user to `%LOCALAPPDATA%\Programs\Mindstone`; Mindstone.exe starts, opens a window titled "Mindstone" and creates its IndexedDB; the silent uninstall removes the app and shortcut and keeps user data by design.
 
 ## Not yet covered
 

@@ -149,7 +149,7 @@ describe("backup and search", () => {
     expect((await repo.getPage(p.id))?.text).toBe("persist me");
     expect(await db().records.where("databaseId").equals(database.id).count()).toBe(1);
     expect(await db().tasks.where("workspaceId").equals(ws.id).count()).toBe(1);
-    await expect(restoreBackup({ format: "nope" }, { replace: true })).rejects.toThrow(/Not a Cairn backup/);
+    await expect(restoreBackup({ format: "nope" }, { replace: true })).rejects.toThrow(/Not a Mindstone backup/);
   });
 
   it("finds pages, records and tasks with fuzzy matching", async () => {

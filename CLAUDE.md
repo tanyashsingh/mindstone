@@ -1,9 +1,9 @@
-# CLAUDE.md: working on Cairn
+# CLAUDE.md: working on Mindstone
 
 ## Product
-Cairn is a local-first, privacy-first productivity and knowledge workspace (notes, block editor, databases,
+Mindstone is a local-first, privacy-first productivity and knowledge workspace (notes, block editor, databases,
 tasks, projects, calendar, knowledge graph, optional AI). Core features must work offline and without an AI key.
-Cairn was called REA during early development; internal identifiers (IndexedDB name `rea`, `window.rea`, `rea-backup`) keep that name on purpose. It is distinct from the `rea` reverse-engineering CLI in `..\rea-main`; do not mix the two.
+Mindstone was called REA during early development; internal identifiers (IndexedDB name `rea`, `window.rea`, `rea-backup`) keep that name on purpose. It is distinct from the `rea` reverse-engineering CLI in `..\rea-main`; do not mix the two.
 
 ## Architecture (see ARCHITECTURE.md)
 React 19 + TS strict + Vite 8 + Tailwind 4 · Electron 45 desktop · Dexie/IndexedDB storage · TipTap 3 editor ·
@@ -25,7 +25,7 @@ MiniSearch · Zustand · provider-independent AI layer (`src/ai/providers.ts`; C
 - Keep `IMPLEMENTATION_STATUS.md` current; mark features Tested only when tests exist.
 
 ## Security rules
-- Never commit secrets. AI keys live in `%APPDATA%\Cairn\secrets.json`, encrypted with DPAPI via `safeStorage`.
+- Never commit secrets. AI keys live in `%APPDATA%\Mindstone\secrets.json`, encrypted with DPAPI via `safeStorage`.
 - Renderer stays sandboxed (contextIsolation, no nodeIntegration). New IPC channels go through `handle()` in
   `electron/main.ts` (sender check) and validate their inputs.
 - Workspace content goes to cloud AI only when `ai.allowCloud` is on; imported or retrieved content is wrapped as untrusted data.

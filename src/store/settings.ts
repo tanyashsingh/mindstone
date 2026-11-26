@@ -15,7 +15,7 @@ export interface Settings {
   weekStartsOn: 0 | 1;
   autosaveMs: number;
   notifications: boolean;
-  telemetry: boolean; // always off by default; Cairn ships no telemetry endpoint
+  telemetry: boolean; // always off by default; Mindstone ships no telemetry endpoint
   ai: {
     active: AiProviderId | "none";
     allowCloud: boolean; // must be explicitly enabled before workspace content leaves the device

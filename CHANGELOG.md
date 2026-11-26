@@ -2,6 +2,7 @@
 
 ## 0.3.0 (unreleased)
 
+- Renamed to **Mindstone** ("build your mind, stone by stone"). Data, backups and settings from Cairn and REA builds carry over.
 - Voice: dictation (Ctrl+Shift+M), voice notes and meeting notes with local Whisper transcription, timestamps, summaries and action items; computer-audio capture for meetings on Windows; Transcribe for audio and video files. Audio never leaves the computer.
 - Slash commands accept spaces ("/meeting notes"); Enter is no longer swallowed when nothing matches.
 - New refined editorial interface: "ivory and ink" in light, "graphite and brass" in dark. Page titles and headings in the Newsreader serif (bundled, works offline), hairline borders with soft warm shadows, and one deep accent per theme. The accent follows the theme by default.
