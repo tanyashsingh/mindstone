@@ -1,7 +1,7 @@
 import Dexie, { type Table } from "dexie";
 import type {
   Activity, AiConversation, AiMessage, Attachment, CalendarEvent, Comment, Database, DbRecord, Embedding,
-  Goal, Habit, Page, PageLink, PageRevision, Project, SavedSearch, SettingRow, Task, Template, Workspace,
+  Goal, Habit, Page, PageLink, PageRevision, Project, SavedSearch, SettingRow, SyncedBlock, Task, Template, Workspace,
 } from "./types";
 
 /**
@@ -32,6 +32,7 @@ export class ReaDB extends Dexie {
   aiMessages!: Table<AiMessage, string>;
   embeddings!: Table<Embedding, string>;
   settings!: Table<SettingRow, string>;
+  syncedBlocks!: Table<SyncedBlock, string>;
 
   constructor(name = "rea") {
     super(name);
@@ -57,10 +58,12 @@ export class ReaDB extends Dexie {
       embeddings: "id, workspaceId, pageId",
       settings: "key",
     });
+    // v2 (0.5): synced blocks
+    this.version(2).stores({ syncedBlocks: "id, workspaceId, sourcePageId" });
   }
 }
 
-export const DB_SCHEMA_VERSION = 1;
+export const DB_SCHEMA_VERSION = 2;
 
 /**
  * Partial update by primary key. Dexie typed UpdateSpec recurses into nested document

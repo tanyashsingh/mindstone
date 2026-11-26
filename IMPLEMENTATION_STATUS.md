@@ -27,7 +27,7 @@ Last updated: 2026-11-25.
 | Page create, rename, duplicate, trash, restore, purge, lock, icon, cover, favourite, history and restore | Tested (repo); Verified (create, persist) |
 | `[[wiki]]` links, `@` and `[[` mentions, backlinks, cycle-safe nesting | Tested + Verified |
 | Block drag-and-drop: ⋮⋮ handle on every top-level block (drag to move, click to select); each move is one undo step | Verified (E2E) |
-| Columns, synced block, button block | Deferred |
+| Columns (2-4), synced blocks (live across pages, unsync), buttons (checklist, task, page, template) | Tested (unit + E2E) |
 
 ## Databases
 | Feature | Status |

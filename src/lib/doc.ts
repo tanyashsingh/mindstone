@@ -101,7 +101,7 @@ function inline(nodes: JSONContent[] | undefined): string {
     .join("");
 }
 
-export function docToMarkdown(doc: JSONContent | null | undefined, resolveTitle: (id: string) => string = () => "page"): string {
+export function docToMarkdown(doc: JSONContent | null | undefined, resolveTitle: (id: string) => string = () => "page", resolveSynced: (id: string) => JSONContent | undefined = () => undefined): string {
   if (!doc) return "";
   const lines: string[] = [];
   const block = (n: JSONContent, indent: string, listMarker?: string) => {
@@ -165,6 +165,13 @@ export function docToMarkdown(doc: JSONContent | null | undefined, resolveTitle:
       case "toc":
         lines.push("[TOC]");
         break;
+      case "syncedBlock": {
+        const shared = resolveSynced(String(n.attrs?.syncId ?? ""));
+        for (const c of shared?.content ?? []) block(c, indent);
+        break;
+      }
+      case "buttonBlock":
+        break; // an action, not content
       case "voiceNote":
         lines.push(`🎙️ [${String(n.attrs?.title ?? "Voice note")}](attachment:${String(n.attrs?.attachmentId ?? "")})`);
         break;

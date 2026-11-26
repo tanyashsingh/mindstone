@@ -6,8 +6,9 @@ import Suggestion, { type SuggestionOptions } from "@tiptap/suggestion";
 import { uid } from "@/lib/util";
 import { CalloutView, MathView, MermaidView, PageEmbedView, TocView, AttachmentView, BookmarkView } from "./nodeViews";
 import { VoiceNoteView } from "@/voice/VoiceNoteView";
+import { ButtonBlockView, SyncedBlockView } from "./blockViews";
 
-const ID_TYPES = ["voiceNote", "paragraph", "heading", "bulletList", "orderedList", "listItem", "taskList", "taskItem", "blockquote", "codeBlock", "horizontalRule", "table", "image", "callout", "mathBlock", "mermaid", "pageEmbed", "toc", "attachment", "bookmark", "details"];
+const ID_TYPES = ["voiceNote", "paragraph", "heading", "bulletList", "orderedList", "listItem", "taskList", "taskItem", "blockquote", "codeBlock", "horizontalRule", "table", "image", "callout", "mathBlock", "mermaid", "pageEmbed", "toc", "attachment", "bookmark", "details", "columns", "syncedBlock", "buttonBlock"];
 
 /** Gives every block a stable, unique `id` attribute; fixes duplicates created by copy/paste or splits. */
 export const BlockId = Extension.create({
@@ -122,6 +123,50 @@ export const VoiceNote = Node.create({
   parseHTML() { return [{ tag: "div[data-voice-note]", getAttrs: (el) => ({ attachmentId: (el as HTMLElement).getAttribute("data-voice-note") || null }) }]; },
   renderHTML({ node }) { return ["div", { "data-voice-note": node.attrs.attachmentId ?? "" }]; },
   addNodeView() { return ReactNodeViewRenderer(VoiceNoteView); },
+});
+
+/** Side-by-side columns (2 to 4). Each column holds ordinary blocks; columns stack on narrow windows. */
+export const Columns = Node.create({
+  name: "columns",
+  group: "block",
+  content: "column{2,4}",
+  defining: true,
+  isolating: true,
+  parseHTML() { return [{ tag: "div[data-columns]" }]; },
+  renderHTML({ HTMLAttributes }) { return ["div", mergeAttributes(HTMLAttributes, { "data-columns": "" }), 0]; },
+});
+
+export const Column = Node.create({
+  name: "column",
+  content: "block+",
+  isolating: true,
+  parseHTML() { return [{ tag: "div[data-column]" }]; },
+  renderHTML({ HTMLAttributes }) { return ["div", mergeAttributes(HTMLAttributes, { "data-column": "" }), 0]; },
+});
+
+/** A block whose content is shared by every copy (stored in the syncedBlocks table, edited in place). */
+export const SyncedBlock = Node.create({
+  name: "syncedBlock",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() { return { syncId: { default: null } }; },
+  parseHTML() { return [{ tag: "div[data-synced]", getAttrs: (el) => ({ syncId: (el as HTMLElement).getAttribute("data-synced") || null }) }]; },
+  renderHTML({ node }) { return ["div", { "data-synced": node.attrs.syncId ?? "" }]; },
+  // The nested editor handles its own keys and clicks.
+  addNodeView() { return ReactNodeViewRenderer(SyncedBlockView, { stopEvent: () => true, ignoreMutation: () => true }); },
+});
+
+/** A button that runs one action when clicked: add a checklist item, create a task, open a page, insert a template. */
+export const ButtonBlock = Node.create({
+  name: "buttonBlock",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addAttributes() { return { label: { default: "Button" }, action: { default: "checklist" }, value: { default: "" }, due: { default: "" } }; },
+  parseHTML() { return [{ tag: "div[data-button]", getAttrs: (el) => ({ label: (el as HTMLElement).getAttribute("data-button") ?? "Button" }) }]; },
+  renderHTML({ node }) { return ["div", { "data-button": node.attrs.label }]; },
+  addNodeView() { return ReactNodeViewRenderer(ButtonBlockView, { stopEvent: ({ event }) => event.type !== "dragstart" && event.type !== "drop", ignoreMutation: () => true }); },
 });
 
 /** Inline link to another page. Rendered as a pill; clicking opens the page. */

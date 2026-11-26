@@ -1,6 +1,6 @@
 import { db, patch } from "./db";
 import type {
-  Activity, Attachment, CalendarEvent, Database, DatabaseView, DbRecord, ID, JSONContent, Page, Project, Property, PropertyType, Task, Workspace,
+  Activity, Attachment, CalendarEvent, Database, DatabaseView, DbRecord, ID, JSONContent, Page, Project, Property, PropertyType, SyncedBlock, Task, Workspace,
 } from "./types";
 import { docToText, emptyDoc, extractLinks, extractTags, reassignIds } from "@/lib/doc";
 import { nextDate } from "@/lib/recurrence";
@@ -31,7 +31,7 @@ export async function deleteWorkspace(id: ID) {
     await d.records.where("databaseId").anyOf(dbs).delete();
     const convs = await d.aiConversations.where("workspaceId").equals(id).primaryKeys();
     await d.aiMessages.where("conversationId").anyOf(convs).delete();
-    for (const t of [d.pages, d.links, d.databases, d.tasks, d.projects, d.events, d.attachments, d.templates, d.habits, d.goals, d.activity, d.savedSearches, d.aiConversations, d.embeddings] as const) {
+    for (const t of [d.pages, d.links, d.databases, d.tasks, d.projects, d.events, d.attachments, d.templates, d.habits, d.goals, d.activity, d.savedSearches, d.aiConversations, d.embeddings, d.syncedBlocks] as const) {
       await (t as unknown as { where: (k: string) => { equals: (v: string) => { delete: () => Promise<number> } } }).where("workspaceId").equals(id).delete();
     }
     await d.workspaces.delete(id);
@@ -474,4 +474,16 @@ export async function getSetting<T>(key: string, fallback: T): Promise<T> {
 }
 export async function setSetting(key: string, value: unknown) {
   await db().settings.put({ key, value });
+}
+
+// ---- Synced blocks ---------------------------------------------------------------
+export async function createSyncedBlock(workspaceId: ID, sourcePageId: ID, content?: JSONContent): Promise<SyncedBlock> {
+  const doc: JSONContent = content ?? { type: "doc", content: [{ type: "paragraph" }] };
+  const row: SyncedBlock = { id: uid(), workspaceId, sourcePageId, content: doc, text: docToText(doc), editedBy: "", createdAt: now(), updatedAt: now() };
+  await db().syncedBlocks.add(row);
+  return row;
+}
+
+export async function saveSyncedBlock(id: ID, content: JSONContent, editedBy: string): Promise<void> {
+  await patch(db().syncedBlocks, id, { content, text: docToText(content), editedBy, updatedAt: now() });
 }

@@ -3,7 +3,8 @@ import type { SlashItem } from "./extensions";
 import type { Page } from "@/data/types";
 import * as repo from "@/data/repo";
 import { useApp } from "@/store/app";
-import { promptDialog } from "@/components/ui";
+import { chooseDialog, promptDialog } from "@/components/ui";
+import { db } from "@/data/db";
 import { today } from "@/lib/util";
 
 function pickFiles(accept: string): Promise<File[]> {
@@ -43,6 +44,31 @@ export function slashItems(page: Page): SlashItem[] {
     { group: "Basic", title: "Divider", hint: "---", keywords: "hr rule separator", run: (e, r) => c(e, r).setHorizontalRule().run() },
     { group: "Basic", title: "Code block", hint: "``` ", keywords: "code snippet pre", run: (e, r) => c(e, r).setCodeBlock().run() },
     { group: "Basic", title: "Table", hint: "3 × 3 grid", keywords: "table grid", run: (e, r) => c(e, r).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
+    ...[2, 3, 4].map((n) => ({ group: "Layout", title: `${n} columns`, hint: "Side by side", keywords: `columns column layout side grid ${n}`,
+      run: (e: Editor, r: Range) => {
+        c(e, r).insertContent({ type: "columns", content: Array.from({ length: n }, () => ({ type: "column", content: [{ type: "paragraph" }] })) }).run();
+        const $f = e.state.selection.$from; // put the caret in the first column
+        for (let d = $f.depth; d > 0; d--) if ($f.node(d).type.name === "columns") { e.commands.setTextSelection($f.start(d) + 2); break; }
+      } })),
+    {
+      group: "Layout", title: "Synced block", hint: "Same content on many pages", keywords: "synced sync shared reuse mirror transclusion",
+      run: async (e, r) => {
+        c(e, r).run();
+        const s = await repo.createSyncedBlock(page.workspaceId, page.id);
+        e.chain().focus().insertContent({ type: "syncedBlock", attrs: { syncId: s.id } }).run();
+      },
+    },
+    {
+      group: "Layout", title: "Insert synced block", hint: "Reuse an existing one", keywords: "synced sync shared reuse paste existing",
+      run: async (e, r) => {
+        c(e, r).run();
+        const rows = await db().syncedBlocks.where("workspaceId").equals(page.workspaceId).reverse().sortBy("updatedAt");
+        const titles = new Map((await db().pages.bulkGet(rows.map((x) => x.sourcePageId))).filter(Boolean).map((p) => [p!.id, p!.title || "Untitled"]));
+        const id = await chooseDialog("Insert synced block", rows.map((x) => ({ value: x.id, label: x.text.trim().slice(0, 80) || "(empty)", hint: `From ${titles.get(x.sourcePageId) ?? "a deleted page"}` })));
+        if (id) e.chain().focus().insertContent({ type: "syncedBlock", attrs: { syncId: id } }).run();
+      },
+    },
+    { group: "Layout", title: "Button", hint: "Runs an action when clicked", keywords: "button action automation click", run: (e, r) => c(e, r).insertContent({ type: "buttonBlock", attrs: { label: "Add item", action: "checklist", value: "" } }).run() },
     { group: "Advanced", title: "Math equation", hint: "LaTeX", keywords: "math latex equation katex", run: (e, r) => c(e, r).insertContent({ type: "mathBlock" }).run() },
     { group: "Advanced", title: "Mermaid diagram", hint: "Flowchart, sequence…", keywords: "mermaid diagram chart flow", run: (e, r) => c(e, r).insertContent({ type: "mermaid" }).run() },
     { group: "Advanced", title: "Table of contents", hint: "From headings", keywords: "toc contents outline", run: (e, r) => c(e, r).insertContent({ type: "toc" }).run() },

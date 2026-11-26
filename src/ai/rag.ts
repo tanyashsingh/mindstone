@@ -37,8 +37,11 @@ async function sources(workspaceId: ID): Promise<Source[]> {
   const pages = await db().pages.where("[workspaceId+deletedAt]").equals([workspaceId, 0]).filter((p) => p.text.trim().length > 20).toArray();
   const livePages = new Set((await db().pages.where("[workspaceId+deletedAt]").equals([workspaceId, 0]).primaryKeys()) as string[]);
   const atts = await db().attachments.where("workspaceId").equals(workspaceId).filter((a) => !!a.text && a.text.trim().length > 20).toArray();
+  const synced = await db().syncedBlocks.where("workspaceId").equals(workspaceId).filter((s) => s.text.trim().length > 20 && livePages.has(s.sourcePageId)).toArray();
+  const titles = new Map(pages.map((p) => [p.id, p.title || "Untitled"]));
   return [
     ...pages.map((p) => ({ key: p.id, pageId: p.id, title: p.title || "Untitled", text: `${p.title}\n${p.text}`, version: p.updatedAt })),
+    ...synced.map((s) => ({ key: `syn:${s.id}`, pageId: s.sourcePageId, title: `${titles.get(s.sourcePageId) ?? "Synced block"} (synced block)`, text: s.text, version: s.updatedAt })),
     // Files attached to a trashed page are excluded along with the page.
     ...atts.filter((a) => !a.pageId || livePages.has(a.pageId)).map((a) => ({ key: `att:${a.id}`, pageId: a.pageId ?? "", attachmentId: a.id, title: a.name, text: `${a.name}\n${a.text}`, version: a.createdAt })),
   ];

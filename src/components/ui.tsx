@@ -85,7 +85,8 @@ export function Modal({ open, onClose, title, children, width = 520, footer }: {
 }
 
 // ---- Promise-based confirm / prompt dialogs ---------------------------------
-interface DialogReq { kind: "confirm" | "prompt"; title: string; body?: string; danger?: boolean; confirmLabel?: string; initial?: string; resolve: (v: string | boolean | null) => void }
+export interface Choice { value: string; label: string; hint?: string }
+interface DialogReq { kind: "confirm" | "prompt" | "choose"; title: string; body?: string; danger?: boolean; confirmLabel?: string; initial?: string; choices?: Choice[]; resolve: (v: string | boolean | null) => void }
 const useDialog = create<{ req: DialogReq | null; set: (r: DialogReq | null) => void }>((set) => ({ req: null, set: (req) => set({ req }) }));
 
 export function confirmDialog(title: string, body?: string, opts: { danger?: boolean; confirmLabel?: string } = {}): Promise<boolean> {
@@ -93,6 +94,11 @@ export function confirmDialog(title: string, body?: string, opts: { danger?: boo
 }
 export function promptDialog(title: string, initial = "", body?: string): Promise<string | null> {
   return new Promise((resolve) => useDialog.getState().set({ kind: "prompt", title, body, initial, resolve: (v) => resolve(typeof v === "string" ? v : null) }));
+}
+
+/** Pick one of several options (with a filter box). Resolves to the chosen value, or null if cancelled. */
+export function chooseDialog(title: string, choices: Choice[], body?: string): Promise<string | null> {
+  return new Promise((resolve) => useDialog.getState().set({ kind: "choose", title, body, choices, resolve: (v) => resolve(typeof v === "string" ? v : null) }));
 }
 
 export function DialogHost() {
@@ -106,9 +112,21 @@ export function DialogHost() {
       footer={<>
         <button className="btn-outline" onClick={() => done(null)}>Cancel</button>
         <button className={req.danger ? "btn bg-danger text-white hover:bg-danger" : "btn-primary"} autoFocus={req.kind === "confirm"}
-          onClick={() => done(req.kind === "prompt" ? value : true)}>{req.confirmLabel ?? (req.kind === "prompt" ? "OK" : "Confirm")}</button>
+          hidden={req.kind === "choose"} onClick={() => done(req.kind === "prompt" ? value : true)}>{req.confirmLabel ?? (req.kind === "prompt" ? "OK" : "Confirm")}</button>
       </>}>
       {req.body && <p className="mb-3 whitespace-pre-wrap text-[13px] text-muted">{req.body}</p>}
+      {req.kind === "choose" && <>
+        <input autoFocus className="input mb-2" placeholder="Filter…" aria-label="Filter" value={value} onChange={(e) => setValue(e.target.value)} />
+        <div className="max-h-72 overflow-y-auto" role="listbox" aria-label={req.title}>
+          {(req.choices ?? []).filter((c) => !value || `${c.label} ${c.hint ?? ""}`.toLowerCase().includes(value.toLowerCase())).map((c) => (
+            <button key={c.value} role="option" aria-selected={false} className="block w-full rounded-md px-2 py-1.5 text-left hover:bg-hover" onClick={() => done(c.value)}>
+              <div className="truncate text-[13.5px]">{c.label}</div>
+              {c.hint && <div className="truncate text-[12px] text-muted">{c.hint}</div>}
+            </button>
+          ))}
+          {!(req.choices ?? []).length && <p className="px-2 py-3 text-[13px] text-muted">Nothing to choose from yet.</p>}
+        </div>
+      </>}
       {req.kind === "prompt" && (
         <input autoFocus className="input" value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === "Enter" && done(value)} />
       )}

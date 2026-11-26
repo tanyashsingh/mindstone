@@ -269,4 +269,16 @@ export interface Embedding {
   pageUpdatedAt: number;
 }
 
+/** Content shared by every copy of a synced block (the `syncedBlock` node stores only the id). */
+export interface SyncedBlock {
+  id: ID;
+  workspaceId: ID;
+  sourcePageId: ID; // page it was created on; search results open it
+  content: JSONContent; // a "doc" node
+  text: string; // derived plain text, for search and AI
+  editedBy: string; // editor instance that made the last change, so copies don't echo their own edits
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface SettingRow { key: string; value: unknown }

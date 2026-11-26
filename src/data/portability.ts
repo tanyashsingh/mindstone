@@ -195,12 +195,18 @@ function htmlDocument(title: string, body: string) {
 </head><body><h1>${escAttr(title)}</h1>${body}</body></html>`;
 }
 
+async function syncedResolver(workspaceId: ID): Promise<(id: string) => JSONContent | undefined> {
+  const rows = await db().syncedBlocks.where("workspaceId").equals(workspaceId).toArray();
+  const m = new Map(rows.map((r) => [r.id, r.content]));
+  return (id) => m.get(id);
+}
+
 export async function pageToMarkdown(page: Page): Promise<string> {
   if (page.kind === "database" && page.databaseId) {
     const d = await db().databases.get(page.databaseId);
     return d ? `# ${page.title}\n\n${(await databaseToCSV(d)).trim()}\n` : "";
   }
-  return `# ${page.title || "Untitled"}\n\n${docToMarkdown(page.content, await titleResolver(page.workspaceId))}`;
+  return `# ${page.title || "Untitled"}\n\n${docToMarkdown(page.content, await titleResolver(page.workspaceId), await syncedResolver(page.workspaceId))}`;
 }
 
 export async function exportPage(pageId: ID, format: "md" | "html" | "pdf") {
@@ -227,6 +233,7 @@ export async function exportWorkspaceMarkdown(workspaceId: ID) {
   const pages = await repo.livePages(workspaceId);
   const byId = new Map(pages.map((p) => [p.id, p]));
   const resolve = await titleResolver(workspaceId);
+  const synced = await syncedResolver(workspaceId);
   const enc = new TextEncoder();
   const used = new Set<string>();
   const pathOf = (p: Page): string => {
@@ -244,7 +251,7 @@ export async function exportWorkspaceMarkdown(workspaceId: ID) {
     if (p.kind === "database" && p.databaseId) {
       const d = await db().databases.get(p.databaseId);
       if (d) entries.push({ path: `${path}.csv`, data: enc.encode(await databaseToCSV(d)) });
-    } else entries.push({ path: `${path}.md`, data: enc.encode(`# ${p.title || "Untitled"}\n\n${docToMarkdown(p.content, resolve)}`) });
+    } else entries.push({ path: `${path}.md`, data: enc.encode(`# ${p.title || "Untitled"}\n\n${docToMarkdown(p.content, resolve, synced)}`) });
   }
   for (const a of await db().attachments.where("workspaceId").equals(workspaceId).toArray()) {
     entries.push({ path: `_attachments/${a.id}-${safeFileName(a.name)}`, data: new Uint8Array(await a.blob.arrayBuffer()) });

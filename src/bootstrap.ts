@@ -53,11 +53,15 @@ export async function bootstrap(): Promise<string> {
 
 let dirty = true;
 let currentWs = "";
+let building: Promise<unknown> | null = null;
+/** Resolves once the index reflects every change made before the call (waits for a rebuild already running). */
 export async function ensureSearchIndex(workspaceId: string) {
-  if (dirty || currentWs !== workspaceId) {
+  while (building || dirty || currentWs !== workspaceId) {
+    if (building) { await building; continue; }
     dirty = false;
     currentWs = workspaceId;
-    await searchIndex.build(workspaceId);
+    building = searchIndex.build(workspaceId).finally(() => { building = null; });
+    await building;
   }
 }
 
@@ -68,7 +72,7 @@ function watchSearchIndex(getWs: () => string) {
   const d = db();
   const rebuild = debounce(() => { if (currentWs) void ensureSearchIndex(currentWs); }, 1500);
   const mark = () => { dirty = true; rebuild(); };
-  for (const t of [d.pages, d.records, d.tasks, d.projects, d.events, d.attachments]) {
+  for (const t of [d.pages, d.records, d.tasks, d.projects, d.events, d.attachments, d.syncedBlocks]) {
     t.hook("creating", mark);
     t.hook("updating", mark);
     t.hook("deleting", mark);
