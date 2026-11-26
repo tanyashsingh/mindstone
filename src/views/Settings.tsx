@@ -10,8 +10,10 @@ import { DEFAULT_SHORTCUTS, useSettings, type Settings } from "@/store/settings"
 import { PROVIDER_LABELS, NEEDS_KEY, LOCAL_PROVIDERS } from "@/ai/providers";
 import { chat, deleteApiKey, hasApiKey, listModels, setApiKey, spendGuard } from "@/ai/client";
 import { runAutoBackups } from "@/lib/autoBackup";
+import { SecuritySettings } from "@/components/SecuritySettings";
+import { isEncryptedBackup, openBackup, sealBackup } from "@/data/vault";
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
-import { Toggle, confirmDialog } from "@/components/ui";
+import { Toggle, confirmDialog, promptDialog } from "@/components/ui";
 import { cx, downloadBlob, fmtBytes, safeFileName } from "@/lib/util";
 import cairnMark from "@/assets/mindstone-mark.png";
 
@@ -205,7 +207,7 @@ export default function SettingsView({ section }: { section?: string }) {
           {sec === "security" && <>
             <Row label="API key storage" desc={window.rea ? (secure ? "Keys are encrypted with Windows DPAPI (Electron safeStorage) and only the main process can read them." : "OS encryption is unavailable, so keys will not be saved.") : "Browser build: keys stay in memory for this tab and are forgotten on reload."}><KeyRound size={16} className="text-muted" /></Row>
             <Row label="Content security" desc="Rich text, Markdown, Mermaid and AI output are sanitised before rendering; links are limited to http, https and mailto; a strict Content Security Policy blocks remote scripts."><Check size={16} className="text-success" /></Row>
-            <Row label="Encryption at rest" desc="Data is protected by your Windows account. Mindstone does not add its own encryption at rest or end-to-end encryption."><span /></Row>
+            <SecuritySettings />
           </>}
           {sec === "storage" && <>
             <Row label="Daily digest on start" desc="Shows today's digest the first time you open Mindstone each day: tasks done, overdue and due, events, decisions and action items from your notes."><Toggle checked={s.digest.daily} onChange={(v) => update((x) => ({ ...x, digest: { daily: v } }))} label="Daily digest" /></Row>
@@ -218,7 +220,7 @@ export default function SettingsView({ section }: { section?: string }) {
           {sec === "backup" && <>
             {window.rea && <AutoBackupRows />}
             <Row label="Create backup" desc={`Complete workspace (pages, history, databases, tasks, events, files, AI chats) as one .rea.json file. Format version ${BACKUP_VERSION}.`}>
-              <button className="btn-primary" onClick={async () => { const b = await createBackup(ws); downloadBlob(new Blob([JSON.stringify(b)], { type: "application/json" }), `${safeFileName(workspace?.name ?? "workspace")}-${new Date().toISOString().slice(0, 10)}.rea.json`); }}>Download backup</button>
+              <button className="btn-primary" onClick={async () => { const b = await createBackup(ws); downloadBlob(new Blob([await sealBackup(JSON.stringify(b), workspace?.name ?? "")], { type: "application/json" }), `${safeFileName(workspace?.name ?? "workspace")}-${new Date().toISOString().slice(0, 10)}.rea.json`); }}>Download backup</button>
             </Row>
             <Row label="Restore backup" desc="Restores a workspace from a backup file. If that workspace exists here, it is replaced after you confirm.">
               <button className="btn-outline" onClick={() => restoreInput.current?.click()}>Choose file…</button>
@@ -228,7 +230,13 @@ export default function SettingsView({ section }: { section?: string }) {
               e.target.value = "";
               if (!f) return;
               try {
-                const raw = validateBackup(JSON.parse(await f.text()));
+                let parsed: unknown = JSON.parse(await f.text());
+                if (isEncryptedBackup(parsed)) {
+                  const secret = await promptDialog("This backup is encrypted", "", "Enter the passphrase (or recovery key) that was in use when it was made.", { password: true });
+                  if (!secret) return;
+                  parsed = await openBackup(parsed, secret);
+                }
+                const raw = validateBackup(parsed);
                 const exists = !!(await db().workspaces.get(raw.workspace.id));
                 if (exists && !(await confirmDialog(`Replace “${raw.workspace.name}”?`, `This backup is from ${new Date(raw.exportedAt).toLocaleString()}. The current copy of the workspace on this device will be deleted and replaced. This cannot be undone.`, { danger: true, confirmLabel: "Replace workspace" }))) return;
                 const w = await restoreBackup(raw, { replace: exists });

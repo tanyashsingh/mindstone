@@ -17,6 +17,9 @@ import { matchShortcut } from "./lib/shortcuts";
 import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
 import { startAutoBackups } from "./lib/autoBackup";
+import { prepareVault, resumeIfInterrupted } from "./data/vault";
+import { startIdleLock } from "./lib/idleLock";
+import { LockScreen } from "./components/LockScreen";
 import { DigestHost, maybeShowDailyDigest } from "./components/DigestDialog";
 import { startUpdateWatch } from "./lib/updates";
 import cairnMark from "./assets/mindstone-mark.png";
@@ -91,10 +94,15 @@ export function App() {
   const { s, loaded, load, update } = useSettings();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [starting, setStarting] = useState(0);
 
   useEffect(() => {
     (async () => {
       try {
+        if (!starting && (await prepareVault()) === "locked") { setLocked(true); return; }
+        await resumeIfInterrupted();
+        startIdleLock();
         await load();
         const ws = await bootstrap();
         useApp.getState().setWorkspace(ws);
@@ -107,7 +115,7 @@ export function App() {
         setError(e instanceof Error ? e.message : String(e));
       }
     })();
-  }, [load]);
+  }, [load, starting]);
 
   // Theme, accent, editor typography
   useEffect(() => {
@@ -164,6 +172,7 @@ export function App() {
     return () => removeEventListener("keydown", onKey);
   }, [update]);
 
+  if (locked) return <LockScreen onUnlocked={() => { setLocked(false); setStarting((n) => n + 1); }} />;
   if (error) return <div className="p-10 text-danger">Mindstone could not open its local database: {error}</div>;
   if (!ready || !loaded) return (
     <div className="flex h-full flex-col items-center justify-center gap-3 text-muted">

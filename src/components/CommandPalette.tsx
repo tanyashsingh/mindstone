@@ -10,6 +10,8 @@ import { resolvedDark, useSettings } from "@/store/settings";
 import { shortcutLabel } from "@/lib/shortcuts";
 import { cx } from "@/lib/util";
 import { useDigest } from "./DigestDialog";
+import { vaultActive } from "@/data/vault";
+import { lockAndReload } from "@/lib/idleLock";
 import { Highlight } from "@/views/SearchView";
 
 export function openHit(h: SearchHit, newTab = false) {
@@ -47,6 +49,7 @@ export function CommandPalette() {
     const nav = (kind: RouteKind, label: string): Cmd => ({ id: `go-${kind}`, label: `Go to ${label}`, run: () => st.open({ kind }) });
     return [
       { id: "new-page", label: "New page", hint: shortcutLabel(shortcuts.newPage ?? ""), run: async () => { const p = await repo.createPage(workspaceId!, null); st.open({ kind: "page", id: p.id }); } },
+      ...(vaultActive() ? [{ id: "lock", label: "Lock Mindstone", run: () => lockAndReload() }] : []),
       { id: "digest-today", label: "Today's digest", run: () => useDigest.getState().show("today") },
       { id: "digest-week", label: "Weekly digest", run: () => useDigest.getState().show("week") },
       { id: "new-db", label: "New database", run: async () => { const { page } = await repo.createDatabase(workspaceId!, null); st.open({ kind: "page", id: page.id }); } },
@@ -95,7 +98,7 @@ export function CommandPalette() {
     if (q.trim() && !cmdMode) {
       const r = [q.trim(), ...recent.filter((x) => x !== q.trim())].slice(0, 6);
       setRecent(r);
-      localStorage.setItem("rea.recentSearches", JSON.stringify(r));
+      if (!vaultActive()) localStorage.setItem("rea.recentSearches", JSON.stringify(r));
     }
     close();
     if (it.t === "hit") openHit(it.h, newTab);

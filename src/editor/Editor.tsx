@@ -9,6 +9,7 @@ import { schemaExtensions } from "./schema";
 import { SlashCommand, PageLinkSuggest, FindReplace, findKey, type SlashItem, type PageItem, type SuggestState } from "./extensions";
 import { BlockCommands } from "./blockCommands";
 import { SuggestionMode, liveEditors, requestThreadFocus, scrollToThread } from "./review";
+import { vaultActive } from "@/data/vault";
 import { DragHandle } from "./DragHandle";
 import { DictationPill } from "@/voice/VoiceUI";
 import { matchShortcut } from "@/lib/shortcuts";
@@ -184,7 +185,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
     },
     onUpdate: ({ editor }) => {
       const json = editor.getJSON() as JSONContent;
-      localStorage.setItem(`rea.draft.${pageRef.current.id}`, JSON.stringify({ at: Date.now(), json }));
+      if (!vaultActive()) localStorage.setItem(`rea.draft.${pageRef.current.id}`, JSON.stringify({ at: Date.now(), json })); // no readable copies when encrypted
       useApp.getState().set("saveState", "unsaved");
       useApp.getState().set("stats", { words: wordCount(editor.getText()), chars: editor.storage.characterCount.characters() });
       save(pageRef.current.id, json);

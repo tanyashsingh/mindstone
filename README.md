@@ -102,9 +102,9 @@ and stored with Windows DPAPI, never in files in this repository.
 
 Sandboxed renderer with context isolation, strict Content Security Policy, IPC sender verification,
 sanitised rich text and AI output, link protocol allow-list, blocked executable attachments, CSV
-formula-injection guard, an `eval`-free formula engine, and hardened Electron fuses (no `ELECTRON_RUN_AS_NODE`,
-no `--inspect`, app code loaded only from an integrity-checked asar). See [SECURITY.md](SECURITY.md) to report a problem. No telemetry. Mindstone does **not** encrypt data at
-rest beyond your Windows account protection and offers no end-to-end encryption.
+formula-injection guard, an `eval`-free formula engine, optional passphrase protection (AES-256-GCM encryption
+at rest with a recovery key; Settings → Security), and hardened Electron fuses (no `ELECTRON_RUN_AS_NODE`,
+no `--inspect`, app code loaded only from an integrity-checked asar). See [SECURITY.md](SECURITY.md) to report a problem. No telemetry. With passphrase protection off, data is protected by your Windows account only.
 
 ## Documentation
 

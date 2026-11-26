@@ -7,6 +7,7 @@ import { createBackup } from "@/data/backup";
 import { getSetting, setSetting } from "@/data/repo";
 import { useSettings } from "@/store/settings";
 import { toISODate } from "./util";
+import { sealBackup } from "@/data/vault";
 
 const DAY = 24 * 60 * 60 * 1000;
 let timer: ReturnType<typeof setInterval> | undefined;
@@ -25,7 +26,7 @@ export async function runAutoBackups(force = false): Promise<number> {
     const last = await getSetting<number>(key, 0);
     if (!force && Date.now() - last < DAY) continue;
     try {
-      const json = JSON.stringify(await createBackup(ws.id));
+      const json = await sealBackup(JSON.stringify(await createBackup(ws.id)), ws.name); // encrypted when passphrase protection is on
       await window.rea.backup.save(backupFileName(ws.name, ws.id), json);
       await setSetting(key, Date.now());
       written++;

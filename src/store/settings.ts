@@ -26,6 +26,7 @@ export interface Settings {
   backup: { auto: boolean }; // desktop: daily local backups
   ocr: { auto: boolean }; // recognise text in images and scanned PDFs when they are added
   digest: { daily: boolean }; // show today's digest on the first start of each day
+  security: { autoLockMin: number }; // with passphrase protection on: lock after this many idle minutes (0 = never)
   updates: { auto: boolean }; // desktop: check GitHub Releases for new versions
   voice: { language: string; systemAudio: boolean; summaries: "active" | "local" }; // language "" = detect automatically; summaries "local" = always use Ollama
   shortcuts: Record<string, string>;
@@ -74,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   backup: { auto: true },
   ocr: { auto: true },
   digest: { daily: false },
+  security: { autoLockMin: 15 },
   updates: { auto: true },
   voice: { language: "", systemAudio: false, summaries: "active" },
   shortcuts: DEFAULT_SHORTCUTS,

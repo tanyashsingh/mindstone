@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import { encryptionMiddleware } from "./crypto";
 import type {
   Activity, AiConversation, AiMessage, Attachment, CalendarEvent, Comment, Database, DbRecord, Embedding,
   Goal, Habit, Page, PageLink, PageRevision, Project, SavedSearch, SettingRow, SyncedBlock, Task, Template, Workspace,
@@ -33,6 +34,7 @@ export class ReaDB extends Dexie {
   embeddings!: Table<Embedding, string>;
   settings!: Table<SettingRow, string>;
   syncedBlocks!: Table<SyncedBlock, string>;
+  meta!: Table<{ key: string; value: unknown }, string>;
 
   constructor(name = "rea") {
     super(name);
@@ -59,7 +61,22 @@ export class ReaDB extends Dexie {
       settings: "key",
     });
     // v2 (0.5): synced blocks
-    this.version(2).stores({ syncedBlocks: "id, workspaceId, sourcePageId", comments: "id, pageId, createdAt, threadId" });
+    // v2 (0.5): synced blocks, comment threads, key metadata for encryption at rest; indexes the app never
+    // queried are dropped so that, with encryption on, those fields (tags, status, dates) are encrypted too.
+    this.version(2).stores({
+      syncedBlocks: "id, workspaceId, sourcePageId",
+      comments: "id, pageId, threadId",
+      pages: "id, workspaceId, parentId, databaseId, [workspaceId+deletedAt]",
+      revisions: "id, pageId",
+      records: "id, databaseId",
+      tasks: "id, workspaceId, projectId, parentTaskId, [workspaceId+deletedAt]",
+      attachments: "id, workspaceId, pageId",
+      activity: "id, workspaceId, entityId",
+      aiConversations: "id, workspaceId",
+      aiMessages: "id, conversationId",
+      meta: "key",
+    });
+    this.use(encryptionMiddleware);
   }
 }
 

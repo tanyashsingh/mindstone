@@ -86,14 +86,14 @@ export function Modal({ open, onClose, title, children, width = 520, footer }: {
 
 // ---- Promise-based confirm / prompt dialogs ---------------------------------
 export interface Choice { value: string; label: string; hint?: string }
-interface DialogReq { kind: "confirm" | "prompt" | "choose"; title: string; body?: string; danger?: boolean; confirmLabel?: string; initial?: string; choices?: Choice[]; resolve: (v: string | boolean | null) => void }
+interface DialogReq { kind: "confirm" | "prompt" | "choose"; title: string; body?: string; danger?: boolean; confirmLabel?: string; initial?: string; choices?: Choice[]; password?: boolean; resolve: (v: string | boolean | null) => void }
 const useDialog = create<{ req: DialogReq | null; set: (r: DialogReq | null) => void }>((set) => ({ req: null, set: (req) => set({ req }) }));
 
 export function confirmDialog(title: string, body?: string, opts: { danger?: boolean; confirmLabel?: string } = {}): Promise<boolean> {
   return new Promise((resolve) => useDialog.getState().set({ kind: "confirm", title, body, ...opts, resolve: (v) => resolve(Boolean(v)) }));
 }
-export function promptDialog(title: string, initial = "", body?: string): Promise<string | null> {
-  return new Promise((resolve) => useDialog.getState().set({ kind: "prompt", title, body, initial, resolve: (v) => resolve(typeof v === "string" ? v : null) }));
+export function promptDialog(title: string, initial = "", body?: string, opts: { password?: boolean } = {}): Promise<string | null> {
+  return new Promise((resolve) => useDialog.getState().set({ kind: "prompt", title, body, initial, password: opts.password, resolve: (v) => resolve(typeof v === "string" ? v : null) }));
 }
 
 /** Pick one of several options (with a filter box). Resolves to the chosen value, or null if cancelled. */
@@ -128,7 +128,7 @@ export function DialogHost() {
         </div>
       </>}
       {req.kind === "prompt" && (
-        <input autoFocus className="input" value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === "Enter" && done(value)} />
+        <input autoFocus className="input" type={req.password ? "password" : "text"} aria-label={req.title} value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => e.key === "Enter" && done(value)} />
       )}
     </Modal>
   );
