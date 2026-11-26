@@ -5,6 +5,8 @@ import * as repo from "@/data/repo";
 import { useApp } from "@/store/app";
 import { chooseDialog, promptDialog } from "@/components/ui";
 import { db } from "@/data/db";
+import { invoke as invokePlugin, usePlugins } from "@/plugins/host";
+import { markdownToDoc } from "@/data/portability";
 import { today } from "@/lib/util";
 
 function pickFiles(accept: string): Promise<File[]> {
@@ -32,6 +34,7 @@ async function insertUpload(editor: Editor, range: Range, page: Page, accept: st
 
 export function slashItems(page: Page): SlashItem[] {
   const c = (e: Editor, r: Range) => e.chain().focus().deleteRange(r);
+  const c2 = (e: Editor, r: Range) => c(e, r).run();
   const items: SlashItem[] = [
     { group: "Basic", title: "Text", hint: "Plain paragraph", keywords: "paragraph p", run: (e, r) => c(e, r).setParagraph().run() },
     ...[1, 2, 3, 4, 5, 6].map((l) => ({ group: "Basic", title: `Heading ${l}`, hint: "#".repeat(l) + " ", keywords: `h${l} title`, run: (e: Editor, r: Range) => c(e, r).setHeading({ level: l as 1 }).run() })),
@@ -121,5 +124,19 @@ export function slashItems(page: Page): SlashItem[] {
       },
     },
   ];
+  // Slash items from plugins: the plugin returns Markdown, inserted where you typed.
+  for (const c of usePlugins.getState().contributions.filter((x) => x.kind === "slash")) {
+    items.push({
+      group: "Plugins", title: c.label, hint: c.pluginName, keywords: `plugin ${c.pluginName.toLowerCase()} ${c.label.toLowerCase()}`,
+      run: async (e, r) => {
+        c2(e, r);
+        try {
+          const md = await invokePlugin(c.pluginId, "slash", c.id, { pageId: page.id });
+          const content = typeof md === "string" && md ? markdownToDoc(md).content ?? [] : [];
+          if (content.length) e.chain().focus().insertContent(content).run();
+        } catch (err) { useApp.getState().toast(err instanceof Error ? err.message : String(err), "error"); }
+      },
+    });
+  }
   return items;
 }

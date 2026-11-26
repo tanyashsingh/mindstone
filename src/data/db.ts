@@ -36,6 +36,7 @@ export class ReaDB extends Dexie {
   syncedBlocks!: Table<SyncedBlock, string>;
   meta!: Table<{ key: string; value: unknown }, string>;
   calendarFeeds!: Table<CalendarFeed, string>;
+  plugins!: Table<import("@/plugins/host").InstalledPlugin, string>;
   syncState!: Table<{ key: string; t: string; k: string; r: string; ts: number; h: string; d: 0 | 1 }, string>;
 
   constructor(name = "rea") {
@@ -79,6 +80,7 @@ export class ReaDB extends Dexie {
       meta: "key",
       syncState: "key, t", // sync bookkeeping: last exchanged version of each row
       calendarFeeds: "id, workspaceId",
+      plugins: "id", // installed plugins: code and granted permissions, kept on this device
     });
     this.use(encryptionMiddleware);
   }

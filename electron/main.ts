@@ -41,12 +41,13 @@ if (!app.requestSingleInstanceLock()) app.quit();
 
 // Private read-only scheme for the bundled speech model and runtime (fetch() cannot read file:// URLs).
 protocol.registerSchemesAsPrivileged([{ scheme: "cairn-asset", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
-const ASSET_ROOTS: Record<string, string> = { voice: path.join(__dirname, "../dist/voice"), ocr: path.join(__dirname, "../dist/ocr") };
-const MIME: Record<string, string> = { ".wasm": "application/wasm", ".mjs": "text/javascript", ".js": "text/javascript", ".json": "application/json", ".txt": "text/plain", ".onnx": "application/octet-stream", ".gz": "application/gzip" };
+const ASSET_ROOTS: Record<string, string> = { voice: path.join(__dirname, "../dist/voice"), ocr: path.join(__dirname, "../dist/ocr"), plugins: path.join(__dirname, "../dist") };
+const MIME: Record<string, string> = { ".wasm": "application/wasm", ".mjs": "text/javascript", ".js": "text/javascript", ".json": "application/json", ".txt": "text/plain", ".onnx": "application/octet-stream", ".gz": "application/gzip", ".html": "text/html; charset=utf-8" };
 function serveAsset(req: Request): Response {
   const url = new URL(req.url);
   const root = Object.hasOwn(ASSET_ROOTS, url.hostname) ? ASSET_ROOTS[url.hostname]! : null;
   if (!root) return new Response("Not found", { status: 404 });
+  if (url.hostname === "plugins" && !/^\/plugin-sandbox\.(html|js)$/.test(url.pathname)) return new Response("Not found", { status: 404 }); // only the plugin sandbox
   const file = path.normalize(path.join(root, decodeURIComponent(url.pathname)));
   if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return new Response("Not found", { status: 404 });
   return new Response(fs.readFileSync(file), { headers: { "content-type": MIME[path.extname(file)] ?? "application/octet-stream", "access-control-allow-origin": "*" } });

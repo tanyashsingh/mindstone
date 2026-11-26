@@ -189,3 +189,31 @@ test("desktop web clipper and calendar subscription", async () => {
     rmSync(profile, { recursive: true, force: true });
   }
 });
+
+test("desktop plugins run in their sandbox", async () => {
+  test.setTimeout(90_000);
+  const profile = mkdtempSync(path.join(tmpdir(), "rea-e2e-"));
+  const app = await electron.launch({ args: [".", `--user-data-dir=${profile}`], cwd: process.cwd() });
+  try {
+    const win = await app.firstWindow();
+    await expect(win.getByRole("navigation", { name: "Sidebar" })).toBeVisible({ timeout: 30_000 });
+    await win.keyboard.press("Control+n");
+    await win.getByLabel("Page title").fill("Plugin check");
+    await win.getByLabel("Page title").press("Enter");
+    await win.keyboard.type("alpha beta gamma delta");
+    await expect(win.getByRole("status")).toContainText("Saved locally", { timeout: 10_000 });
+    await win.keyboard.press("Control+,");
+    const main = win.getByRole("region", { name: "Main view" });
+    await main.getByRole("button", { name: "Plugins" }).click();
+    await main.getByLabel("Plugin folder").setInputFiles(path.join(process.cwd(), "plugins", "word-count"));
+    await win.getByRole("dialog").getByRole("button", { name: "Install" }).click();
+    await win.getByRole("navigation", { name: "Sidebar" }).getByRole("treeitem", { name: /Plugin check/ }).click();
+    await win.keyboard.press("Control+k");
+    await win.keyboard.type("word count of");
+    await win.getByRole("dialog").getByRole("option", { name: /Word count of this page/ }).click();
+    await expect(win.getByText("Word count: 4 words")).toBeVisible({ timeout: 15_000 });
+  } finally {
+    await app.close();
+    rmSync(profile, { recursive: true, force: true });
+  }
+});

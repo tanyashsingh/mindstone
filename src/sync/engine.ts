@@ -11,7 +11,7 @@ import { db } from "@/data/db";
 import { blobsToBytes, decodeFields, encodeFields } from "@/data/crypto";
 import { uid } from "@/lib/util";
 
-export const NOT_SYNCED = new Set(["meta", "settings", "embeddings", "syncState"]); // device-local or derived
+export const NOT_SYNCED = new Set(["meta", "settings", "embeddings", "syncState", "plugins"]); // device-local or derived
 const PBKDF2_ITERATIONS = 600_000;
 
 export interface SpaceInfo { v: 1; salt: string; check: string; createdAt: number }

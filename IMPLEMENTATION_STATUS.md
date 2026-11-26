@@ -105,6 +105,7 @@ Last updated: 2026-11-25.
 |---|---|
 | Electron shell, hardened, with tray, menu, single instance, new window | Verified (installed build launched) |
 | API keys via DPAPI (safeStorage), main-process AI calls, IPC sender checks | Implemented |
+| Plugins: sandboxed frame (opaque origin, no network, no DOM or storage access), permission-checked API, commands, slash items, panels; example plugin | Tested (browser escape probe + desktop) |
 | Passphrase protection: AES-256-GCM encryption at rest (PBKDF2 600k), lock screen, auto-lock, recovery key, change passphrase, encrypted backups, turn off | Tested (unit with raw-storage checks + E2E) |
 | CSP, sanitised rendering (DOMPurify), link protocol allow-list, file-type validation, safe file names | Tested (file names, CSV injection); Implemented |
 | NSIS installer, install, launch, uninstall | Verified (0.1.0 and 0.2.0) |

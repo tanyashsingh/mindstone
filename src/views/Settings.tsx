@@ -13,6 +13,7 @@ import { runAutoBackups } from "@/lib/autoBackup";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { SyncSettings } from "@/components/SyncSettings";
 import { ClipperSettings } from "@/components/ClipperSettings";
+import { PluginSettings } from "@/components/PluginSettings";
 import { isEncryptedBackup, openBackup, sealBackup } from "@/data/vault";
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
 import { Toggle, confirmDialog, promptDialog } from "@/components/ui";
@@ -22,7 +23,7 @@ import cairnMark from "@/assets/mindstone-mark.png";
 const SECTIONS = [
   ["general", "General"], ["appearance", "Appearance"], ["editor", "Editor"], ["workspace", "Workspace"], ["notifications", "Notifications"], ["voice", "Voice"], ["shortcuts", "Keyboard shortcuts"],
   ["ai", "Artificial intelligence"], ["providers", "AI providers"], ["privacy", "Privacy"], ["security", "Security"], ["storage", "Storage"], ["backup", "Backup & restore"],
-  ["import", "Import & export"], ["integrations", "Integrations"], ["sync", "Synchronization"], ["accessibility", "Accessibility"], ["about", "About Mindstone"],
+  ["import", "Import & export"], ["integrations", "Integrations"], ["plugins", "Plugins"], ["sync", "Synchronization"], ["accessibility", "Accessibility"], ["about", "About Mindstone"],
 ] as const;
 
 function Row({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
@@ -260,6 +261,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Google Calendar and Outlook" desc="Subscribe to them by their private iCalendar address in Calendar → Subscribe. No sign-in needed; they show read-only and refresh every 30 minutes."><button className="btn-outline" onClick={() => useApp.getState().open({ kind: "calendar" })}>Open Calendar</button></Row>
           </>}
           {sec === "sync" && <SyncSettings />}
+          {sec === "plugins" && <PluginSettings />}
           {sec === "accessibility" && <>
             <Row label="Reduce motion" desc="Also follows your Windows animation setting automatically."><Toggle checked={s.reduceMotion} onChange={(v) => set("reduceMotion", v)} label="Reduce motion" /></Row>
             <Row label="Text size" desc="Editor font size; use Ctrl + / Ctrl − in the desktop app to zoom the whole interface."><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Text size" /></Row>

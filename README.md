@@ -96,6 +96,11 @@ passphrase. The server can also serve Mindstone to phones as an installable app 
 - **Web clipper**: a Chrome/Edge extension in [clipper/](clipper/README.md) saves pages, selections or articles into
   the desktop app (Settings → Integrations).
 
+## Plugins
+
+Add commands, slash items and panels with small JavaScript plugins that run in a sealed sandbox with only the
+permissions you grant. See [PLUGINS.md](PLUGINS.md) and the example in [plugins/word-count](plugins/word-count).
+
 ## Reliability
 
 - **Automatic backups** (desktop): once a day each workspace is saved to the `backups` folder inside the data folder; the

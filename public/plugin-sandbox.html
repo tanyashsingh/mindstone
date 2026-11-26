@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <!-- Plugins run here, in a sandboxed frame with an opaque origin: no access to Mindstone's page, database or
+       storage, and no network (connect-src 'none'). They reach Mindstone only through postMessage. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob:; connect-src 'none'; img-src 'none'; style-src 'none'; frame-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'none'" />
+  <title>Mindstone plugin</title>
+</head>
+<body>
+  <script src="./plugin-sandbox.js"></script>
+</body>
+</html>

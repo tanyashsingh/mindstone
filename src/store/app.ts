@@ -22,7 +22,7 @@ interface AppState {
   sidebarOpen: boolean;
   sidebarWidth: number;
   rightOpen: boolean;
-  rightTab: "outline" | "backlinks" | "properties" | "comments" | "activity" | "ai" | "related";
+  rightTab: "outline" | "backlinks" | "properties" | "comments" | "activity" | "ai" | "related" | "plugins";
   paletteOpen: boolean;
   paletteMode: "all" | "pages";
   focusMode: boolean;

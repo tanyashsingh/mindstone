@@ -12,6 +12,7 @@ import { cx } from "@/lib/util";
 import { useDigest } from "./DigestDialog";
 import { vaultActive } from "@/data/vault";
 import { lockAndReload } from "@/lib/idleLock";
+import { invoke as invokePlugin, usePlugins } from "@/plugins/host";
 import { Highlight } from "@/views/SearchView";
 
 export function openHit(h: SearchHit, newTab = false) {
@@ -44,6 +45,7 @@ export function CommandPalette() {
   const listRef = useRef<HTMLDivElement>(null);
   const close = () => { set("paletteOpen", false); setQ(""); setSel(0); };
 
+  const pluginCmds = usePlugins((s) => s.contributions);
   const commands: Cmd[] = useMemo(() => {
     const st = useApp.getState();
     const nav = (kind: RouteKind, label: string): Cmd => ({ id: `go-${kind}`, label: `Go to ${label}`, run: () => st.open({ kind }) });
@@ -67,8 +69,9 @@ export function CommandPalette() {
       nav("graph", "Knowledge graph"), nav("files", "Files"), nav("templates", "Templates"), nav("trash", "Trash"),
       { id: "settings", label: "Open settings", hint: shortcutLabel(shortcuts.settings ?? ""), run: () => st.open({ kind: "settings" }) },
       { id: "search", label: "Full search page", hint: shortcutLabel(shortcuts.search ?? ""), run: () => st.open({ kind: "search", sub: q }) },
+      ...pluginCmds.filter((c) => c.kind === "command").map((c) => ({ id: `plugin:${c.pluginId}:${c.id}`, label: `${c.pluginName}: ${c.label}`, run: () => void invokePlugin(c.pluginId, "command", c.id).catch((e: Error) => useApp.getState().toast(e.message, "error")) })),
     ];
-  }, [workspaceId, shortcuts, q]);
+  }, [workspaceId, shortcuts, q, pluginCmds]);
 
   useEffect(() => {
     if (!paletteOpen || !workspaceId) return;

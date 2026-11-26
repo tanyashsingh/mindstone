@@ -20,6 +20,7 @@ import { startAutoBackups } from "./lib/autoBackup";
 import { startSync } from "./sync/service";
 import { startFeedRefresh } from "./lib/feeds";
 import { startClipListener } from "./lib/clips";
+import { startPlugins } from "./plugins/host";
 import { prepareVault, resumeIfInterrupted } from "./data/vault";
 import { startIdleLock } from "./lib/idleLock";
 import { LockScreen } from "./components/LockScreen";
@@ -121,6 +122,7 @@ export function App() {
         void startSync();
         startFeedRefresh();
         startClipListener();
+        startPlugins();
         void maybeShowDailyDigest(ws);
         startUpdateWatch();
       } catch (e) {

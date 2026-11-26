@@ -1,5 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { X, ListTree, Link2, Info, MessageSquare, History, Sparkles, Shapes } from "lucide-react";
+import { X, ListTree, Link2, Info, MessageSquare, History, Sparkles, Shapes, Puzzle } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import { searchIndex } from "@/data/search";
@@ -10,6 +10,7 @@ import { cx, relTime, wordCount } from "@/lib/util";
 import { AiChat } from "@/views/AiView";
 import { EmptyState } from "./ui";
 import { CommentsPanel } from "./CommentsPanel";
+import { PluginPanels } from "./PluginPanels";
 
 type TabId = ReturnType<typeof useApp.getState>["rightTab"];
 const TABS: { id: TabId; icon: React.ReactNode; label: string }[] = [
@@ -20,6 +21,7 @@ const TABS: { id: TabId; icon: React.ReactNode; label: string }[] = [
   { id: "comments", icon: <MessageSquare size={15} />, label: "Comments" },
   { id: "activity", icon: <History size={15} />, label: "Activity" },
   { id: "ai", icon: <Sparkles size={15} />, label: "AI" },
+  { id: "plugins", icon: <Puzzle size={15} />, label: "Plugins" },
 ];
 
 export function RightPanel() {
@@ -61,7 +63,7 @@ export function RightPanel() {
         <button className="icon-btn" aria-label="Close panel" onClick={() => set("rightOpen", false)}><X size={15} /></button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-3 text-[13px]">
-        {!page ? <EmptyState title="Open a page" body="Outline, backlinks, properties and comments appear here for the current page." /> : <>
+        {rightTab === "plugins" ? <><div className="label mb-2">Plugins</div><PluginPanels /></> : !page ? <EmptyState title="Open a page" body="Outline, backlinks, properties and comments appear here for the current page." /> : <>
           <div className="label mb-2">{TABS.find((t) => t.id === rightTab)?.label}</div>
           {rightTab === "outline" && (headings(page.content).length === 0 ? <div className="text-faint">No headings yet.</div> : headings(page.content).map((h, i) => (
             <button key={h.id || i} className="block w-full truncate rounded px-1 py-0.5 text-left text-muted hover:bg-hover hover:text-fg" style={{ paddingLeft: (h.level - 1) * 12 + 4 }}
