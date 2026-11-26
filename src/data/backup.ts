@@ -10,7 +10,7 @@ import { deleteWorkspace } from "./repo";
 export const BACKUP_FORMAT = "rea-backup";
 export const BACKUP_VERSION = 1;
 
-const WS_TABLES = ["pages", "links", "databases", "tasks", "projects", "events", "templates", "habits", "goals", "activity", "savedSearches", "aiConversations", "syncedBlocks"] as const;
+const WS_TABLES = ["pages", "links", "databases", "tasks", "projects", "events", "templates", "habits", "goals", "activity", "savedSearches", "aiConversations", "syncedBlocks", "calendarFeeds"] as const;
 
 export interface BackupFile {
   format: typeof BACKUP_FORMAT;

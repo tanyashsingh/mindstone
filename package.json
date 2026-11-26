@@ -119,7 +119,13 @@
       "loadBrowserProcessSpecificV8Snapshot": false,
       "grantFileProtocolExtraPrivileges": true
     },
-    "asar": true
+    "asar": true,
+    "extraResources": [
+      {
+        "from": "clipper",
+        "to": "clipper"
+      }
+    ]
   },
   "allowScripts": {
     "onnxruntime-node": false,

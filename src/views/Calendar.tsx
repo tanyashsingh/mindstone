@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { CalendarDays, Plus, Download, Upload, ChevronLeft, ChevronRight, Trash2, CheckSquare } from "lucide-react";
+import { CalendarDays, Plus, Download, Upload, ChevronLeft, ChevronRight, Trash2, CheckSquare, Rss } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import type { CalendarEvent, Recurrence, Task } from "@/data/types";
@@ -8,17 +8,33 @@ import { useApp } from "@/store/app";
 import { useSettings } from "@/store/settings";
 import { Modal } from "@/components/ui";
 import { expandEvent, type Occurrence } from "@/lib/recurrence";
-import { parseICS, toICS } from "@/lib/ics";
+import { eventFields, parseICS, toICS } from "@/lib/ics";
 import { addDays, cx, downloadBlob, fmtTime, parseISODate, startOfWeek, toISODate, today } from "@/lib/util";
+import { FeedsDialog } from "@/components/FeedsDialog";
 import { TaskDetail } from "./Tasks";
 
 type Mode = "day" | "week" | "month" | "agenda";
 const COLORS = ["blue", "green", "purple", "orange", "red", "pink", "yellow", "gray"];
 const toLocalInput = (ms: number) => new Date(ms - new Date().getTimezoneOffset() * 60e3).toISOString().slice(0, 16);
 
+function FeedEventModal({ e, onClose }: { e: CalendarEvent; onClose: () => void }) {
+  const fmt = (ms: number) => new Date(ms).toLocaleString(undefined, e.allDay ? { dateStyle: "full" } : { dateStyle: "full", timeStyle: "short" });
+  return (
+    <Modal open onClose={onClose} title={e.title} width={480}>
+      <div className="space-y-2 text-[13.5px]" data-testid="feed-event">
+        <p>{fmt(e.start)}{!e.allDay && e.end > e.start ? ` to ${new Date(e.end).toLocaleTimeString(undefined, { timeStyle: "short" })}` : ""}</p>
+        {e.recurrence && <p className="text-muted">Repeats {e.recurrence.freq}{e.recurrence.byDay?.length ? ` on ${e.recurrence.byDay.join(", ")}` : ""}</p>}
+        {e.notes && <p className="whitespace-pre-wrap text-muted">{e.notes}</p>}
+        <p className="rounded-md bg-sunken p-2 text-[12.5px] text-muted">From the subscribed calendar “{e.calendar}”. It is read-only here; change it in its own calendar and it updates within 30 minutes.</p>
+      </div>
+    </Modal>
+  );
+}
+
 function EventModal({ ev, onClose }: { ev: CalendarEvent; onClose: () => void }) {
   const e = useLiveQuery(() => db().events.get(ev.id), [ev.id]) ?? ev;
   const up = (patch: Partial<CalendarEvent>) => repo.updateEvent(e.id, patch);
+  if (e.feedId) return <FeedEventModal e={e} onClose={onClose} />;
   return (
     <Modal open onClose={onClose} title="Event" width={520}
       footer={<button className="btn-danger mr-auto" onClick={async () => { await repo.updateEvent(e.id, { deletedAt: Date.now() }); onClose(); }}><Trash2 size={14} /> Delete</button>}>
@@ -61,6 +77,7 @@ export default function CalendarView() {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
+  const [feedsOpen, setFeedsOpen] = useState(false);
   const hoursRef = useRef<HTMLDivElement>(null);
   // Open the time grid at 07:00 rather than midnight.
   useEffect(() => { if (hoursRef.current) hoursRef.current.scrollTop = 7 * 48; }, [mode]);
@@ -90,6 +107,7 @@ export default function CalendarView() {
   const reschedule = async (id: string, newStart: number, keepTime: boolean) => {
     const ev = await db().events.get(id.split("@")[0]!);
     if (!ev) return;
+    if (ev.feedId) return useApp.getState().toast("Events from a subscribed calendar can't be moved here; change them in their own calendar.", "info");
     let start = newStart;
     if (keepTime) { const o = new Date(ev.start); const d = new Date(newStart); d.setHours(o.getHours(), o.getMinutes()); start = d.getTime(); }
     await repo.updateEvent(ev.id, { start, end: start + (ev.end - ev.start) });
@@ -115,6 +133,7 @@ export default function CalendarView() {
         <button className="icon-btn" aria-label="Next" onClick={() => step(1)}><ChevronRight size={16} /></button>
         <span className="flex-1" />
         <div className="flex gap-0.5 rounded-[10px] bg-sunken p-0.5 shadow-[var(--inset)]">{(["day", "week", "month", "agenda"] as Mode[]).map((m) => <button key={m} className={cx("btn h-6 capitalize", mode === m && "bg-active")} onClick={() => setMode(m)}>{m}</button>)}</div>
+        <button className="btn" onClick={() => setFeedsOpen(true)}><Rss size={14} /> Subscribe</button>
         <button className="btn" onClick={() => fileRef.current?.click()}><Upload size={14} /> Import .ics</button>
         <button className="btn" onClick={() => downloadBlob(new Blob([toICS(events ?? [])], { type: "text/calendar" }), "rea-calendar.ics")}><Download size={14} /> Export</button>
         <button className="btn-primary" onClick={() => { const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1); void create(d.getTime()); }}><Plus size={14} /> Event</button>
@@ -122,12 +141,11 @@ export default function CalendarView() {
           const f = e.target.files?.[0];
           if (!f) return;
           const parsed = parseICS(await f.text());
-          for (const p of parsed) await repo.createEvent(ws, { ...p, color: "purple" });
+          for (const p of parsed) await repo.createEvent(ws, { ...eventFields(p), color: "purple" });
           useApp.getState().toast(`Imported ${parsed.length} events`, "success");
           e.target.value = "";
         }} />
-      </div>
-      <div className="mb-3 flex flex-wrap gap-3 text-[12.5px]">
+      {feedsOpen && <FeedsDialog onClose={() => setFeedsOpen(false)} />}
         {[...calendars, "Tasks"].map((c) => (
           <label key={c} className="flex items-center gap-1.5 text-muted"><input type="checkbox" checked={!hidden.has(c)} onChange={() => { const h = new Set(hidden); if (h.has(c)) h.delete(c); else h.add(c); setHidden(h); }} />{c}</label>
         ))}

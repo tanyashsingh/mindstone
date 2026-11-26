@@ -25,6 +25,18 @@ contextBridge.exposeInMainWorld("rea", {
       return () => ipcRenderer.removeListener("rea:update:state", fn);
     },
   },
+  fetchCalendar: (url: string) => ipcRenderer.invoke("rea:feed:fetch", url),
+  clipper: {
+    state: () => ipcRenderer.invoke("rea:clipper:state"),
+    set: (on: boolean) => ipcRenderer.invoke("rea:clipper:set", on),
+    newCode: () => ipcRenderer.invoke("rea:clipper:newCode"),
+    openFolder: () => ipcRenderer.invoke("rea:clipper:folder"),
+    onClip: (cb: (clip: unknown) => void) => {
+      const fn = (_e: unknown, clip: unknown) => cb(clip);
+      ipcRenderer.on("rea:clip", fn);
+      return () => ipcRenderer.removeListener("rea:clip", fn);
+    },
+  },
   sync: {
     http: (method: string, url: string, headers: Record<string, string>, body: Uint8Array | null) => ipcRenderer.invoke("rea:sync:http", method, url, headers, body),
     chooseFolder: () => ipcRenderer.invoke("rea:sync:folder:choose"),

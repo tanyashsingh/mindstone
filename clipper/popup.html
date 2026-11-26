@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Clip to Mindstone</title>
+  <style>
+    body { font: 13px/1.45 system-ui, sans-serif; width: 300px; margin: 0; padding: 14px; color: #1f1f1e; background: #faf7f2; }
+    h1 { font-size: 15px; margin: 0 0 10px; }
+    button { width: 100%; margin: 4px 0; padding: 8px; border: 0; border-radius: 8px; background: #1f2a44; color: #fff; font: inherit; cursor: pointer; }
+    button.secondary { background: #e9e3d9; color: #1f1f1e; }
+    button:disabled { opacity: .5; cursor: default; }
+    input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #d8d1c4; border-radius: 6px; font: inherit; }
+    label { display: block; margin: 8px 0 2px; color: #555; }
+    #status { min-height: 18px; margin-top: 8px; }
+    .err { color: #b3261e; } .ok { color: #2f6b3a; }
+    details { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Clip to Mindstone</h1>
+  <button id="article">Clip article (simplified)</button>
+  <button id="selection" class="secondary">Clip selection</button>
+  <button id="page" class="secondary">Clip whole page</button>
+  <div id="status" role="status"></div>
+  <details id="setup">
+    <summary>Pairing</summary>
+    <label for="code">Pairing code (Mindstone → Settings → Integrations)</label>
+    <input id="code" autocomplete="off" spellcheck="false" />
+    <label for="port">Port</label>
+    <input id="port" value="43117" inputmode="numeric" />
+    <button id="save" class="secondary">Save and test</button>
+  </details>
+  <script src="extract.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

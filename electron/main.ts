@@ -9,6 +9,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { streamChat, embed, listModels, AiError, PROVIDER_LABELS, type ChatRequest } from "../src/ai/providers";
 import type { AiProviderId } from "../src/data/types";
+import { clipperState, newClipperCode, setClipper, start as startClipper } from "./clipper";
 import { chooseFolder, currentFolder, folderList, folderRead, folderWrite, syncHttp } from "./syncio";
 import { checkForUpdates, configureUpdates, initUpdater, installCrashLogging, installUpdate, listBackups, log, openBackupFolder, openLogFolder, saveBackup, updateState } from "./ops";
 
@@ -142,6 +143,21 @@ function registerIpc() {
   handle("rea:backup:save", (_e, name: string, json: string) => saveBackup(String(name), String(json)));
   handle("rea:backup:list", () => listBackups());
   handle("rea:backup:open", () => openBackupFolder());
+  const mainWin = () => BrowserWindow.getAllWindows().find((w) => !w.isDestroyed()) ?? null;
+  handle("rea:clipper:state", () => clipperState());
+  handle("rea:clipper:set", (_e, on: boolean) => setClipper(on === true, mainWin));
+  handle("rea:clipper:newCode", () => newClipperCode(mainWin));
+  handle("rea:clipper:folder", () => shell.openPath(app.isPackaged ? path.join(process.resourcesPath, "clipper") : path.join(__dirname, "../clipper")));
+  void startClipper(mainWin);
+  handle("rea:feed:fetch", async (_e, url: string) => {
+    const u = new URL(String(url));
+    if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error("Calendar addresses must use https");
+    const res = await fetch(u, { redirect: "follow", signal: AbortSignal.timeout(30_000), headers: { accept: "text/calendar, */*" } });
+    if (!res.ok) throw new Error(`The calendar server answered ${res.status}`);
+    const text = await res.text();
+    if (text.length > 20 * 1024 * 1024) throw new Error("That calendar is too large (over 20 MB)");
+    return text;
+  });
   handle("rea:sync:http", (_e, method: string, url: string, headers: Record<string, string>, body: Uint8Array | null) => syncHttp(String(method), String(url), headers, body instanceof Uint8Array ? body : null));
   handle("rea:sync:folder:choose", (e) => chooseFolder(BrowserWindow.fromWebContents(e.sender)));
   handle("rea:sync:folder:get", () => currentFolder());

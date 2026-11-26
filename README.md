@@ -89,6 +89,13 @@ background and offers **Restart to update**. Turn it off in **Settings → About
 Sync your devices through a folder (OneDrive, Dropbox, USB) or your own small server, end-to-end encrypted with a sync
 passphrase. The server can also serve Mindstone to phones as an installable app that works offline. See [SYNC.md](SYNC.md).
 
+## Calendars and web clipper
+
+- **Calendar → Subscribe**: add Google Calendar, Outlook or any calendar by its private iCalendar (ICS) address. No
+  sign-in; read-only; refreshes every 30 minutes.
+- **Web clipper**: a Chrome/Edge extension in [clipper/](clipper/README.md) saves pages, selections or articles into
+  the desktop app (Settings → Integrations).
+
 ## Reliability
 
 - **Automatic backups** (desktop): once a day each workspace is saved to the `backups` folder inside the data folder; the

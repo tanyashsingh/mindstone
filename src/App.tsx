@@ -18,6 +18,8 @@ import { cx } from "./lib/util";
 import { startReminders } from "./lib/reminders";
 import { startAutoBackups } from "./lib/autoBackup";
 import { startSync } from "./sync/service";
+import { startFeedRefresh } from "./lib/feeds";
+import { startClipListener } from "./lib/clips";
 import { prepareVault, resumeIfInterrupted } from "./data/vault";
 import { startIdleLock } from "./lib/idleLock";
 import { LockScreen } from "./components/LockScreen";
@@ -117,6 +119,8 @@ export function App() {
         startReminders();
         startAutoBackups();
         void startSync();
+        startFeedRefresh();
+        startClipListener();
         void maybeShowDailyDigest(ws);
         startUpdateWatch();
       } catch (e) {

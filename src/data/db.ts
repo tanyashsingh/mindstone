@@ -1,7 +1,7 @@
 import Dexie, { type Table } from "dexie";
 import { encryptionMiddleware } from "./crypto";
 import type {
-  Activity, AiConversation, AiMessage, Attachment, CalendarEvent, Comment, Database, DbRecord, Embedding,
+  Activity, AiConversation, AiMessage, Attachment, CalendarEvent, CalendarFeed, Comment, Database, DbRecord, Embedding,
   Goal, Habit, Page, PageLink, PageRevision, Project, SavedSearch, SettingRow, SyncedBlock, Task, Template, Workspace,
 } from "./types";
 
@@ -35,6 +35,7 @@ export class ReaDB extends Dexie {
   settings!: Table<SettingRow, string>;
   syncedBlocks!: Table<SyncedBlock, string>;
   meta!: Table<{ key: string; value: unknown }, string>;
+  calendarFeeds!: Table<CalendarFeed, string>;
   syncState!: Table<{ key: string; t: string; k: string; r: string; ts: number; h: string; d: 0 | 1 }, string>;
 
   constructor(name = "rea") {
@@ -77,6 +78,7 @@ export class ReaDB extends Dexie {
       aiMessages: "id, conversationId",
       meta: "key",
       syncState: "key, t", // sync bookkeeping: last exchanged version of each row
+      calendarFeeds: "id, workspaceId",
     });
     this.use(encryptionMiddleware);
   }

@@ -12,6 +12,7 @@ import { chat, deleteApiKey, hasApiKey, listModels, setApiKey, spendGuard } from
 import { runAutoBackups } from "@/lib/autoBackup";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { SyncSettings } from "@/components/SyncSettings";
+import { ClipperSettings } from "@/components/ClipperSettings";
 import { isEncryptedBackup, openBackup, sealBackup } from "@/data/vault";
 import { RESERVED, shortcutLabel } from "@/lib/shortcuts";
 import { Toggle, confirmDialog, promptDialog } from "@/components/ui";
@@ -255,8 +256,8 @@ export default function SettingsView({ section }: { section?: string }) {
             <input ref={folderInput} type="file" multiple hidden {...{ webkitdirectory: "" }} onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
           </>}
           {sec === "integrations" && <>
-            <Row label="Google Calendar" desc="Not connected. Connecting needs your explicit sign-in and an OAuth client configuration, which this build does not include."><button className="btn-outline" disabled>Not available</button></Row>
-            <Row label="Microsoft Outlook" desc="Not connected, for the same reason. Use ICS import and export in Calendar meanwhile."><button className="btn-outline" disabled>Not available</button></Row>
+            <ClipperSettings />
+            <Row label="Google Calendar and Outlook" desc="Subscribe to them by their private iCalendar address in Calendar → Subscribe. No sign-in needed; they show read-only and refresh every 30 minutes."><button className="btn-outline" onClick={() => useApp.getState().open({ kind: "calendar" })}>Open Calendar</button></Row>
           </>}
           {sec === "sync" && <SyncSettings />}
           {sec === "accessibility" && <>

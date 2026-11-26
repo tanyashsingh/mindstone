@@ -50,6 +50,8 @@ Last updated: 2026-11-25.
 | Task list, board and Eisenhower views | Implemented |
 | Projects: overview, milestones, timeline, progress report, docs page, activity, archive | Implemented |
 | Calendar: day/week/month/agenda, recurring, all-day, drag reschedule, colours, reminders, ICS import/export | Tested (ICS, recurrence); Implemented (UI) |
+| Calendar subscriptions (Google, Outlook, any ICS address): read-only, refresh every 30 min; time zones incl. Windows names, weekday/monthly rules, counts, cancelled and moved occurrences | Tested (unit + browser + desktop E2E) |
+| Web clipper: Chrome/Edge extension, pairing code, local-only endpoint; page, selection or simplified article saved under Web clips | Tested (extension reader + desktop endpoint E2E) |
 | Dashboard: today, deadlines, events, recent, pinned, projects, quick capture, journal, weekly review | Verified |
 | Pomodoro with time tracking, habits, goals | Implemented |
 | 19 built-in templates plus custom templates | Implemented |

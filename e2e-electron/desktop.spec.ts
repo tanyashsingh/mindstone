@@ -130,3 +130,62 @@ test("desktop folder sync between two profiles", async () => {
     rmSync(shared, { recursive: true, force: true });
   }
 });
+
+/** Web clipper endpoint and calendar subscriptions, in the desktop app. */
+test("desktop web clipper and calendar subscription", async () => {
+  test.setTimeout(120_000);
+  const profile = mkdtempSync(path.join(tmpdir(), "rea-e2e-"));
+  const app = await electron.launch({ args: [".", `--user-data-dir=${profile}`], cwd: process.cwd() });
+  const http = await import("node:http");
+  const cal = http.createServer((_req, res) => {
+    const d = new Date(); d.setHours(11, 0, 0, 0);
+    const s = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}T110000`;
+    res.writeHead(200, { "content-type": "text/calendar" });
+    res.end(["BEGIN:VCALENDAR", "BEGIN:VEVENT", "UID:desk-1", "SUMMARY:Dentist appointment", `DTSTART:${s}`, "DURATION:PT30M", "END:VEVENT", "END:VCALENDAR"].join("\r\n"));
+  });
+  await new Promise<void>((r) => cal.listen(0, "127.0.0.1", () => r()));
+  const calPort = (cal.address() as { port: number }).port;
+  try {
+    const win = await app.firstWindow();
+    await expect(win.getByRole("navigation", { name: "Sidebar" })).toBeVisible({ timeout: 30_000 });
+    const main = win.getByRole("region", { name: "Main view" });
+
+    // Turn on the clipper and read the pairing code
+    await win.keyboard.press("Control+,");
+    await main.getByRole("button", { name: "Integrations" }).click();
+    await main.getByRole("switch", { name: "Web clipper" }).click();
+    const code = (await main.getByTestId("clipper-code").innerText()).trim();
+    expect(code).toMatch(/^[0-9a-f]{24}$/);
+
+    const post = (headers: Record<string, string>, body: unknown) => fetch("http://127.0.0.1:43117/clip", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+    const clip = { url: "https://example.org/recipe", title: "Lemon cake recipe", html: "<p>Zest of two lemons, SAFFRON-12</p>", text: "", kind: "page" };
+    expect((await post({ authorization: "Bearer wrongwrongwrongwrongwron" }, clip)).status).toBe(401);
+    expect((await post({ authorization: `Bearer ${code}`, origin: "https://evil.example" }, clip)).status).toBe(403);
+    expect((await fetch("http://127.0.0.1:43117/ping", { headers: { authorization: `Bearer ${code}` } })).status).toBe(200);
+    expect((await post({ authorization: `Bearer ${code}`, origin: "chrome-extension://abcdefghijklmnop" }, clip)).status).toBe(202);
+    await expect(win.getByText("Clipped “Lemon cake recipe”")).toBeVisible();
+    await win.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(win.locator(".rea-editor")).toContainText("SAFFRON-12");
+
+    // Subscribe to a calendar (downloaded by the desktop app itself)
+    await win.getByRole("navigation", { name: "Sidebar" }).getByRole("button", { name: "Calendar" }).click();
+    await main.getByRole("button", { name: "Subscribe" }).click();
+    const dlg = win.getByRole("dialog").filter({ hasText: "Subscribed calendars" });
+    await dlg.getByLabel("Calendar name").fill("Health");
+    await dlg.getByLabel("Calendar address").fill(`http://127.0.0.1:${calPort}/health.ics`);
+    await dlg.getByRole("button", { name: "Subscribe" }).click();
+    await expect(win.getByText("Subscribed to Health: 1 events")).toBeVisible();
+    await win.keyboard.press("Escape");
+    await expect(main.getByRole("button", { name: /Dentist appointment/ }).first()).toBeVisible();
+
+    // Turning the clipper off closes the port
+    await win.keyboard.press("Control+,");
+    await main.getByRole("button", { name: "Integrations" }).click();
+    await main.getByRole("switch", { name: "Web clipper" }).click();
+    await expect.poll(async () => fetch("http://127.0.0.1:43117/ping").then(() => "open", () => "closed")).toBe("closed");
+  } finally {
+    cal.close();
+    await app.close();
+    rmSync(profile, { recursive: true, force: true });
+  }
+});

@@ -27,6 +27,14 @@ interface ReaBridge {
     list(): Promise<{ name: string; size: number; at: number }[]>;
     open(): Promise<string>;
   };
+  fetchCalendar(url: string): Promise<string>;
+  clipper: {
+    state(): Promise<ClipperState>;
+    set(on: boolean): Promise<ClipperState>;
+    newCode(): Promise<ClipperState>;
+    openFolder(): Promise<string>;
+    onClip(cb: (clip: WebClip) => void): () => void;
+  };
   sync: {
     http(method: "GET" | "PUT", url: string, headers: Record<string, string>, body: Uint8Array | null): Promise<{ status: number; body: Uint8Array }>;
     chooseFolder(): Promise<string | null>;
@@ -44,6 +52,8 @@ interface ReaBridge {
   };
 }
 interface ReaUpdateState { status: "idle" | "checking" | "none" | "downloading" | "ready" | "error" | "disabled"; version?: string; message?: string }
+interface ClipperState { enabled: boolean; token: string; port: number; running: boolean; error: string }
+interface WebClip { url: string; title: string; html: string; text: string; kind: "page" | "selection" | "article" }
 interface Window { rea?: ReaBridge }
 /** App version from package.json, injected at build time. */
 declare const __APP_VERSION__: string;

@@ -31,7 +31,7 @@ export async function deleteWorkspace(id: ID) {
     await d.records.where("databaseId").anyOf(dbs).delete();
     const convs = await d.aiConversations.where("workspaceId").equals(id).primaryKeys();
     await d.aiMessages.where("conversationId").anyOf(convs).delete();
-    for (const t of [d.pages, d.links, d.databases, d.tasks, d.projects, d.events, d.attachments, d.templates, d.habits, d.goals, d.activity, d.savedSearches, d.aiConversations, d.embeddings, d.syncedBlocks] as const) {
+    for (const t of [d.pages, d.links, d.databases, d.tasks, d.projects, d.events, d.attachments, d.templates, d.habits, d.goals, d.activity, d.savedSearches, d.aiConversations, d.embeddings, d.syncedBlocks, d.calendarFeeds] as const) {
       await (t as unknown as { where: (k: string) => { equals: (v: string) => { delete: () => Promise<number> } } }).where("workspaceId").equals(id).delete();
     }
     await d.workspaces.delete(id);

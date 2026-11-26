@@ -130,7 +130,8 @@ export interface DbRecord {
 // ---- Tasks & projects ----------------------------------------------------
 export type TaskStatus = "todo" | "doing" | "blocked" | "done";
 export type Priority = "none" | "low" | "medium" | "high" | "urgent";
-export type Recurrence = { freq: "daily" | "weekly" | "monthly" | "yearly"; interval: number; until?: string } | null;
+/** byDay: weekdays ("MO".."SU"), optionally with an ordinal for monthly rules ("2TU" = second Tuesday, "-1FR" = last Friday). */
+export type Recurrence = { freq: "daily" | "weekly" | "monthly" | "yearly"; interval: number; until?: string; count?: number; byDay?: string[] } | null;
 
 export interface Task {
   id: ID;
@@ -192,6 +193,24 @@ export interface CalendarEvent {
   createdAt: number;
   updatedAt: number;
   deletedAt: number;
+  /** Occurrence dates (YYYY-MM-DD) skipped in a recurring event: cancelled, or moved (the moved one is its own event). */
+  exdates?: string[];
+  /** Set for events that come from a subscribed calendar; they are read-only here. */
+  feedId?: ID;
+}
+
+/** A calendar subscribed by its ICS address (Google Calendar, Outlook and others publish one). Read-only. */
+export interface CalendarFeed {
+  id: ID;
+  workspaceId: ID;
+  name: string;
+  url: string;
+  color: string;
+  lastFetched: number;
+  lastError: string;
+  eventCount: number;
+  createdAt: number;
+  updatedAt: number;
 }
 
 // ---- Files ----------------------------------------------------------------
