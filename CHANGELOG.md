@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 (2026-11-27)
+
+- Desktop: Mindstone now remembers which data folder it chose the first time it ran, so a later start can never open an empty folder instead of your workspace. If you upgraded from Cairn and 0.5.0 showed only starter content, your data is safe in the Cairn folder and 0.5.1 opens it again.
+
 ## 0.5.0 (2026-11-27)
 
 - Editor: columns (2 to 4), synced blocks that update on every page they appear on, and buttons (add a checklist item, create a task, open a page, insert a template).
