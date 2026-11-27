@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.5.0)
+## 0.5.0 (2026-11-27)
 
 - Editor: columns (2 to 4), synced blocks that update on every page they appear on, and buttons (add a checklist item, create a task, open a page, insert a template).
 - Comments on selected text (threads, replies, resolve, Ctrl+Alt+M) and suggestion mode (tracked insertions and deletions to accept or reject).

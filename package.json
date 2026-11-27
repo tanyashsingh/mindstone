@@ -1,7 +1,7 @@
 {
   "name": "mindstone",
   "productName": "Mindstone",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Mindstone: a local-first, privacy-first workspace for notes, tasks, databases, voice and knowledge.",
   "private": true,
   "license": "UNLICENSED",
