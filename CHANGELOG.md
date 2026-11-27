@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.5.2)
+## 0.5.2 (2026-11-27)
 
 - Quick add understands more dates: weekdays ("next friday"), "in 3 days", "next month", "dec 5".
 - Dialogs and the command palette keep keyboard focus inside and return it when they close; Escape closes the palette from anywhere in it.
