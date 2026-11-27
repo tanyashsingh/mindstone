@@ -7,6 +7,7 @@ import type { Attachment } from "@/data/types";
 import { useApp } from "@/store/app";
 import { EmptyState, Modal, confirmDialog } from "@/components/ui";
 import { OcrButton } from "@/components/OcrButton";
+import { pageList } from "@/data/pageDirectory";
 import { cx, downloadBlob, fmtBytes, relTime } from "@/lib/util";
 
 const icon = (m: string) => m.startsWith("image/") ? <ImageIcon size={16} /> : m.startsWith("video/") ? <Film size={16} /> : m.startsWith("audio/") ? <Music size={16} /> : <FileText size={16} />;
@@ -40,7 +41,7 @@ export default function Files() {
   const [drag, setDrag] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const files = useLiveQuery(() => db().attachments.where("workspaceId").equals(ws).reverse().sortBy("createdAt"), [ws]);
-  const pages = useLiveQuery(async () => new Map((await repo.livePages(ws)).map((p) => [p.id, p.title || "Untitled"])), [ws]);
+  const pages = useLiveQuery(async () => new Map((await pageList(ws)).map((p) => [p.id, p.title || "Untitled"])), [ws]);
   const list = (files ?? []).filter((f) => (!q || f.name.toLowerCase().includes(q.toLowerCase())) && (!kind || f.mime.startsWith(kind)));
   const total = (files ?? []).reduce((a, f) => a + f.size, 0);
   const [quota, setQuota] = useState<{ usage?: number; quota?: number } | null>(null);

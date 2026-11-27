@@ -76,3 +76,62 @@ jobs:
             release/*.blockmap
             release/latest.yml
           retention-days: 14
+
+  # macOS and Linux: the same unit and browser tests, and the installers (DMG and ZIP; AppImage and .deb).
+  other-platforms:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            dist: dist:mac
+            files: |
+              release/*.dmg
+              release/*.zip
+              release/latest-mac.yml
+          - os: ubuntu-latest
+            dist: dist:linux
+            files: |
+              release/*.AppImage
+              release/*.deb
+              release/latest-linux.yml
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Cache the speech model
+        uses: actions/cache@v4
+        with:
+          path: public/voice
+          key: voice-${{ hashFiles('scripts/voice-setup.mjs', 'package-lock.json') }}
+      - run: npm run voice:setup
+      - run: npm run typecheck
+      - run: npm test
+      # The browser tests press Ctrl shortcuts; on macOS the app uses Cmd, so they run on Linux (and Windows) only.
+      - name: End-to-end tests (Chrome)
+        if: runner.os == 'Linux'
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: failure() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+      - name: Build the installers
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run ${{ matrix.dist }}
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: mindstone-${{ matrix.os }}
+          path: ${{ matrix.files }}
+          retention-days: 14

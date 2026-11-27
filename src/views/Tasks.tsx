@@ -6,6 +6,7 @@ import * as repo from "@/data/repo";
 import type { Priority, Recurrence, Task, TaskStatus } from "@/data/types";
 import { useApp } from "@/store/app";
 import { Chip, EmptyState, Modal } from "@/components/ui";
+import { Limited } from "@/components/Limited";
 import { addDays, cx, fmtDate, today } from "@/lib/util";
 
 export const STATUS: Record<TaskStatus, { label: string; icon: React.ReactNode; color: string }> = {
@@ -160,7 +161,7 @@ export default function Tasks() {
       {mode === "list" && sections.filter(([, ts]) => ts.length).map(([name, ts]) => (
         <section key={name} className="mb-5">
           <h2 className={cx("mb-1 px-2 text-[12px] font-semibold uppercase tracking-wide", name === "Overdue" ? "text-danger" : "text-faint")}>{name} · {ts.length}</h2>
-          {ts.map((t) => <TaskRow key={t.id} task={t} onOpen={setOpen} showProject={t.projectId ? pname.get(t.projectId) : undefined} />)}
+          <Limited items={ts} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpen} showProject={t.projectId ? pname.get(t.projectId) : undefined} />} />
         </section>
       ))}
       {mode === "board" && (
@@ -168,7 +169,7 @@ export default function Tasks() {
           {(Object.keys(STATUS) as TaskStatus[]).map((s) => (
             <div key={s} className="min-h-40 rounded-[14px] bg-sunken p-2.5 shadow-[var(--inset)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { status: s }); }}>
               <div className="mb-2 flex items-center gap-2 px-1 text-[13px] font-medium">{STATUS[s].icon}{STATUS[s].label}<span className="text-faint">{(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).length}</span></div>
-              {(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).map((t) => (
+              {(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).slice(0, 300).map((t) => (
                 <button key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)} onClick={() => setOpen(t)} className="panel mb-1.5 block w-full p-2 text-left text-[13px] hover:border-line-strong">
                   <div className="mb-1">{t.title}</div>
                   <div className="flex gap-1 text-[11px] text-faint">{t.priority !== "none" && <Flag size={11} />}{t.dueDate && fmtDate(t.dueDate)}</div>
@@ -186,7 +187,7 @@ export default function Tasks() {
             return (
               <div key={title} className="panel min-h-48 p-3" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { important: imp ? 1 : 0 }); }}>
                 <div className="font-medium">{title}</div><div className="mb-2 text-[12px] text-faint">{sub} · urgent = due within 2 days or urgent priority</div>
-                {ts.map((t) => <div key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)}><TaskRow task={t} onOpen={setOpen} /></div>)}
+                <Limited items={ts} step={100} label="tasks" render={(t) => <div key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)}><TaskRow task={t} onOpen={setOpen} /></div>} />
               </div>
             );
           })}

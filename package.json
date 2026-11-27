@@ -27,7 +27,9 @@
     "voice:setup": "node scripts/voice-setup.mjs",
     "postinstall": "node scripts/ocr-setup.mjs",
     "ocr:setup": "node scripts/ocr-setup.mjs",
-    "test:pwa": "npm run build:web && playwright test -c playwright.pwa.config.ts"
+    "test:pwa": "npm run build:web && playwright test -c playwright.pwa.config.ts",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --x64 --publish never"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
@@ -126,7 +128,49 @@
         "from": "clipper",
         "to": "clipper"
       }
-    ]
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "artifactName": "Mindstone-${version}-${arch}.${ext}",
+      "hardenedRuntime": false,
+      "identity": null
+    },
+    "dmg": {
+      "artifactName": "Mindstone-${version}-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office",
+      "synopsis": "Local-first notes, tasks, databases and knowledge",
+      "maintainer": "Mindstone",
+      "artifactName": "Mindstone-${version}-${arch}.${ext}",
+      "desktop": {
+        "entry": {
+          "StartupWMClass": "Mindstone"
+        }
+      }
+    }
   },
   "allowScripts": {
     "onnxruntime-node": false,

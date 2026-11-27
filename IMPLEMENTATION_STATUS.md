@@ -107,6 +107,7 @@ Last updated: 2026-11-25.
 | API keys via DPAPI (safeStorage), main-process AI calls, IPC sender checks | Implemented |
 | Plugins: sandboxed frame (opaque origin, no network, no DOM or storage access), permission-checked API, commands, slash items, panels; example plugin | Tested (browser escape probe + desktop) |
 | Passphrase protection: AES-256-GCM encryption at rest (PBKDF2 600k), lock screen, auto-lock, recovery key, change passphrase, encrypted backups, turn off | Tested (unit with raw-storage checks + E2E) |
+| Large workspaces (50,000 pages, 100,000 tasks, 20,000-record database): start 3.3 s, first search 8.2 s, later searches 0.4 s, Tasks 2 s, Home 0.7 s | Tested (opt-in timing test, REA_SCALE=1) |
 | CSP, sanitised rendering (DOMPurify), link protocol allow-list, file-type validation, safe file names | Tested (file names, CSV injection); Implemented |
 | NSIS installer, install, launch, uninstall | Verified (0.1.0 and 0.2.0) |
 | Public release | 0.2.0 published: https://github.com/tanyashsingh/notion_rea/releases/tag/v0.2.0 |

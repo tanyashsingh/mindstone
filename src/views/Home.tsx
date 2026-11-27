@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Sun, Moon, Sunrise, CalendarDays, Star, Clock, FolderKanban, NotebookPen, Timer, Target, Flame, Plus, Play, Pause, RotateCcw, Trash2, ListChecks, Newspaper } from "lucide-react";
 import { db } from "@/data/db";
@@ -9,6 +9,8 @@ import { expandEvent } from "@/lib/recurrence";
 import { addDays, cx, fmtDate, fmtTime, parseISODate, relTime, startOfWeek, toISODate, today, uid } from "@/lib/util";
 import { QuickAdd, TaskDetail, TaskRow } from "./Tasks";
 import { useDigest } from "@/components/DigestDialog";
+import { Limited } from "@/components/Limited";
+import { pageList } from "@/data/pageDirectory";
 import { EmptyState, promptDialog } from "@/components/ui";
 
 function Card({ title, icon, children, action }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
@@ -104,7 +106,7 @@ function Goals({ ws }: { ws: string }) {
 }
 
 async function openJournal(ws: string, date = today()) {
-  const pages = await repo.livePages(ws);
+  const pages = await pageList(ws);
   let root = pages.find((p) => p.title === "Journal" && !p.parentId);
   if (!root) root = await repo.createPage(ws, null, { title: "Journal", icon: "📓" });
   const title = parseISODate(date).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -130,7 +132,7 @@ export default function Home() {
     const d = db();
     const t0 = today();
     const tasks = await d.tasks.where("[workspaceId+deletedAt]").equals([ws, 0]).toArray();
-    const pages = await repo.livePages(ws);
+    const pages = await pageList(ws);
     const projects = (await d.projects.where("[workspaceId+deletedAt]").equals([ws, 0]).toArray()).filter((p) => !p.archived && p.status === "active");
     const startDay = parseISODate(t0).getTime();
     const evs = await d.events.where("[workspaceId+deletedAt]").equals([ws, 0]).toArray();
@@ -153,6 +155,8 @@ export default function Home() {
       },
     };
   }, [ws]);
+  // The focus timer offers a short list (due today or overdue first, then the most recent), not every open task.
+  const focusChoices = useMemo(() => { if (!data) return []; const seen = new Set<string>(); return [...data.today, ...data.upcoming, ...[...data.open].sort((x, y) => y.updatedAt - x.updatedAt)].filter((t) => !seen.has(t.id) && !!seen.add(t.id)).slice(0, 100); }, [data]);
   const h = new Date().getHours();
   const greet = h < 12 ? ["Good morning", <Sunrise key="i" size={22} />] : h < 18 ? ["Good afternoon", <Sun key="i" size={22} />] : ["Good evening", <Moon key="i" size={22} />];
 
@@ -170,7 +174,7 @@ export default function Home() {
         <form className="panel flex items-center gap-2 p-3" onSubmit={async (e) => {
           e.preventDefault();
           if (!note.trim()) return;
-          const pages = await repo.livePages(ws);
+          const pages = await pageList(ws);
           let inbox = pages.find((p) => p.title === "Quick notes" && !p.parentId);
           if (!inbox) inbox = await repo.createPage(ws, null, { title: "Quick notes", icon: "🗒️" });
           await repo.createPage(ws, inbox.id, { title: note.trim().slice(0, 80), content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: note.trim() }] }] } });
@@ -184,10 +188,10 @@ export default function Home() {
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <div className="space-y-3 lg:col-span-2">
           <Card title="Today & overdue" icon={<ListChecks />} action={<button className="btn h-6" onClick={() => open({ kind: "tasks" })}>All tasks</button>}>
-            {data?.today.length === 0 ? <div className="py-3 text-[13px] text-faint">Nothing due today. Plan your day by giving tasks a due date.</div> : data?.today.map((t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />)}
+            {data?.today.length === 0 ? <div className="py-3 text-[13px] text-faint">Nothing due today. Plan your day by giving tasks a due date.</div> : <Limited items={data?.today ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
           </Card>
           <Card title="Upcoming deadlines · next 7 days" icon={<Clock />}>
-            {data?.upcoming.length === 0 ? <div className="py-2 text-[13px] text-faint">No deadlines this week.</div> : data?.upcoming.map((t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />)}
+            {data?.upcoming.length === 0 ? <div className="py-2 text-[13px] text-faint">No deadlines this week.</div> : <Limited items={data?.upcoming ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
           </Card>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Card title="Recent pages" icon={<Clock />}>
@@ -222,7 +226,7 @@ export default function Home() {
             </dl>
             <div className="mt-1 text-[11px] text-faint">Since {fmtDate(toISODate(startOfWeek(new Date())))}</div>
           </Card>
-          <Card title="Focus timer" icon={<Timer />}><Pomodoro tasks={data?.open ?? []} /></Card>
+          <Card title="Focus timer" icon={<Timer />}><Pomodoro tasks={focusChoices} /></Card>
           <Card title="Habits" icon={<Flame />}><Habits ws={ws} /></Card>
           <Card title="Goals" icon={<Target />}><Goals ws={ws} /></Card>
         </div>

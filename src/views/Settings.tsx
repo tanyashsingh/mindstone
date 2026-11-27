@@ -189,7 +189,7 @@ export default function SettingsView({ section }: { section?: string }) {
                 <option value="active">Active AI provider</option><option value="local">Local model (Ollama)</option>
               </select>
             </Row>
-            {window.rea && <Row label="Include computer audio by default" desc="For meeting notes: also record what your computer plays, such as the other people on a call. You can change it per recording."><Toggle checked={s.voice.systemAudio} onChange={(v) => update((x) => ({ ...x, voice: { ...x.voice, systemAudio: v } }))} label="Include computer audio" /></Row>}
+            {window.rea?.platform === "win32" && <Row label="Include computer audio by default" desc="For meeting notes: also record what your computer plays, such as the other people on a call. You can change it per recording."><Toggle checked={s.voice.systemAudio} onChange={(v) => update((x) => ({ ...x, voice: { ...x.voice, systemAudio: v } }))} label="Include computer audio" /></Row>}
             <Row label="Speech model" desc="Whisper base (OpenAI, Apache-2.0), running on this computer. Audio and transcripts never leave your device."><span className="text-[12px] text-faint">Built in</span></Row>
             <p className="mt-3 text-[12.5px] text-muted">Dictate with Ctrl+Shift+M or the microphone button on a page. Type /voice note or /meeting notes to record, then transcribe and summarize. Transcripts are searchable with Ctrl+K and used by Mindstone Intelligence.</p>
           </>}

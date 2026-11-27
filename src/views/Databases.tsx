@@ -4,13 +4,14 @@ import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import { useApp } from "@/store/app";
 import { EmptyState } from "@/components/ui";
+import { pageList } from "@/data/pageDirectory";
 import { relTime } from "@/lib/util";
 
 export default function Databases() {
   const ws = useApp((s) => s.workspaceId)!;
   const open = useApp((s) => s.open);
   const list = useLiveQuery(async () => {
-    const pages = (await repo.livePages(ws)).filter((p) => p.kind === "database");
+    const pages = (await pageList(ws)).filter((p) => p.kind === "database");
     return Promise.all(pages.map(async (p) => ({ p, count: p.databaseId ? await db().records.where("databaseId").equals(p.databaseId).count() : 0, d: p.databaseId ? await db().databases.get(p.databaseId) : undefined })));
   }, [ws]);
   return (

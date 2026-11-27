@@ -42,6 +42,13 @@ Each test runs in a fresh Chrome profile, so it starts from an empty workspace.
 
 IndexedDB is provided by `fake-indexeddb` (see `tests/setup.ts`); each test uses a fresh database.
 
+## Large-workspace timings
+
+`$env:REA_SCALE="1"; npx playwright test e2e/scale.spec.ts` fills a workspace with 50,000 pages, 100,000 tasks and a
+20,000-record database and times start-up, search, opening pages, the sidebar, Tasks, Home and the database against
+budgets. Latest (2026-11-27): start 3.3 s, first search 8.2 s, later searches 0.4 s, open page 0.8 s, Tasks 2.0 s, Home
+0.7 s, database 2.0 s, database search 0.2 s.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs on every push to `main` and every pull request (windows-latest, Node 24): type check,

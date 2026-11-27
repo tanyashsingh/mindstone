@@ -1,7 +1,8 @@
 name: Release
 
-# Runs when a version tag is pushed (git tag v0.4.0 && git push origin v0.4.0).
-# Builds the installer, then publishes a GitHub release with the files the in-app updater reads.
+# Runs when a version tag is pushed (git tag v0.5.0 && git push origin v0.5.0).
+# Builds installers on Windows, macOS and Linux, then publishes one GitHub release with all of them and the files
+# each platform's in-app updater reads (latest.yml, latest-mac.yml, latest-linux.yml).
 on:
   push:
     tags: ["v*"]
@@ -10,12 +11,34 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: windows-latest
-    timeout-minutes: 40
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: windows-latest
+            dist: dist:win
+            files: |
+              release/Mindstone-Setup-*.exe
+              release/Mindstone-Setup-*.exe.blockmap
+              release/latest.yml
+          - os: macos-latest
+            dist: dist:mac
+            files: |
+              release/*.dmg
+              release/*.zip
+              release/*.blockmap
+              release/latest-mac.yml
+          - os: ubuntu-latest
+            dist: dist:linux
+            files: |
+              release/*.AppImage
+              release/*.deb
+              release/latest-linux.yml
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -26,35 +49,47 @@ jobs:
         run: |
           v=$(node -p "require('./package.json').version")
           if [ "v$v" != "${GITHUB_REF_NAME}" ]; then echo "Tag ${GITHUB_REF_NAME} does not match package.json version $v"; exit 1; fi
-          echo "VERSION=$v" >> "$GITHUB_ENV"
 
       - run: npm ci
-
       - name: Cache the speech model
         uses: actions/cache@v4
         with:
           path: public/voice
           key: voice-${{ hashFiles('scripts/voice-setup.mjs', 'package-lock.json') }}
-
       - run: npm run voice:setup
       - run: npm test
 
-      # Code signing: add CSC_LINK (base64 .pfx or a URL) and CSC_KEY_PASSWORD as repository secrets and
-      # electron-builder signs automatically. Without them the installer is built unsigned. See RELEASING.md.
-      - name: Build the installer
+      # Code signing: add CSC_LINK (base64 .pfx or a URL) and CSC_KEY_PASSWORD as repository secrets (Windows), or the
+      # Apple certificate secrets (macOS), and electron-builder signs automatically. Without them builds are unsigned.
+      - name: Build the installers
         shell: bash
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
           if [ -z "$CSC_LINK" ]; then unset CSC_LINK CSC_KEY_PASSWORD; export CSC_IDENTITY_AUTO_DISCOVERY=false; echo "Building unsigned"; fi
-          npm run dist:win
+          npm run ${{ matrix.dist }}
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.os }}
+          path: ${{ matrix.files }}
+          retention-days: 3
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
       - name: Publish the GitHub release
-        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          node scripts/changelog-section.mjs "$VERSION" > notes.md
-          gh release create "$GITHUB_REF_NAME" --title "Mindstone $VERSION" --notes-file notes.md \
-            release/Mindstone-Setup-$VERSION.exe release/Mindstone-Setup-$VERSION.exe.blockmap release/latest.yml
+          v="${GITHUB_REF_NAME#v}"
+          node scripts/changelog-section.mjs "$v" > notes.md
+          ls -la out
+          gh release create "$GITHUB_REF_NAME" --title "Mindstone $v" --notes-file notes.md out/*

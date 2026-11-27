@@ -9,6 +9,7 @@ import type { Page } from "@/data/types";
 import * as repo from "@/data/repo";
 import { useApp, type Route, type RouteKind } from "@/store/app";
 import { cx } from "@/lib/util";
+import { usePageList } from "@/data/pageDirectory";
 import { MenuItem, MenuSep, Popover, confirmDialog, promptDialog, useAnchor } from "./ui";
 
 function NavItem({ icon, label, kind, shortcut, badge }: { icon: ReactNode; label: string; kind: RouteKind; shortcut?: string; badge?: number }) {
@@ -165,7 +166,7 @@ function WorkspaceSwitcher() {
 export function Sidebar() {
   const { workspaceId, open, sidebarWidth, set, tabs, active } = useApp();
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(JSON.parse(localStorage.getItem("rea.expanded") ?? "[]") as string[]));
-  const pages = useLiveQuery(() => (workspaceId ? repo.livePages(workspaceId) : Promise.resolve([] as Page[])), [workspaceId]);
+  const pages = usePageList(workspaceId);
   const inboxCount = useLiveQuery(() => workspaceId ? db().tasks.where("[workspaceId+deletedAt]").equals([workspaceId, 0]).filter((t) => t.status !== "done" && !t.projectId && !t.dueDate).count() : 0, [workspaceId]);
 
   const { childrenOf, favorites, recent } = useMemo(() => {

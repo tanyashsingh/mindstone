@@ -1,6 +1,6 @@
 import { db } from "@/data/db";
 import { createPage, createWorkspace, getSetting, setSetting } from "@/data/repo";
-import { searchIndex } from "@/data/search";
+import { searchIndex, type IndexedTable } from "@/data/search";
 import type { JSONContent } from "@/data/types";
 import { debounce, uid } from "@/lib/util";
 
@@ -57,16 +57,25 @@ async function doBootstrap(): Promise<string> {
   return wsId;
 }
 
-let dirty = true;
+let dirty = true; // a full build is needed (first use, or another workspace)
 let currentWs = "";
 let building: Promise<unknown> | null = null;
-/** Resolves once the index reflects every change made before the call (waits for a rebuild already running). */
+let pending = new Map<IndexedTable, Set<string>>(); // rows changed since the index was last brought up to date
+
+/** Resolves once the index reflects every change made before the call (waits for work already running). */
 export async function ensureSearchIndex(workspaceId: string) {
-  while (building || dirty || currentWs !== workspaceId) {
+  while (building || dirty || currentWs !== workspaceId || pending.size) {
     if (building) { await building; continue; }
-    dirty = false;
-    currentWs = workspaceId;
-    building = searchIndex.build(workspaceId).finally(() => { building = null; });
+    if (dirty || currentWs !== workspaceId) {
+      dirty = false;
+      currentWs = workspaceId;
+      pending = new Map(); // the full build reads everything
+      building = searchIndex.build(workspaceId).finally(() => { building = null; });
+    } else {
+      const batch = pending;
+      pending = new Map();
+      building = searchIndex.applyChanges(workspaceId, batch).finally(() => { building = null; });
+    }
     await building;
   }
 }
@@ -76,12 +85,16 @@ function watchSearchIndex(getWs: () => string) {
   if (watching) return;
   watching = true;
   const d = db();
-  const rebuild = debounce(() => { if (currentWs) void ensureSearchIndex(currentWs); }, 1500);
-  const mark = () => { dirty = true; rebuild(); };
-  for (const t of [d.pages, d.records, d.tasks, d.projects, d.events, d.attachments, d.syncedBlocks]) {
-    t.hook("creating", mark);
-    t.hook("updating", mark);
-    t.hook("deleting", mark);
+  const refresh = debounce(() => { if (currentWs) void ensureSearchIndex(currentWs); }, 800);
+  const tables: IndexedTable[] = ["pages", "records", "tasks", "projects", "events", "attachments", "syncedBlocks"];
+  for (const name of tables) {
+    const note = (key: unknown) => { if (key === undefined || key === null) { dirty = true; } else { if (!pending.has(name)) pending.set(name, new Set()); pending.get(name)!.add(String(key)); } refresh(); };
+    const t = d[name] as unknown as { hook(ev: string, fn: (...a: unknown[]) => void): void };
+    t.hook("creating", (key, obj) => note(key ?? (obj as { id?: string })?.id));
+    t.hook("updating", (_mods, key) => note(key));
+    t.hook("deleting", (key) => note(key));
   }
-  void getWs;
+  // Build the index soon after start, while idle, so the first search is usually instant.
+  const idle = (globalThis as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 1500));
+  idle(() => { const ws = getWs(); if (ws) void ensureSearchIndex(ws); });
 }

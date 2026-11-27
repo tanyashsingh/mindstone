@@ -4,6 +4,7 @@ import type {
 } from "./types";
 import { docToText, emptyDoc, extractLinks, extractTags, reassignIds } from "@/lib/doc";
 import { nextDate } from "@/lib/recurrence";
+import { peekPageList } from "./pageDirectory";
 import { now, uid } from "@/lib/util";
 
 export const OPTION_COLORS = ["gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"] as const;
@@ -124,7 +125,7 @@ export async function updateLinks(page: Page) {
   const titled = found.filter((l) => l.title);
   let byTitle = new Map<string, ID>();
   if (titled.length) {
-    const pages = await livePages(page.workspaceId);
+    const pages = peekPageList(page.workspaceId) ?? (await livePages(page.workspaceId));
     byTitle = new Map(pages.map((p) => [p.title.trim().toLowerCase(), p.id]));
   }
   const rows = new Map<string, { id: string; workspaceId: ID; fromPageId: ID; toPageId: ID; kind: "wiki" | "mention" | "embed" }>();

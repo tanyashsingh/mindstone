@@ -13,6 +13,7 @@ import { useDigest } from "./DigestDialog";
 import { vaultActive } from "@/data/vault";
 import { lockAndReload } from "@/lib/idleLock";
 import { invoke as invokePlugin, usePlugins } from "@/plugins/host";
+import { pageList } from "@/data/pageDirectory";
 import { Highlight } from "@/views/SearchView";
 
 export function openHit(h: SearchHit, newTab = false) {
@@ -76,14 +77,14 @@ export function CommandPalette() {
   useEffect(() => {
     if (!paletteOpen || !workspaceId) return;
     let alive = true;
-    void ensureSearchIndex(workspaceId).then(async () => {
+    const timer = setTimeout(() => void ensureSearchIndex(workspaceId).then(async () => {
       if (!alive) return;
       if (!q.trim()) {
-        const pages = (await repo.livePages(workspaceId)).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt).slice(0, 8);
+        const pages = (await pageList(workspaceId)).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt).slice(0, 8);
         if (alive) setHits(pages.map((p) => ({ id: `page:${p.id}`, kind: p.kind === "database" ? "database" : "page", refId: p.id, title: `${p.icon ? p.icon + " " : ""}${p.title || "Untitled"}`, body: "", tags: "", score: 0, snippet: "" })));
-      } else setHits(searchIndex.search(q.replace(/^>\s*/, ""), { limit: 30, kinds: paletteMode === "pages" ? ["page", "database"] : undefined }));
-    });
-    return () => { alive = false; };
+      } else if (alive) setHits(searchIndex.search(q.replace(/^>\s*/, ""), { limit: 30, kinds: paletteMode === "pages" ? ["page", "database"] : undefined }));
+    }), q ? 120 : 0); // wait for a pause in typing
+    return () => { alive = false; clearTimeout(timer); };
   }, [q, paletteOpen, workspaceId, paletteMode]);
 
   const cmdMode = q.startsWith(">");

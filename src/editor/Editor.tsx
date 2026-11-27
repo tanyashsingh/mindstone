@@ -22,6 +22,7 @@ import { useSettings } from "@/store/settings";
 import { cx, debounce, uid, wordCount } from "@/lib/util";
 import { useLiveQuery } from "dexie-react-hooks";
 import { promptDialog } from "@/components/ui";
+import { pageList } from "@/data/pageDirectory";
 import { AiRewriteDialog } from "@/views/AiRewrite";
 
 
@@ -137,7 +138,7 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
       SlashCommand(() => slashItems(pageRef.current), () => listeners.current.slash as never),
       PageLinkSuggest(
         async (q) => {
-          const all = await repo.livePages(pageRef.current.workspaceId);
+          const all = await pageList(pageRef.current.workspaceId);
           const n = q.toLowerCase();
           return all.filter((p) => p.id !== pageRef.current.id && (!n || p.title.toLowerCase().includes(n))).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt).slice(0, 8).map((p) => ({ id: p.id, title: p.title || "Untitled", icon: p.icon }));
         },

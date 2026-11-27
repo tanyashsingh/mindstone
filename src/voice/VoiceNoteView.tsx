@@ -135,7 +135,7 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
       {phase === "idle" && editable && (
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button className="btn-primary" onClick={() => void begin()}><Mic size={14} /> Start recording</button>
-          {window.rea && (
+          {window.rea?.platform === "win32" && ( // computer-audio capture is Windows-only
             <label className="flex items-center gap-1.5 text-[12.5px] text-muted" title="Records what your computer plays too, such as the other people on a call">
               <input type="checkbox" checked={system} onChange={(e) => setSystem(e.target.checked)} /><Monitor size={13} /> Include computer audio
             </label>
