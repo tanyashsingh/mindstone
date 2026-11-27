@@ -10,6 +10,7 @@ import fs from "node:fs";
 import { streamChat, embed, listModels, AiError, PROVIDER_LABELS, type ChatRequest } from "../src/ai/providers";
 import type { AiProviderId } from "../src/data/types";
 import { clipperState, newClipperCode, setClipper, start as startClipper } from "./clipper";
+import { chooseDataFolder } from "./dataFolder";
 import { chooseFolder, currentFolder, folderList, folderRead, folderWrite, syncHttp } from "./syncio";
 import { checkForUpdates, configureUpdates, initUpdater, installCrashLogging, installUpdate, listBackups, log, openBackupFolder, openLogFolder, saveBackup, updateState } from "./ops";
 
@@ -20,21 +21,11 @@ const windows = new Set<BrowserWindow>();
 let tray: Tray | null = null;
 let quitting = false;
 
-// The data folder follows the product name. Earlier builds were called Cairn and, before that, REA, and
-// their data must carry over. Electron creates the new folder itself at startup, so "does it exist?" is
-// no signal; a marker file says a folder is this app's established home. Until the new folder has one,
-// an older folder that holds a database wins.
-{
+// Where the data lives (see dataFolder.ts). An explicit --user-data-dir is used as given.
+if (!app.commandLine.hasSwitch("user-data-dir")) {
   const home = app.getPath("userData");
-  const marker = path.join(home, ".mindstone-data");
-  if (!app.commandLine.hasSwitch("user-data-dir") && !fs.existsSync(marker)) { // an explicit --user-data-dir is used as given
-    const legacy = ["Cairn", "REA"].map((n) => path.join(app.getPath("appData"), n)).find((p) => fs.existsSync(path.join(p, "IndexedDB")));
-    if (legacy) app.setPath("userData", legacy);
-    else {
-      fs.mkdirSync(home, { recursive: true });
-      fs.writeFileSync(marker, "This folder holds Mindstone's data.\n");
-    }
-  }
+  const target = chooseDataFolder(home, app.getPath("appData"));
+  if (target !== home) app.setPath("userData", target);
 }
 
 if (!app.requestSingleInstanceLock()) app.quit();
