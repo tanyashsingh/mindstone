@@ -52,7 +52,7 @@ jobs:
 
       - run: npm ci
       - name: Cache the speech model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: public/voice
           key: voice-${{ hashFiles('scripts/voice-setup.mjs', 'package-lock.json') }}
