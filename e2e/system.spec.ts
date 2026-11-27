@@ -137,3 +137,15 @@ test("templates, files, graph, inbox and home render and work", async ({ page })
   await nav(page, "Home");
   await noCrash(page);
 });
+
+test("typing in the palette and pressing Enter at once opens the best match", async ({ page }) => {
+  await boot(page);
+  await newPage(page, "Zebra migration facts");
+  await page.keyboard.type("Seasonal routes.");
+  await saved(page);
+  await nav(page, "Home");
+  await page.keyboard.press("Control+k");
+  await page.keyboard.type("zebra migration");
+  await page.keyboard.press("Enter"); // no pause: the search has not shown results yet
+  await expect(page.getByLabel("Page title")).toHaveValue("Zebra migration facts");
+});

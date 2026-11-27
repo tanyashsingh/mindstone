@@ -42,6 +42,7 @@ export function CommandPalette() {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
   const [hits, setHits] = useState<SearchHit[]>([]);
+  const [hitsFor, setHitsFor] = useState(""); // the query the current hits belong to
   const [recent, setRecent] = useState<string[]>(() => JSON.parse(localStorage.getItem("rea.recentSearches") ?? "[]") as string[]);
   const listRef = useRef<HTMLDivElement>(null);
   const close = () => { set("paletteOpen", false); setQ(""); setSel(0); };
@@ -82,7 +83,7 @@ export function CommandPalette() {
       if (!q.trim()) {
         const pages = (await pageList(workspaceId)).sort((a, b) => b.lastOpenedAt - a.lastOpenedAt).slice(0, 8);
         if (alive) setHits(pages.map((p) => ({ id: `page:${p.id}`, kind: p.kind === "database" ? "database" : "page", refId: p.id, title: `${p.icon ? p.icon + " " : ""}${p.title || "Untitled"}`, body: "", tags: "", score: 0, snippet: "" })));
-      } else if (alive) setHits(searchIndex.search(q.replace(/^>\s*/, ""), { limit: 30, kinds: paletteMode === "pages" ? ["page", "database"] : undefined }));
+      } else if (alive) { setHits(searchIndex.search(q.replace(/^>\s*/, ""), { limit: 30, kinds: paletteMode === "pages" ? ["page", "database"] : undefined })); setHitsFor(q); }
     }), q ? 120 : 0); // wait for a pause in typing
     return () => { alive = false; clearTimeout(timer); };
   }, [q, paletteOpen, workspaceId, paletteMode]);
@@ -97,6 +98,12 @@ export function CommandPalette() {
   if (!paletteOpen) return null;
 
   const run = async (i: number, newTab = false) => {
+    // Enter pressed before the search caught up with the typing: search now and open the best match.
+    if (i === 0 && q.trim() && !cmdMode && hitsFor !== q && workspaceId) {
+      await ensureSearchIndex(workspaceId);
+      const best = searchIndex.search(q, { limit: 1, kinds: paletteMode === "pages" ? ["page", "database"] : undefined })[0];
+      if (best) { close(); openHit(best, newTab); return; }
+    }
     const it = items[i];
     if (!it) return;
     if (q.trim() && !cmdMode) {

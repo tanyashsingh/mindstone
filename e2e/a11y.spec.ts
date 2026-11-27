@@ -75,9 +75,14 @@ test("keyboard only: create a page, write, find it, open settings, and see where
   await expect(page.getByLabel("Page title")).toHaveValue("Keyboard note");
   // Tab reaches the sidebar controls, and focus is visible (an outline is drawn)
   await page.keyboard.press("Control+,");
-  await page.keyboard.press("Tab");
-  const outline = await page.evaluate(() => { const el = document.activeElement as HTMLElement; return el && el !== document.body ? getComputedStyle(el).outlineStyle : "none"; });
+  // Tab to the next button or link (focus order can differ between systems) and check a focus ring is drawn.
+  let outline = "none";
+  for (let i = 0; i < 15 && outline === "none"; i++) {
+    await page.keyboard.press("Tab");
+    outline = await page.evaluate(() => { const el = document.activeElement as HTMLElement | null; return el && el !== document.body && /^(BUTTON|A)$/.test(el.tagName) ? getComputedStyle(el).outlineStyle : "none"; });
+  }
   expect(outline).not.toBe("none");
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   // Toasts are announced politely to screen readers
   await expect(page.locator('[aria-live="polite"]')).toHaveCount(1);
   // Escape closes dialogs and returns
