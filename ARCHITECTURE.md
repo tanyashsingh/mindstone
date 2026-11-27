@@ -74,7 +74,29 @@ The desktop app serves the model and runtime on a private read-only `cairn-asset
 Chromium's fetch cannot read `file://`. Transcripts are stored on the audio attachment (`text`, `segments`), so the
 existing search and RAG pipelines index them.
 
-## Sync readiness (not implemented)
+## Search index
+In-memory MiniSearch index per workspace (`src/data/search.ts`). Built once in chunks (`addAllAsync`) while the app is
+idle, then kept current row by row: database hooks queue changed keys and `ensureSearchIndex` applies them. Prefix
+matching starts at 3 letters and typo tolerance at 5, so short queries stay cheap on large workspaces.
+`src/data/pageDirectory.ts` keeps a content-free list of pages in memory for the sidebar, link suggestions and title
+lookups; hooks only note changed ids and the pages are re-read through the normal path (hooks see encrypted rows).
+
+## Encryption at rest
+`src/data/crypto.ts` is a Dexie DBCore middleware: every row's non-indexed fields are AES-256-GCM encrypted (associated
+data = table and primary key). `src/data/vault.ts` keeps a random data key wrapped by a PBKDF2-SHA-256 (600k) passphrase
+key and by a recovery key, in the unencrypted `meta` table. Backups are sealed with the data key when protection is on.
+
+## Sync
+`src/sync/engine.ts`: each device compares every row with the version it last exchanged (`syncState`), writes numbered
+change files (encrypted with a key derived from the sync passphrase), and applies other devices' files in order; the
+later edit wins and the losing page version goes to page history. Transports: a folder (desktop, via the main process)
+or `server/sync-server.mjs`, which stores only ciphertext and can serve the web app to phones (PWA, `public/sw.js`).
+
+## Plugins
+Each plugin runs in `public/plugin-sandbox.html` inside a sandboxed frame (opaque origin, `connect-src 'none'`), loaded
+as a module. `src/plugins/host.ts` answers its postMessage calls after checking the permissions granted at install.
+
+## Sync readiness (superseded)
 
 IDs are ULID-style (time-sortable, collision-resistant), every row has `createdAt` and `updatedAt`, and
 deletions are soft (`deletedAt`). A future sync service can stream changes from Dexie hooks into an

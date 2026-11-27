@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased (0.5.0)
+
+- Editor: columns (2 to 4), synced blocks that update on every page they appear on, and buttons (add a checklist item, create a task, open a page, insert a template).
+- Comments on selected text (threads, replies, resolve, Ctrl+Alt+M) and suggestion mode (tracked insertions and deletions to accept or reject).
+- Databases: two-way relations, more rollups (percent checked, earliest and latest date), chart view (bars, line, pie, donut; count, sum, average), and a timeline you can drag and resize.
+- OCR: text in images and scanned PDFs is recognised on this computer and becomes searchable.
+- AI: daily and weekly digest, proposed changes to tasks, tags and database fields with review and undo, speaker labels for meeting recordings, and local-model summaries.
+- Passphrase protection: AES-256 encryption at rest, lock screen, auto-lock, recovery key, encrypted backups.
+- Sync between devices through a folder or a self-hosted server, end-to-end encrypted; an installable phone app that works offline.
+- Calendar subscriptions (Google, Outlook or any ICS address) and a web clipper extension for Chrome and Edge.
+- Importers for Notion .zip exports, Evernote .enex and Todoist CSV; images in Markdown folders are kept.
+- Plugins: sandboxed commands, slash items and panels with permission checks.
+- Accessibility: passes automated WCAG 2.1 AA checks; high-contrast themes; better keyboard support.
+- Large workspaces: search, Home and Tasks stay fast with 50,000 pages and 100,000 tasks.
+- Mac (DMG) and Linux (AppImage, .deb) builds.
+
 ## 0.4.0 (2026-11-26)
 
 - Automatic updates: the desktop app checks GitHub Releases, downloads new versions in the background and offers "Restart to update". Turn it off in Settings → About.

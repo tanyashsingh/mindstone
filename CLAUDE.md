@@ -28,6 +28,10 @@ MiniSearch · Zustand · provider-independent AI layer (`src/ai/providers.ts`; C
 - Never commit secrets. AI keys live in `%APPDATA%\Mindstone\secrets.json`, encrypted with DPAPI via `safeStorage`.
 - Renderer stays sandboxed (contextIsolation, no nodeIntegration). New IPC channels go through `handle()` in
   `electron/main.ts` (sender check) and validate their inputs.
+- Tests start their own dev server on port 5191 (`playwright.config.ts`); never reuse a server on another port.
+- With passphrase protection on, Dexie hooks see encrypted rows: hooks may record keys only, then re-read rows.
+- Plugins never get direct database or DOM access; extend `src/plugins/host.ts` with permission-checked methods.
+- Large lists render in steps (`src/components/Limited.tsx`); don't render unbounded lists of tasks, pages or records.
 - Release only through the tag-driven workflow (RELEASING.md). Keep `build.electronFuses` hardened.
 - Cloud AI calls go through `guardBegin` in `src/ai/client.ts` (spending guard); don't bypass it.
 - Workspace content goes to cloud AI only when `ai.allowCloud` is on; imported or retrieved content is wrapped as untrusted data.

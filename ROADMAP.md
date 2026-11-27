@@ -1,5 +1,7 @@
 # Mindstone 0.5 roadmap
 
+**Status (2026-11-27): steps 1 to 11 are built and tested; see IMPLEMENTATION_STATUS.md. Code signing still needs a certificate.**
+
 The plan for the 19 additions agreed on 2026-11-26. Each step is built, then tested (unit tests for logic, Playwright
 end-to-end tests for every user-visible function, desktop tests where Electron is involved), then the whole suite is
 run and the step is committed and pushed so GitHub CI checks it too. A step is only marked done when its tests pass.

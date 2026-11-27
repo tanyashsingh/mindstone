@@ -97,13 +97,17 @@ export function CommandPalette() {
   useEffect(() => { listRef.current?.querySelector("[data-sel=true]")?.scrollIntoView({ block: "nearest" }); }, [sel]);
   if (!paletteOpen) return null;
 
-  const run = async (i: number, newTab = false) => {
-    // Enter pressed before the search caught up with the typing: search now and open the best match.
-    if (i === 0 && q.trim() && !cmdMode && hitsFor !== q && workspaceId) {
+  /** Enter pressed before the search caught up with the typing: search now and open what would be listed first. */
+  const enter = async (newTab: boolean) => {
+    if (sel === 0 && q.trim() && !cmdMode && hitsFor !== q && workspaceId) {
       await ensureSearchIndex(workspaceId);
       const best = searchIndex.search(q, { limit: 1, kinds: paletteMode === "pages" ? ["page", "database"] : undefined })[0];
       if (best) { close(); openHit(best, newTab); return; }
     }
+    await run(sel, newTab);
+  };
+
+  const run = async (i: number, newTab = false) => {
     const it = items[i];
     if (!it) return;
     if (q.trim() && !cmdMode) {
@@ -128,7 +132,7 @@ export function CommandPalette() {
               if (e.key === "Escape") close();
               else if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(items.length - 1, s + 1)); }
               else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(0, s - 1)); }
-              else if (e.key === "Enter") { e.preventDefault(); void run(sel, e.ctrlKey); }
+              else if (e.key === "Enter") { e.preventDefault(); void enter(e.ctrlKey); }
             }} />
         </div>
         {!q && recent.length > 0 && paletteMode === "all" && (
