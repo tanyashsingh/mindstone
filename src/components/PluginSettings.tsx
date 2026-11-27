@@ -21,7 +21,7 @@ export function PluginSettings() {
   };
 
   return (
-    <div className="space-y-3 text-[13px]">
+    <div className="space-y-3 text-ui">
       <p className="text-muted">Plugins add commands, slash items and panels. Each runs in a sealed sandbox with no network and no access to your data beyond the permissions you grant here. Install only plugins you trust.</p>
       <div className="flex gap-2">
         <button className="btn-primary" onClick={() => folder.current?.click()}><Puzzle size={14} /> Install from folder…</button>
@@ -34,12 +34,12 @@ export function PluginSettings() {
           <li key={p.id} className="rounded-md border border-line p-2.5" data-testid="plugin">
             <div className="flex items-center gap-2">
               <span className="min-w-0 flex-1"><span className="font-medium">{p.manifest.name}</span> <span className="text-faint">{p.manifest.version}</span>
-                {p.manifest.description && <span className="block text-[12.5px] text-muted">{p.manifest.description}</span>}</span>
+                {p.manifest.description && <span className="block text-meta text-muted">{p.manifest.description}</span>}</span>
               <Toggle checked={p.enabled} onChange={(v) => void setPluginEnabled(p.id, v)} label={`Enable ${p.manifest.name}`} />
               <button className="icon-btn hover:text-danger" aria-label={`Remove ${p.manifest.name}`} onClick={async () => { if (await confirmDialog(`Remove ${p.manifest.name}?`, "Its commands and panel disappear. Your pages are not changed.")) await removePlugin(p.id); }}><Trash2 size={14} /></button>
             </div>
-            <div className="mt-1 text-[12px] text-faint">Permissions: {(p.manifest.permissions ?? []).map((x) => PERMISSIONS[x]).join(", ") || "none"}</div>
-            {errors[p.id] && <div className="mt-1 text-[12px] text-danger">Error: {errors[p.id]}</div>}
+            <div className="mt-1 text-meta text-faint">Permissions: {(p.manifest.permissions ?? []).map((x) => PERMISSIONS[x]).join(", ") || "none"}</div>
+            {errors[p.id] && <div className="mt-1 text-meta text-danger">Error: {errors[p.id]}</div>}
           </li>
         ))}
         {plugins.length === 0 && <li className="text-faint">No plugins installed. An example is in the plugins/word-count folder of the Mindstone source.</li>}
@@ -47,13 +47,13 @@ export function PluginSettings() {
       {pending && (
         <Modal open onClose={() => setPending(null)} title={`Install ${pending.manifest.name}?`} width={460}
           footer={<><button className="btn-outline" onClick={() => setPending(null)}>Cancel</button><button className="btn-primary" onClick={async () => { await installPlugin(pending.manifest, pending.code); setPending(null); useApp.getState().toast(`${pending.manifest.name} installed`, "success"); }}>Install</button></>}>
-          <p className="mb-2 text-[13px]">{pending.manifest.description || "No description."}</p>
-          <p className="mb-1 text-[13px] font-medium">It asks to:</p>
-          <ul className="ml-5 list-disc text-[13px]" aria-label="Requested permissions">
+          <p className="mb-2 text-ui">{pending.manifest.description || "No description."}</p>
+          <p className="mb-1 text-ui font-medium">It asks to:</p>
+          <ul className="ml-5 list-disc text-ui" aria-label="Requested permissions">
             {(pending.manifest.permissions ?? []).map((x) => <li key={x}>{PERMISSIONS[x]}</li>)}
             {!(pending.manifest.permissions ?? []).length && <li>Nothing beyond showing commands and a panel</li>}
           </ul>
-          <p className="mt-2 text-[12px] text-faint">It can never use the network or read anything else.</p>
+          <p className="mt-2 text-meta text-faint">It can never use the network or read anything else.</p>
         </Modal>
       )}
     </div>

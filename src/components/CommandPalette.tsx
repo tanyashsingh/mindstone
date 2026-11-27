@@ -10,6 +10,7 @@ import { resolvedDark, useSettings } from "@/store/settings";
 import { shortcutLabel } from "@/lib/shortcuts";
 import { cx } from "@/lib/util";
 import { useDigest } from "./DigestDialog";
+import { useFocusTrap } from "./ui";
 import { vaultActive } from "@/data/vault";
 import { lockAndReload } from "@/lib/idleLock";
 import { invoke as invokePlugin, usePlugins } from "@/plugins/host";
@@ -45,6 +46,8 @@ export function CommandPalette() {
   const [hitsFor, setHitsFor] = useState(""); // the query the current hits belong to
   const [recent, setRecent] = useState<string[]>(() => JSON.parse(localStorage.getItem("rea.recentSearches") ?? "[]") as string[]);
   const listRef = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useFocusTrap(paletteOpen, box);
   const close = () => { set("paletteOpen", false); setQ(""); setSel(0); };
 
   const pluginCmds = usePlugins((s) => s.contributions);
@@ -122,21 +125,20 @@ export function CommandPalette() {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/25 pt-[12vh]" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="panel anim-in w-[min(640px,94vw)] overflow-hidden shadow-[var(--shadow)]" role="dialog" aria-label="Command palette">
+      <div ref={box} onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); close(); } }} className="panel anim-in w-[min(640px,94vw)] overflow-hidden shadow-[var(--shadow)]" role="dialog" aria-modal="true" aria-label="Command palette">
         <div className="flex items-center gap-2 border-b border-line px-3">
           <Search size={17} className="text-faint" />
-          <input autoFocus className="h-12 flex-1 bg-transparent text-[15px] outline-none" value={q} onChange={(e) => setQ(e.target.value)}
+          <input autoFocus className="h-12 flex-1 bg-transparent text-lead outline-none" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder={paletteMode === "pages" ? "Jump to a page…" : "Search pages, tasks, records… or type > for commands"}
             role="combobox" aria-expanded="true" aria-controls="palette-list" aria-activedescendant={`pi-${sel}`}
             onKeyDown={(e) => {
-              if (e.key === "Escape") close();
-              else if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(items.length - 1, s + 1)); }
+              if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(items.length - 1, s + 1)); }
               else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(0, s - 1)); }
               else if (e.key === "Enter") { e.preventDefault(); void enter(e.ctrlKey); }
             }} />
         </div>
         {!q && recent.length > 0 && paletteMode === "all" && (
-          <div className="flex flex-wrap gap-1 border-b border-line px-3 py-2">{recent.map((r) => <button key={r} className="btn h-6 text-[12px] text-muted" onClick={() => setQ(r)}><Clock size={12} />{r}</button>)}</div>
+          <div className="flex flex-wrap gap-1 border-b border-line px-3 py-2">{recent.map((r) => <button key={r} className="btn h-6 text-meta text-muted" onClick={() => setQ(r)}><Clock size={12} />{r}</button>)}</div>
         )}
         {!q && hits.length > 0 && <div className="label px-3.5 pt-2" id="palette-recent">Recent pages</div>}
         <div ref={listRef} id="palette-list" role="listbox" aria-label={!q && hits.length > 0 ? "Recent pages" : "Results"} className="max-h-[52vh] overflow-y-auto p-1.5">
@@ -147,17 +149,17 @@ export function CommandPalette() {
               {it.t === "hit" ? (
                 <>
                   <span className="text-muted">{KIND_ICON[it.h.kind]}</span>
-                  <span className="min-w-0 flex-1"><span className="block truncate text-[13.5px]"><Highlight text={it.h.title} q={needle} /></span>{it.h.snippet && <span className="block truncate text-[12px] text-faint"><Highlight text={it.h.snippet} q={needle} /></span>}</span>
-                  <span className="text-[11px] capitalize text-faint">{it.h.kind}</span>
+                  <span className="min-w-0 flex-1"><span className="block truncate text-ui"><Highlight text={it.h.title} q={needle} /></span>{it.h.snippet && <span className="block truncate text-meta text-faint"><Highlight text={it.h.snippet} q={needle} /></span>}</span>
+                  <span className="text-caption capitalize text-faint">{it.h.kind}</span>
                 </>
               ) : (
-                <><ArrowRight size={15} className="text-muted" /><span className="flex-1 text-[13.5px]">{it.c.label}</span>{it.c.hint && <span className="kbd">{it.c.hint}</span>}</>
+                <><ArrowRight size={15} className="text-muted" /><span className="flex-1 text-ui">{it.c.label}</span>{it.c.hint && <span className="kbd">{it.c.hint}</span>}</>
               )}
             </button>
           ))}
         </div>
-        {items.length === 0 && <div className="px-3 py-6 text-center text-[13px] text-muted" role="status">No matches</div>}
-        <div className="flex gap-3 border-t border-line px-3 py-1.5 text-[11px] text-faint"><span>↑↓ navigate</span><span>Enter open</span><span>Ctrl+Enter new tab</span><span>&gt; commands</span><span>Esc close</span></div>
+        {items.length === 0 && <div className="px-3 py-6 text-center text-ui text-muted" role="status">No matches</div>}
+        <div className="flex gap-3 border-t border-line px-3 py-1.5 text-caption text-faint"><span>↑↓ navigate</span><span>Enter open</span><span>Ctrl+Enter new tab</span><span>&gt; commands</span><span>Esc close</span></div>
       </div>
     </div>,
     document.body,

@@ -85,7 +85,7 @@ function TabBar() {
       {tabs.map((t, i) => (
         <div key={t.key + i} role="tab" aria-selected={i === active}
           onMouseDown={(e) => { if (e.button === 1) { e.preventDefault(); closeTab(i); } else setActive(i); }}
-          className={cx("group flex h-8 max-w-[200px] min-w-[110px] items-center gap-1 rounded-[10px] px-3 text-[12.5px] transition-shadow", i === active ? "-mb-px rounded-b-none border border-b-0 border-line bg-bg text-fg" : "text-muted hover:bg-hover hover:text-fg")}>
+          className={cx("group flex h-8 max-w-[200px] min-w-[110px] items-center gap-1 rounded-[10px] px-3 text-meta transition-shadow", i === active ? "-mb-px rounded-b-none border border-b-0 border-line bg-bg text-fg" : "text-muted hover:bg-hover hover:text-fg")}>
           <span className="flex-1 truncate">{label(t.route)}</span>
           <button className="opacity-0 group-hover:opacity-100 rounded hover:bg-active p-0.5" aria-label="Close tab" onMouseDown={(e) => e.stopPropagation()} onClick={() => closeTab(i)}><X size={12} /></button>
         </div>

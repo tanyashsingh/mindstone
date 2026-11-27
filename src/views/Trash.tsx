@@ -3,7 +3,7 @@ import { Trash2, RotateCcw } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import { useApp } from "@/store/app";
-import { EmptyState, confirmDialog } from "@/components/ui";
+import { EmptyState, PageIcon, confirmDialog } from "@/components/ui";
 import { relTime } from "@/lib/util";
 
 export default function Trash() {
@@ -21,12 +21,12 @@ export default function Trash() {
           await db().tasks.bulkDelete((tasks ?? []).map((t) => t.id));
         }}>Empty trash</button>}
       </div>
-      <p className="mb-5 text-[13px] text-muted">Items stay here until you delete them permanently.</p>
+      <p className="mb-5 text-ui text-muted">Items stay here until you delete them permanently.</p>
       {roots.length === 0 && !tasks?.length && <EmptyState icon={<Trash2 />} title="Trash is empty" />}
       {roots.map((p) => (
         <div key={p.id} className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-hover">
-          <span className="w-5 text-center">{p.icon || "📄"}</span><span className="flex-1 truncate">{p.title || "Untitled"}</span>
-          <span className="text-[12px] text-faint">deleted {relTime(p.deletedAt)}</span>
+          <span className="w-5 text-center"><PageIcon page={p} /></span><span className="flex-1 truncate">{p.title || "Untitled"}</span>
+          <span className="text-meta text-faint">deleted {relTime(p.deletedAt)}</span>
           <button className="btn" onClick={() => repo.restorePage(p.id)}><RotateCcw size={14} /> Restore</button>
           <button className="btn-danger" onClick={async () => { if (await confirmDialog(`Delete “${p.title || "Untitled"}” permanently?`, "This cannot be undone.", { danger: true })) await repo.purgePage(p.id); }}>Delete</button>
         </div>

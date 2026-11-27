@@ -3,7 +3,7 @@ import { Database as DbIcon, Plus, Table2 } from "lucide-react";
 import { db } from "@/data/db";
 import * as repo from "@/data/repo";
 import { useApp } from "@/store/app";
-import { EmptyState } from "@/components/ui";
+import { EmptyState, PageIcon } from "@/components/ui";
 import { pageList } from "@/data/pageDirectory";
 import { relTime } from "@/lib/util";
 
@@ -22,9 +22,9 @@ export default function Databases() {
       <div className={list?.length ? "divide-y divide-line overflow-hidden rounded-[12px] shadow-[var(--elev)]" : "hidden"}>
         {list?.map(({ p, count, d }) => (
           <button key={p.id} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}>
-            <span className="w-5 text-center">{p.icon || "▦"}</span><span className="flex-1 truncate font-medium">{p.title || "Untitled"}</span>
-            <span className="text-[12px] text-faint">{d?.properties.length ?? 0} properties · {count} records · {d?.views.length ?? 0} views</span>
-            <span className="w-20 text-right text-[12px] text-faint">{relTime(p.updatedAt)}</span>
+            <span className="w-5 text-center"><PageIcon page={p} /></span><span className="flex-1 truncate font-medium">{p.title || "Untitled"}</span>
+            <span className="text-meta text-faint">{d?.properties.length ?? 0} properties · {count} records · {d?.views.length ?? 0} views</span>
+            <span className="w-20 text-right text-meta text-faint">{relTime(p.updatedAt)}</span>
           </button>
         ))}
       </div>

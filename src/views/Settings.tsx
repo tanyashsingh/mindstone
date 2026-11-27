@@ -29,7 +29,7 @@ const SECTIONS = [
 function Row({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-6 border-b border-line py-3">
-      <div className="flex-1"><div className="text-[13.5px]">{label}</div>{desc && <div className="text-[12px] text-muted">{desc}</div>}</div>
+      <div className="flex-1"><div className="text-ui">{label}</div>{desc && <div className="text-meta text-muted">{desc}</div>}</div>
       <div className="shrink-0">{children}</div>
     </div>
   );
@@ -50,9 +50,9 @@ function ProviderCard({ id }: { id: AiProviderId }) {
       <div className="mb-3 flex items-center gap-2">
         <span className="flex-1 font-medium">{PROVIDER_LABELS[id]}</span>
         {LOCAL_PROVIDERS.includes(id) ? <span className="chip c-green">Runs locally</span> : <span className="chip c-orange">Cloud</span>}
-        <label className="flex items-center gap-2 text-[13px]"><input type="radio" name="active-ai" checked={s.ai.active === id} onChange={() => update((x) => ({ ...x, ai: { ...x.ai, active: id } }))} /> Use</label>
+        <label className="flex items-center gap-2 text-ui"><input type="radio" name="active-ai" checked={s.ai.active === id} onChange={() => update((x) => ({ ...x, ai: { ...x.ai, active: id } }))} /> Use</label>
       </div>
-      <div className="grid grid-cols-2 gap-2 text-[13px]">
+      <div className="grid grid-cols-2 gap-2 text-ui">
         <label>Model<input className="input mt-1" list={`models-${id}`} value={cfg.model} onChange={(e) => set({ model: e.target.value })} /><datalist id={`models-${id}`}>{models.map((m) => <option key={m} value={m} />)}</datalist></label>
         <label>Endpoint<input className="input mt-1" value={cfg.baseUrl} onChange={(e) => set({ baseUrl: e.target.value })} /></label>
         <label>Embedding model {id === "anthropic" && <span className="text-faint">(Claude has none)</span>}<input className="input mt-1" disabled={id === "anthropic"} value={cfg.embedModel} onChange={(e) => set({ embedModel: e.target.value })} /></label>
@@ -77,9 +77,9 @@ function ProviderCard({ id }: { id: AiProviderId }) {
           try { const r = await chat("Reply with one short sentence.", [{ role: "user", content: "Say hello from Mindstone." }], () => {}); setStatus({ ok: true, text: `“${r.text.trim().slice(0, 80)}” · ${r.inputTokens + r.outputTokens} tokens` }); }
           catch (e) { setStatus({ ok: false, text: e instanceof Error ? e.message : String(e) }); } finally { setBusy(false); }
         }}>Send test message</button>}
-        {status && <span className={cx("text-[12px]", status.ok ? "text-success" : "text-danger")}>{status.text}</span>}
+        {status && <span className={cx("text-meta", status.ok ? "text-success" : "text-danger")}>{status.text}</span>}
       </div>
-      {id === "ollama" && <p className="mt-2 text-[12px] text-faint">Install Ollama, run <code>ollama pull {cfg.model || "llama3.2"}</code> and <code>ollama pull nomic-embed-text</code>. In the browser build, also allow this origin with OLLAMA_ORIGINS.</p>}
+      {id === "ollama" && <p className="mt-2 text-meta text-faint">Install Ollama, run <code>ollama pull {cfg.model || "llama3.2"}</code> and <code>ollama pull nomic-embed-text</code>. In the browser build, also allow this origin with OLLAMA_ORIGINS.</p>}
     </div>
   );
 }
@@ -139,9 +139,16 @@ export default function SettingsView({ section }: { section?: string }) {
     if (window.rea) { void window.rea.dataPath().then(setDataPath); void window.rea.secrets.available().then(setSecure); }
   }, []);
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) => update((x) => ({ ...x, [k]: v }));
+  const [importing, setImporting] = useState(false);
   const runImport = async (files: File[]) => {
-    if (!files.length) return;
-    const r = await importFiles(ws, files);
+    if (!files.length || importing) return;
+    setImporting(true);
+    let r: Awaited<ReturnType<typeof importFiles>>;
+    try { r = await importFiles(ws, files); }
+    catch (e) {
+      useApp.getState().toast(`Import stopped: ${e instanceof Error ? e.message : String(e)}.`, "error");
+      return;
+    } finally { setImporting(false); }
     useApp.getState().toast(`Imported ${r.pages} pages and ${r.databases} databases${r.skipped.length ? `; skipped ${r.skipped.length}` : ""}`, r.skipped.length ? "info" : "success");
     if (r.skipped.length || r.notes.length) await confirmDialog("Import summary", [...r.notes, ...r.skipped.map((x) => `Skipped: ${x}`)].join("\n"), { confirmLabel: "OK" });
   };
@@ -190,8 +197,8 @@ export default function SettingsView({ section }: { section?: string }) {
               </select>
             </Row>
             {window.rea?.platform === "win32" && <Row label="Include computer audio by default" desc="For meeting notes: also record what your computer plays, such as the other people on a call. You can change it per recording."><Toggle checked={s.voice.systemAudio} onChange={(v) => update((x) => ({ ...x, voice: { ...x.voice, systemAudio: v } }))} label="Include computer audio" /></Row>}
-            <Row label="Speech model" desc="Whisper base (OpenAI, Apache-2.0), running on this computer. Audio and transcripts never leave your device."><span className="text-[12px] text-faint">Built in</span></Row>
-            <p className="mt-3 text-[12.5px] text-muted">Dictate with Ctrl+Shift+M or the microphone button on a page. Type /voice note or /meeting notes to record, then transcribe and summarize. Transcripts are searchable with Ctrl+K and used by Mindstone Intelligence.</p>
+            <Row label="Speech model" desc="Whisper base (OpenAI, Apache-2.0), running on this computer. Audio and transcripts never leave your device."><span className="text-meta text-faint">Built in</span></Row>
+            <p className="mt-3 text-meta text-muted">Dictate with Ctrl+Shift+M or the microphone button on a page. Type /voice note or /meeting notes to record, then transcribe and summarize. Transcripts are searchable with Ctrl+K and used by Mindstone Intelligence.</p>
           </>}
           {sec === "shortcuts" && <ShortcutEditor />}
           {sec === "ai" && <>
@@ -200,12 +207,12 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Ask before sending workspace content" desc="Confirm each time page excerpts are attached to a cloud request."><Toggle checked={s.ai.confirmWorkspaceContext} onChange={(v) => update((x) => ({ ...x, ai: { ...x.ai, confirmWorkspaceContext: v } }))} label="Confirm context" /></Row>
             <Row label="Cloud requests per minute" desc="Stops runaway loops from running up your bill. 0 means no limit. Local models are never limited."><input type="number" min={0} max={600} className="input w-24" aria-label="Cloud requests per minute" value={s.ai.limits.maxRequestsPerMinute} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, limits: { ...x.ai.limits, maxRequestsPerMinute: Math.max(0, Math.round(Number(e.target.value) || 0)) } } }))} /></Row>
             <Row label="Daily cloud token budget" desc={`Cloud AI stops for the day once this many tokens are used. 0 means no limit. Used today: ${spendGuard.usage().tokens.toLocaleString()}.`}><input type="number" min={0} step={10000} className="input w-32" aria-label="Daily cloud token budget" value={s.ai.limits.dailyTokenBudget} onChange={(e) => update((x) => ({ ...x, ai: { ...x.ai, limits: { ...x.ai.limits, dailyTokenBudget: Math.max(0, Math.round(Number(e.target.value) || 0)) } } }))} /></Row>
-            <p className="mt-3 text-[12.5px] text-muted">AI never edits your pages directly. Writing tools show a preview first, and inserted text can be undone with Ctrl+Z. Creating tasks from AI replies asks for confirmation. Imported documents are passed to models as quoted data, not instructions.</p>
+            <p className="mt-3 text-meta text-muted">AI never edits your pages directly. Writing tools show a preview first, and inserted text can be undone with Ctrl+Z. Creating tasks from AI replies asks for confirmation. Imported documents are passed to models as quoted data, not instructions.</p>
           </>}
           {sec === "providers" && (Object.keys(PROVIDER_LABELS) as AiProviderId[]).map((p) => <ProviderCard key={p} id={p} />)}
           {sec === "privacy" && <>
             <Row label="Telemetry" desc="Mindstone contains no analytics or telemetry. This switch exists so the choice is explicit; it stays off."><Toggle checked={false} onChange={() => useApp.getState().toast("Mindstone does not collect telemetry", "info")} label="Telemetry" /></Row>
-            <p className="text-[12.5px] text-muted">Your data lives in this device's local database. Network requests happen only for AI providers you enable. External calendar accounts are never accessed.</p>
+            <p className="text-meta text-muted">Your data lives in this device's local database. Network requests happen only for AI providers you enable. External calendar accounts are never accessed.</p>
           </>}
           {sec === "security" && <>
             <Row label="API key storage" desc={window.rea ? (secure ? "Keys are encrypted with Windows DPAPI (Electron safeStorage) and only the main process can read them." : "OS encryption is unavailable, so keys will not be saved.") : "Browser build: keys stay in memory for this tab and are forgotten on reload."}><KeyRound size={16} className="text-muted" /></Row>
@@ -233,7 +240,8 @@ export default function SettingsView({ section }: { section?: string }) {
               e.target.value = "";
               if (!f) return;
               try {
-                let parsed: unknown = JSON.parse(await f.text());
+                let parsed: unknown;
+                try { parsed = JSON.parse(await f.text()); } catch { throw new Error(`“${f.name}” isn't a Mindstone backup: it can't be read as one. Backups end in .rea.json (Settings → Backup & restore → Back up now).`); }
                 if (isEncryptedBackup(parsed)) {
                   const secret = await promptDialog("This backup is encrypted", "", "Enter the passphrase (or recovery key) that was in use when it was made.", { password: true });
                   if (!secret) return;
@@ -245,14 +253,14 @@ export default function SettingsView({ section }: { section?: string }) {
                 const w = await restoreBackup(raw, { replace: exists });
                 useApp.getState().setWorkspace(w.id);
                 useApp.getState().toast(`Restored “${w.name}”`, "success");
-              } catch (err) { useApp.getState().toast(`Restore failed: ${err instanceof Error ? err.message : String(err)}`, "error"); }
+              } catch (err) { useApp.getState().toast(`Nothing was changed. ${err instanceof Error ? err.message : String(err)}`, "error"); }
             }} />
           </>}
           {sec === "import" && <>
-            <Row label="Import files" desc="Notion export .zip, Evernote .enex, Todoist CSV, and Markdown, HTML, text, CSV or JSON files. Other files become attachments."><button className="btn-outline" onClick={() => importInput.current?.click()}>Choose files…</button></Row>
-            <Row label="Import a folder" desc="An Obsidian vault, an unzipped Notion export, or Apple Notes or Bear notes exported as Markdown or HTML (for Apple Notes, use an exporter app such as Exporter). Folders become nested pages; images and [[wiki links]] keep working."><button className="btn-outline" onClick={() => folderInput.current?.click()}>Choose folder…</button></Row>
+            <Row label="Import files" desc="Notion export .zip, Evernote .enex, Todoist CSV, and Markdown, HTML, text, CSV or JSON files. Other files become attachments."><button className="btn-outline" disabled={importing} onClick={() => importInput.current?.click()}>{importing ? "Importing…" : "Choose files…"}</button></Row>
+            <Row label="Import a folder" desc="An Obsidian vault, an unzipped Notion export, or Apple Notes or Bear notes exported as Markdown or HTML (for Apple Notes, use an exporter app such as Exporter). Folders become nested pages; images and [[wiki links]] keep working."><button className="btn-outline" disabled={importing} onClick={() => folderInput.current?.click()}>{importing ? "Importing…" : "Choose folder…"}</button></Row>
             <Row label="Export workspace as Markdown" desc="A .zip of Markdown pages (hierarchy preserved), CSV for each database, and attachments."><button className="btn-outline" onClick={() => exportWorkspaceMarkdown(ws)}>Export .zip</button></Row>
-            <p className="mt-3 text-[12.5px] text-muted">Known limitations: Notion database relations and formulas arrive as plain text; Evernote encrypted text is skipped; YAML front matter is not mapped to properties; Obsidian plugins' syntax (Dataview and others) stays as text. For a lossless copy, use Backup.</p>
+            <p className="mt-3 text-meta text-muted">Known limitations: Notion database relations and formulas arrive as plain text; Evernote encrypted text is skipped; YAML front matter is not mapped to properties; Obsidian plugins' syntax (Dataview and others) stays as text. For a lossless copy, use Backup.</p>
             <input ref={importInput} type="file" multiple hidden accept=".zip,.enex,.md,.markdown,.txt,.html,.htm,.csv,.json,*/*" onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
             <input ref={folderInput} type="file" multiple hidden {...{ webkitdirectory: "" }} onChange={(e) => { void runImport([...(e.target.files ?? [])]); e.target.value = ""; }} />
           </>}
@@ -266,7 +274,7 @@ export default function SettingsView({ section }: { section?: string }) {
             <Row label="Reduce motion" desc="Also follows your Windows animation setting automatically."><Toggle checked={s.reduceMotion} onChange={(v) => set("reduceMotion", v)} label="Reduce motion" /></Row>
             <Row label="Text size" desc="Editor font size; use Ctrl + / Ctrl − in the desktop app to zoom the whole interface."><input type="range" min={13} max={22} value={s.editorSize} onChange={(e) => set("editorSize", Number(e.target.value))} aria-label="Text size" /></Row>
           </>}
-          {sec === "about" && <div className="space-y-2 text-[13px] text-muted">
+          {sec === "about" && <div className="space-y-2 text-ui text-muted">
             <img src={cairnMark} alt="Mindstone logo" width={96} height={96} className="mb-2" />
             <p><b className="text-fg">Mindstone</b> {__APP_VERSION__}. A local-first workspace for notes, tasks, databases and knowledge.</p>
             <p>Build your mind, stone by stone. Mindstone stacks your notes, tasks, recordings and knowledge into something that lasts: built by you, on your own computer.</p>

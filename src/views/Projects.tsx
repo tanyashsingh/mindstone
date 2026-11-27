@@ -33,7 +33,7 @@ function ProjectDetail({ id }: { id: string }) {
     <div className="mx-auto max-w-4xl px-10 py-10">
       <button className="btn mb-3 text-muted" onClick={() => app.open({ kind: "projects" })}>← All projects</button>
       <input className="w-full bg-transparent text-[30px] font-bold tracking-tight outline-none" defaultValue={p.name} onBlur={(e) => up({ name: e.target.value || "Untitled project" })} aria-label="Project name" />
-      <div className="mb-4 mt-2 flex flex-wrap items-center gap-2 text-[13px]">
+      <div className="mb-4 mt-2 flex flex-wrap items-center gap-2 text-ui">
         <select className="input h-7 w-32" value={p.status} onChange={(e) => up({ status: e.target.value as Project["status"] })}>{Object.keys(STATUS_COLOR).map((s) => <option key={s}>{s}</option>)}</select>
         <input type="date" className="input h-7 w-36" value={p.startDate ?? ""} onChange={(e) => up({ startDate: e.target.value || null })} aria-label="Start date" />
         <span className="text-faint">→</span>
@@ -47,7 +47,7 @@ function ProjectDetail({ id }: { id: string }) {
 
       <section className="mb-6 grid grid-cols-4 gap-3" aria-label="Progress report">
         {[["Progress", `${pct}%`], ["Tasks done", `${done} / ${top.length}`], ["Overdue", String(overdue)], ["Time (actual / est.)", `${Math.round(actual / 60 * 10) / 10}h / ${Math.round(estimate / 60 * 10) / 10}h`]].map(([k, v]) => (
-          <div key={k} className="panel p-3"><div className="text-[12px] text-muted">{k}</div><div className="text-[20px] font-semibold tabular-nums">{v}</div></div>
+          <div key={k} className="panel p-3"><div className="text-meta text-muted">{k}</div><div className="text-[20px] font-semibold tabular-nums">{v}</div></div>
         ))}
       </section>
       <div className="mb-6 h-1.5 rounded bg-active"><div className="h-full rounded bg-accent" style={{ width: `${pct}%` }} /></div>
@@ -57,7 +57,7 @@ function ProjectDetail({ id }: { id: string }) {
         {p.milestones.map((m) => (
           <div key={m.id} className="flex items-center gap-2">
             <button className={cx("flex size-4 items-center justify-center rounded-full border", m.done ? "border-success bg-success text-white" : "border-line-strong")} onClick={() => up({ milestones: p.milestones.map((x) => (x.id === m.id ? { ...x, done: !x.done } : x)) })} aria-label="Toggle milestone">{m.done && <Check size={10} />}</button>
-            <span className={cx("flex-1 text-[13.5px]", m.done && "text-faint line-through")}>{m.name}</span>
+            <span className={cx("flex-1 text-ui", m.done && "text-faint line-through")}>{m.name}</span>
             <input type="date" className="input h-7 w-36" value={m.date ?? ""} onChange={(e) => up({ milestones: p.milestones.map((x) => (x.id === m.id ? { ...x, date: e.target.value || null } : x)) })} />
             <button className="icon-btn" aria-label="Delete milestone" onClick={() => up({ milestones: p.milestones.filter((x) => x.id !== m.id) })}><Trash2 size={13} /></button>
           </div>
@@ -88,7 +88,7 @@ function ProjectDetail({ id }: { id: string }) {
       <div className="mt-2">{top.sort((a, b) => Number(a.status === "done") - Number(b.status === "done")).map((t) => <TaskRow key={t.id} task={t} onOpen={setOpen} />)}</div>
 
       <h2 className="mb-2 mt-6 font-semibold">Activity</h2>
-      <div className="space-y-1 text-[13px] text-muted">{activity?.map((a) => <div key={a.id}>{a.entity} <b className="font-medium text-fg">{a.detail}</b> {a.action} · {relTime(a.at)}</div>)}</div>
+      <div className="space-y-1 text-ui text-muted">{activity?.map((a) => <div key={a.id}>{a.entity} <b className="font-medium text-fg">{a.detail}</b> {a.action} · {relTime(a.at)}</div>)}</div>
       <button className="btn-danger mt-8" onClick={async () => { if (await confirmDialog("Delete this project?", "Its tasks are kept and become unassigned.", { danger: true })) { await repo.updateProject(p.id, { deletedAt: Date.now() }); await db().tasks.where("projectId").equals(p.id).modify({ projectId: null }); app.open({ kind: "projects" }); } }}><Trash2 size={14} /> Delete project</button>
       {open && <TaskDetail task={open} onClose={() => setOpen(null)} />}
     </div>
@@ -118,9 +118,9 @@ export default function Projects({ projectId }: { projectId?: string }) {
           return (
             <button key={p.id} className="panel p-4 text-left hover:border-line-strong" onClick={() => open({ kind: "project", id: p.id })}>
               <div className="mb-1 flex items-center gap-2"><span className="flex-1 truncate font-medium">{p.name}</span><Chip color={STATUS_COLOR[p.status]}>{p.status}</Chip></div>
-              <div className="mb-3 line-clamp-2 min-h-[2.5em] text-[12.5px] text-muted">{p.description || "No description"}</div>
+              <div className="mb-3 line-clamp-2 min-h-[2.5em] text-meta text-muted">{p.description || "No description"}</div>
               <div className="mb-1 h-1 rounded bg-active"><div className="h-full rounded bg-accent" style={{ width: `${pct}%` }} /></div>
-              <div className="flex justify-between text-[12px] text-faint"><span>{ts.length} tasks · {pct}%</span><span>{p.targetDate ? `Due ${fmtDate(p.targetDate)}` : ""}</span></div>
+              <div className="flex justify-between text-meta text-faint"><span>{ts.length} tasks · {pct}%</span><span>{p.targetDate ? `Due ${fmtDate(p.targetDate)}` : ""}</span></div>
             </button>
           );
         })}

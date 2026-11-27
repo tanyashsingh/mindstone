@@ -51,7 +51,7 @@ export default function SearchView({ initial = "" }: { initial?: string }) {
       )}
       {semantic && (
         <div className="mb-6"><div className="label mb-1">Closest passages (keyword + embeddings when indexed)</div>
-          {semantic.map((s, i) => <button key={i} className="block w-full rounded-md px-2 py-2 text-left hover:bg-hover" onClick={() => useApp.getState().open({ kind: "page", id: s.pageId })}><div className="font-medium">{s.title}</div><div className="line-clamp-2 text-[12.5px] text-muted">{s.text}</div></button>)}
+          {semantic.map((s, i) => <button key={i} className="block w-full rounded-md px-2 py-2 text-left hover:bg-hover" onClick={() => useApp.getState().open({ kind: "page", id: s.pageId })}><div className="font-medium">{s.title}</div><div className="line-clamp-2 text-meta text-muted">{s.text}</div></button>)}
         </div>
       )}
       {q && hits.length === 0 && <EmptyState title="No results" body="Search is fuzzy and matches word prefixes. Try fewer words." />}
@@ -59,7 +59,7 @@ export default function SearchView({ initial = "" }: { initial?: string }) {
         {hits.map((h) => (
           <button key={h.id} className="block w-full rounded-md px-2 py-2 text-left hover:bg-hover" onClick={() => openHit(h)}>
             <div className="flex items-center gap-2"><span className="chip c-gray capitalize">{h.kind}</span><span className="font-medium"><Highlight text={h.title} q={q} /></span></div>
-            {h.snippet && <div className="mt-0.5 line-clamp-2 text-[12.5px] text-muted"><Highlight text={h.snippet} q={q} /></div>}
+            {h.snippet && <div className="mt-0.5 line-clamp-2 text-meta text-muted"><Highlight text={h.snippet} q={q} /></div>}
           </button>
         ))}
       </div>

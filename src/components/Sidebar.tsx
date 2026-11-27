@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Home, Inbox, Search, CheckSquare, FolderKanban, Calendar, Network, Paperclip, LayoutTemplate, Sparkles, Trash2, Settings,
-  ChevronRight, Plus, MoreHorizontal, Star, FileText, Table2, ChevronsLeft, Copy, PanelRight, ExternalLink, Pencil, Users, Database as DbIcon, Check,
+  ChevronRight, Plus, MoreHorizontal, Star, Table2, ChevronsLeft, Copy, PanelRight, ExternalLink, Pencil, Database as DbIcon, Check,
 } from "lucide-react";
 import { db } from "@/data/db";
 import type { Page } from "@/data/types";
@@ -10,28 +10,33 @@ import * as repo from "@/data/repo";
 import { useApp, type Route, type RouteKind } from "@/store/app";
 import { cx } from "@/lib/util";
 import { usePageList } from "@/data/pageDirectory";
-import { MenuItem, MenuSep, Popover, confirmDialog, promptDialog, useAnchor } from "./ui";
+import { MenuItem, MenuSep, PageIcon, Popover, confirmDialog, promptDialog, useAnchor } from "./ui";
 
 function NavItem({ icon, label, kind, shortcut, badge }: { icon: ReactNode; label: string; kind: RouteKind; shortcut?: string; badge?: number }) {
   const { tabs, active, open } = useApp();
   const isActive = tabs[active]?.route.kind === kind;
   return (
-    <button className={cx("flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg", isActive && "bg-active text-fg")}
-      onClick={(e) => open({ kind }, { newTab: e.ctrlKey })} title={shortcut}>
+    <button className={cx("flex h-7 w-full items-center gap-2 rounded-md px-2 text-ui text-muted hover:bg-hover hover:text-fg", isActive && "bg-active font-medium text-fg")}
+      aria-current={isActive ? "page" : undefined} onClick={(e) => open({ kind }, { newTab: e.ctrlKey })} title={shortcut}>
       <span className="[&>svg]:size-4">{icon}</span>
       <span className="flex-1 text-left">{label}</span>
-      {badge ? <span className="text-[11px] text-faint">{badge}</span> : null}
+      {badge ? <span className="text-caption text-faint">{badge}</span> : null}
     </button>
   );
 }
 
 function Section({ title, children, action, defaultOpen = true }: { title: string; children: ReactNode; action?: ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
+  // Open or closed is remembered per section.
+  const key = `mindstone.sidebar.${title}`;
+  const [open, setOpenState] = useState(() => { const v = localStorage.getItem(key); return v === null ? defaultOpen : v === "1"; });
+  const setOpen = (v: boolean) => { setOpenState(v); localStorage.setItem(key, v ? "1" : "0"); };
   return (
     <div className="mt-3">
       <div className="group flex h-6 items-center px-2">
-        <button className="flex-1 text-left text-[11.5px] font-medium text-faint hover:text-muted" onClick={() => setOpen(!open)}>{title}</button>
-        <span className="opacity-0 group-hover:opacity-100">{action}</span>
+        <button className="flex flex-1 items-center gap-1 text-left text-caption font-medium text-faint hover:text-muted" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {title}<ChevronRight size={11} aria-hidden className={cx("transition-transform group-hover:opacity-100", open ? "rotate-90 opacity-0" : "opacity-70")} />
+        </button>
+        <span className="opacity-0 group-hover:opacity-100 focus-within:opacity-100">{action}</span>
       </div>
       {open && children}
     </div>
@@ -76,7 +81,7 @@ function PageRow({ page, depth, childrenOf, expanded, toggle, onDrop }: {
         onClick={(e) => go({ kind: "page", id: page.id }, e)}
         onAuxClick={(e) => e.button === 1 && go({ kind: "page", id: page.id }, e)}
         className={cx(
-          "group relative flex h-7 items-center gap-1 rounded-md pr-1 text-[13px] text-muted hover:bg-hover hover:text-fg",
+          "group relative flex h-7 items-center gap-1 rounded-md pr-1 text-ui text-muted hover:bg-hover hover:text-fg",
           isActive && "bg-active text-fg",
           drop === "inside" && "ring-1 ring-accent bg-accent-soft",
         )}
@@ -92,7 +97,7 @@ function PageRow({ page, depth, childrenOf, expanded, toggle, onDrop }: {
           onClick={(e) => { e.stopPropagation(); toggle(page.id); }}>
           <ChevronRight size={13} className={cx("transition-transform text-faint", isOpen && "rotate-90", !kids.length && "opacity-40")} />
         </button>
-        <span className="w-5 shrink-0 text-center text-[14px]">{page.icon || (page.kind === "database" ? <Table2 size={14} className="inline text-faint" /> : <FileText size={14} className="inline text-faint" />)}</span>
+        <span className="w-5 shrink-0 text-center text-body"><PageIcon page={page} /></span>
         <span className="flex-1 truncate">{page.title || "Untitled"}</span>
         <button className="icon-btn size-5 opacity-0 group-hover:opacity-100" aria-label="Page actions" onClick={(e) => { e.stopPropagation(); menu.openAt(e); }}><MoreHorizontal size={14} /></button>
         <button className="icon-btn size-5 opacity-0 group-hover:opacity-100" aria-label="Add sub-page" onClick={(e) => { e.stopPropagation(); void addChild(); }}><Plus size={14} /></button>
@@ -128,8 +133,8 @@ function WorkspaceSwitcher() {
     <>
       <div className="flex items-center gap-1 px-2 pt-2.5 pb-1">
         <button className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 hover:bg-hover" onClick={menu.openAt} aria-haspopup="menu">
-          <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg text-[11px] font-semibold text-bg">{(ws?.name ?? "R")[0]}</span>
-          <span className="truncate text-[13.5px] font-medium">{ws?.name ?? "…"}</span>
+          <span className="flex size-5 shrink-0 items-center justify-center rounded bg-fg text-caption font-semibold text-bg">{(ws?.name ?? "R")[0]}</span>
+          <span className="truncate text-ui font-medium">{ws?.name ?? "…"}</span>
         </button>
         <button className="icon-btn" title="Collapse sidebar (Ctrl+\)" onClick={() => set("sidebarOpen", false)}><ChevronsLeft size={16} /></button>
       </div>
@@ -223,7 +228,7 @@ export function Sidebar() {
     <nav className="relative flex shrink-0 flex-col border-r border-line bg-sunken" style={{ width: sidebarWidth }} aria-label="Sidebar">
       <WorkspaceSwitcher />
       <div className="px-2">
-        <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg" onClick={() => { set("paletteMode", "all"); set("paletteOpen", true); }}>
+        <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-ui text-muted hover:bg-hover hover:text-fg" onClick={() => { set("paletteMode", "all"); set("paletteOpen", true); }}>
           <Search size={16} /><span className="flex-1 text-left">Search</span><span className="kbd">Ctrl K</span>
         </button>
         <NavItem icon={<Home />} label="Home" kind="home" />
@@ -245,25 +250,22 @@ export function Sidebar() {
         {favorites.length > 0 && (
           <Section title="Favorites">
             {favorites.map((p) => (
-              <button key={p.id} className={cx("flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg", curId === p.id && "bg-active text-fg")} onClick={(e) => open({ kind: "page", id: p.id }, { newTab: e.ctrlKey })}>
-                <span className="w-4 text-center">{p.icon || <Star size={13} className="inline" />}</span><span className="truncate">{p.title || "Untitled"}</span>
+              <button key={p.id} className={cx("flex h-7 w-full items-center gap-2 rounded-md px-2 text-ui text-muted hover:bg-hover hover:text-fg", curId === p.id && "bg-active text-fg")} onClick={(e) => open({ kind: "page", id: p.id }, { newTab: e.ctrlKey })}>
+                <span className="w-4 text-center"><PageIcon page={p} size={13} /></span><span className="truncate">{p.title || "Untitled"}</span>
               </button>
             ))}
           </Section>
         )}
         <Section title="Recent" defaultOpen={false}>
           {recent.map((p) => (
-            <button key={p.id} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-muted hover:bg-hover hover:text-fg" onClick={() => open({ kind: "page", id: p.id })}>
-              <span className="w-4 text-center">{p.icon || <FileText size={13} className="inline" />}</span><span className="truncate">{p.title || "Untitled"}</span>
+            <button key={p.id} className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-ui text-muted hover:bg-hover hover:text-fg" onClick={() => open({ kind: "page", id: p.id })}>
+              <span className="w-4 text-center"><PageIcon page={p} size={13} /></span><span className="truncate">{p.title || "Untitled"}</span>
             </button>
           ))}
         </Section>
         <Section title="Private" action={<span className="flex"><button className="icon-btn size-5" title="New database" onClick={newDatabase}><Table2 size={13} /></button><button className="icon-btn size-5" title="New page (Ctrl+N)" onClick={newPage}><Plus size={14} /></button></span>}>
           {pages === undefined ? <div className="skeleton mx-2 h-5" /> : <div role="tree" aria-label="Pages">{roots.map((p) => <PageRow key={p.id} page={p} depth={0} childrenOf={childrenOf} expanded={expanded} toggle={toggle} onDrop={onDrop} />)}</div>}
-          <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-[13px] text-faint hover:bg-hover hover:text-muted" onClick={newPage}><Plus size={14} /> New page</button>
-        </Section>
-        <Section title="Shared" defaultOpen={false}>
-          <div className="flex items-start gap-2 px-2 py-1 text-[12px] text-faint"><Users size={14} className="mt-0.5 shrink-0" /> Sharing needs a sync server, which is not configured. This workspace is local only.</div>
+          <button className="flex h-7 w-full items-center gap-2 rounded-md px-2 text-ui text-faint hover:bg-hover hover:text-muted" onClick={newPage}><Plus size={14} /> New page</button>
         </Section>
       </div>
       <div className="mx-2 mb-2 border-t border-line px-0 pt-1.5">

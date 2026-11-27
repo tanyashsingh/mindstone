@@ -89,16 +89,16 @@ export function DictationPill({ onText, onClose }: { onText: (text: string) => v
       <div className="menu anim-in flex items-center gap-3 px-3 py-2">
         {err ? (
           <>
-            <span className="max-w-[420px] text-[13px] text-danger">{err}</span>
+            <span className="max-w-[420px] text-ui text-danger">{err}</span>
             <button className="icon-btn" aria-label="Close" onClick={onClose}><X size={15} /></button>
           </>
         ) : phase === "transcribing" ? (
-          <span className="flex items-center gap-2 text-[13px] text-muted"><Loader2 size={15} className="animate-spin" /> Transcribing on this computer…</span>
+          <span className="flex items-center gap-2 text-ui text-muted"><Loader2 size={15} className="animate-spin" /> Transcribing on this computer…</span>
         ) : (
           <>
             <span className={cx("flex size-7 items-center justify-center rounded-full", phase === "recording" ? "bg-danger/15 text-danger" : "bg-sunken text-muted")}><Mic size={15} /></span>
             <LevelMeter rec={phase === "recording" ? rec : null} />
-            <span className="w-10 text-[13px] tabular-nums text-muted">{fmtClock(seconds)}</span>
+            <span className="w-10 text-ui tabular-nums text-muted">{fmtClock(seconds)}</span>
             {phase === "paused"
               ? <button className="icon-btn" aria-label="Resume" onClick={() => { rec?.resume(); setPhase("recording"); }}><Play size={15} /></button>
               : <button className="icon-btn" aria-label="Pause" disabled={!rec} onClick={() => { rec?.pause(); setPhase("paused"); }}><Pause size={15} /></button>}
@@ -107,7 +107,7 @@ export function DictationPill({ onText, onClose }: { onText: (text: string) => v
           </>
         )}
       </div>
-      {!err && phase !== "transcribing" && <div className="mt-1 text-center text-[11px] text-faint">Enter to insert · Esc to cancel · audio stays on this device</div>}
+      {!err && phase !== "transcribing" && <div className="mt-1 text-center text-caption text-faint">Enter to insert · Esc to cancel · audio stays on this device</div>}
     </div>,
     document.body,
   );

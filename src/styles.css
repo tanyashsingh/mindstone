@@ -91,6 +91,12 @@
   --font-mono: var(--font-mono);
   --font-display: var(--font-display);
   --color-on-accent: var(--accent-fg);
+  /* Type scale: every interface text size comes from here. */
+  --text-caption: 11px;
+  --text-meta: 12px;
+  --text-ui: 13px;
+  --text-body: 14px;
+  --text-lead: 15px;
 }
 
 html, body, #root { height: 100%; }
@@ -105,8 +111,9 @@ body {
 }
 * { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 ::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 3px; }
 @layer base {
+  /* In the base layer so a component can replace the ring with its own focus style (outline-none + shadow). */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   button { cursor: default; }
   input, textarea, select { font: inherit; color: inherit; }
 }
@@ -118,7 +125,7 @@ body {
 
 /* ---- Reusable primitives (editorial) -------------------------------- */
 @utility btn {
-  @apply inline-flex items-center gap-1.5 rounded-[8px] px-3 h-8 text-[13px] text-fg transition-colors duration-150 select-none hover:bg-hover active:bg-active disabled:opacity-40 disabled:pointer-events-none;
+  @apply inline-flex items-center gap-1.5 rounded-[8px] px-3 h-8 text-ui text-fg transition-colors duration-150 select-none hover:bg-hover active:bg-active disabled:opacity-40 disabled:pointer-events-none;
 }
 @utility btn-primary {
   @apply btn bg-accent text-on-accent shadow-[var(--elev-sm)] hover:bg-accent hover:brightness-110 active:brightness-95;
@@ -133,28 +140,28 @@ body {
   @apply inline-flex items-center justify-center rounded-[8px] size-8 text-muted transition-colors duration-150 hover:bg-hover hover:text-fg active:bg-active;
 }
 @utility input {
-  @apply h-9 w-full rounded-[8px] bg-elev px-3 text-[13px] outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
+  @apply h-9 w-full rounded-[8px] bg-elev px-3 text-ui outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
 }
 @utility textarea {
-  @apply w-full rounded-[8px] bg-elev px-3 py-2 text-[13px] outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
+  @apply w-full rounded-[8px] bg-elev px-3 py-2 text-ui outline-none shadow-[var(--inset)] placeholder:text-faint transition-shadow focus:shadow-[inset_0_0_0_1px_var(--accent),0_0_0_3px_var(--accent-soft)];
 }
 @utility label {
-  @apply text-[10.5px] font-semibold uppercase tracking-[0.09em] text-faint;
+  @apply text-caption font-semibold uppercase tracking-[0.09em] text-faint;
 }
 @utility panel {
   @apply rounded-[14px] bg-elev shadow-[var(--elev)];
 }
 @utility menu {
-  @apply rounded-[12px] bg-elev p-1.5 shadow-[var(--pop)] text-[13px];
+  @apply rounded-[12px] bg-elev p-1.5 shadow-[var(--pop)] text-ui;
 }
 @utility menu-item {
   @apply flex w-full items-center gap-2 rounded-[7px] px-2.5 h-8 text-left text-fg hover:bg-hover;
 }
 @utility chip {
-  @apply inline-flex items-center rounded-full px-2 h-5 text-[12px] leading-none whitespace-nowrap;
+  @apply inline-flex items-center rounded-full px-2 h-5 text-meta leading-none whitespace-nowrap;
 }
 @utility kbd {
-  @apply inline-flex items-center rounded-[5px] bg-sunken px-1.5 text-[11px] font-mono text-muted shadow-[var(--inset)];
+  @apply inline-flex items-center rounded-[5px] bg-sunken px-1.5 text-caption font-mono text-muted shadow-[var(--inset)];
 }
 
 /* Serif display type for titles. */

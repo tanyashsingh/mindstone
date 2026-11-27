@@ -5,16 +5,16 @@ import { changePassphrase, disableEncryption, enableEncryption, newRecovery, pas
 import { lockAndReload } from "@/lib/idleLock";
 import { useSettings } from "@/store/settings";
 import { useApp } from "@/store/app";
-import { Modal } from "./ui";
+import { Modal, copyText } from "./ui";
 
 function RecoveryKeyBox({ code, onDone }: { code: string; onDone: () => void }) {
   const [saved, setSaved] = useState(false);
   return (
     <div>
-      <p className="mb-2 text-[13px]">This is your <b>recovery key</b>. It is the only way back in if you forget your passphrase. Write it down or store it in a password manager. It is shown only now.</p>
+      <p className="mb-2 text-ui">This is your <b>recovery key</b>. It is the only way back in if you forget your passphrase. Write it down or store it in a password manager. It is shown only now.</p>
       <div className="mb-3 flex items-center gap-2 rounded-md bg-sunken p-3 font-mono text-[16px] tracking-wider" data-testid="recovery-key">{code}
-        <button className="icon-btn ml-auto" aria-label="Copy recovery key" onClick={() => void navigator.clipboard.writeText(code)}><Copy size={14} /></button></div>
-      <label className="mb-3 flex items-center gap-2 text-[13px]"><input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} /> I have saved my recovery key</label>
+        <button className="icon-btn ml-auto" aria-label="Copy recovery key" onClick={() => void copyText(code, "Recovery key copied")}><Copy size={14} /></button></div>
+      <label className="mb-3 flex items-center gap-2 text-ui"><input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} /> I have saved my recovery key</label>
       <button className="btn-primary" disabled={!saved} onClick={onDone}>Done</button>
     </div>
   );
@@ -31,7 +31,7 @@ export function SecuritySettings() {
   return (
     <div className="mt-2 rounded-[12px] border border-line p-3" aria-label="Passphrase protection" role="region">
       <div className="mb-1 flex items-center gap-2 font-medium">{on ? <ShieldCheck size={16} className="text-success" /> : <ShieldOff size={16} className="text-muted" />} Passphrase protection {on ? "is on" : "is off"}</div>
-      <p className="mb-3 text-[12.5px] text-muted">{on
+      <p className="mb-3 text-meta text-muted">{on
         ? "Your workspace is encrypted on this computer with AES-256. Mindstone asks for your passphrase when it starts and after the auto-lock time. Ids, links between items, event start times and deletion times stay unencrypted so lookups work."
         : "Encrypts your pages, tasks, databases, files, comments, AI chats and settings on this computer with a key only your passphrase (or a recovery key) can open. Without either, the data can't be recovered: not by you, not by anyone."}</p>
       {!on ? <button className="btn-primary" onClick={() => setDialog("enable")}><Lock size={14} /> Turn on passphrase protection</button> : (
@@ -39,7 +39,7 @@ export function SecuritySettings() {
           <button className="btn-outline" onClick={() => lockAndReload()}><Lock size={14} /> Lock now</button>
           <button className="btn" onClick={() => setDialog("change")}>Change passphrase</button>
           <button className="btn" onClick={() => setDialog("recovery")}><KeyRound size={14} /> New recovery key</button>
-          <label className="ml-auto flex items-center gap-1.5 text-[12.5px]">Lock after
+          <label className="ml-auto flex items-center gap-1.5 text-meta">Lock after
             <select className="input h-7 w-28" aria-label="Auto-lock" value={s.security.autoLockMin} onChange={(e) => update((x) => ({ ...x, security: { ...x.security, autoLockMin: Number(e.target.value) } }))}>
               {[0, 5, 15, 30, 60, 240].map((m) => <option key={m} value={m}>{m === 0 ? "Never" : m < 60 ? `${m} min` : `${m / 60} h`} idle</option>)}
             </select></label>
@@ -95,21 +95,21 @@ function PassDialog({ kind, onClose }: { kind: "enable" | "change" | "recovery" 
         {kind === "enable" && <>
           <input autoFocus type="password" className="input" aria-label="New passphrase" placeholder="Passphrase (at least 10 characters)" value={a} onChange={(e) => setA(e.target.value)} autoComplete="new-password" />
           <input type="password" className="input" aria-label="Repeat passphrase" placeholder="Repeat passphrase" value={b} onChange={(e) => setB(e.target.value)} autoComplete="new-password" />
-          {a && problem && <p className="text-[12.5px] text-warning">{problem}</p>}
-          <label className="flex items-start gap-2 text-[12.5px]"><input type="checkbox" className="mt-0.5" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I understand that if I lose both my passphrase and my recovery key, my data can't be recovered.</label>
+          {a && problem && <p className="text-meta text-warning">{problem}</p>}
+          <label className="flex items-start gap-2 text-meta"><input type="checkbox" className="mt-0.5" checked={ack} onChange={(e) => setAck(e.target.checked)} /> I understand that if I lose both my passphrase and my recovery key, my data can't be recovered.</label>
         </>}
         {kind === "change" && <>
           <input autoFocus type="password" className="input" aria-label="Current passphrase" placeholder="Current passphrase" value={a} onChange={(e) => setA(e.target.value)} autoComplete="current-password" />
           <input type="password" className="input" aria-label="New passphrase" placeholder="New passphrase" value={b} onChange={(e) => setB(e.target.value)} autoComplete="new-password" />
           <input type="password" className="input" aria-label="Repeat new passphrase" placeholder="Repeat new passphrase" value={c} onChange={(e) => setC(e.target.value)} autoComplete="new-password" />
-          {b && problem && <p className="text-[12.5px] text-warning">{problem}</p>}
+          {b && problem && <p className="text-meta text-warning">{problem}</p>}
         </>}
         {(kind === "recovery" || kind === "disable") && <>
-          <p className="text-[13px] text-muted">{kind === "recovery" ? "Your current recovery key will stop working." : "Your data will be decrypted and stored without a passphrase."} Enter your passphrase to continue.</p>
+          <p className="text-ui text-muted">{kind === "recovery" ? "Your current recovery key will stop working." : "Your data will be decrypted and stored without a passphrase."} Enter your passphrase to continue.</p>
           <input autoFocus type="password" className="input" aria-label="Current passphrase" placeholder="Passphrase" value={a} onChange={(e) => setA(e.target.value)} autoComplete="current-password" />
         </>}
-        {progress !== null && <div className="mt-1"><div className="h-1.5 overflow-hidden rounded bg-sunken"><div className="h-full bg-accent transition-all" style={{ width: `${Math.round(progress * 100)}%` }} /></div><p className="mt-1 text-[12px] text-muted" role="status">{kind === "disable" ? "Decrypting" : "Encrypting"} your data… {Math.round(progress * 100)}%</p></div>}
-        {err && <p className="text-[13px] text-danger" role="alert">{err}</p>}
+        {progress !== null && <div className="mt-1"><div className="h-1.5 overflow-hidden rounded bg-sunken"><div className="h-full bg-accent transition-all" style={{ width: `${Math.round(progress * 100)}%` }} /></div><p className="mt-1 text-meta text-muted" role="status">{kind === "disable" ? "Decrypting" : "Encrypting"} your data… {Math.round(progress * 100)}%</p></div>}
+        {err && <p className="text-ui text-danger" role="alert">{err}</p>}
         <button hidden />
       </form>
     </Modal>

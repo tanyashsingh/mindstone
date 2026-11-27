@@ -140,7 +140,7 @@ export default function Graph({ focusId }: { focusId?: string }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-2.5 text-[13px]">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-2.5 text-ui">
         <Network size={18} className="text-muted" /><h1 className="font-semibold">Knowledge graph</h1>
         <span className="text-faint">{graph?.nodes.length ?? 0} nodes · {graph?.edges.length ?? 0} links · {graph?.orphanCount ?? 0} orphans</span>
         <span className="flex-1" />
@@ -156,21 +156,21 @@ export default function Graph({ focusId }: { focusId?: string }) {
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
             <Network size={30} className="text-faint" />
             <div className="font-medium">{filter || orphansOnly ? "No pages match" : "Nothing to map yet"}</div>
-            <div className="max-w-sm text-[13px] text-muted">{filter || orphansOnly ? "Clear the filter or untick “Orphans only”." : "Every page appears here as a dot. Link pages with [[ and nest them to see the connections."}</div>
+            <div className="max-w-sm text-ui text-muted">{filter || orphansOnly ? "Clear the filter or untick “Orphans only”." : "Every page appears here as a dot. Link pages with [[ and nest them to see the connections."}</div>
           </div>
         )}
         <canvas ref={canvas} className={cx("h-full w-full", hover ? "cursor-pointer" : "cursor-grab")} aria-label="Knowledge graph canvas. Use the filter box to find pages."
           onWheel={(e) => { const v = view.current; v.k = Math.max(0.15, Math.min(4, v.k * (e.deltaY < 0 ? 1.1 : 0.9))); }}
           onMouseMove={(e) => { if (e.buttons === 1) { view.current.x += e.movementX; view.current.y += e.movementY; } else setHover(hit(e)); }}
           onClick={(e) => { const n = hit(e); if (!n) return; if (n.kind === "tag") open({ kind: "search", sub: n.label }); else open({ kind: "page", id: n.id }, { newTab: e.ctrlKey }); }} />
-        <div className="pointer-events-none absolute bottom-3 left-4 flex gap-4 text-[11.5px] text-muted">
+        <div className="pointer-events-none absolute bottom-3 left-4 flex gap-4 text-caption text-muted">
           <span><span className="mr-1 inline-block h-0.5 w-4 bg-[#4f5bd5] align-middle" />link</span>
           <span><span className="mr-1 inline-block h-0.5 w-4 bg-[#2f8a57] align-middle" />embed</span>
           <span><span className="mr-1 inline-block h-0.5 w-4 border-t border-dashed border-[#9b9b97] align-middle" />sub-page</span>
           <span><span className="mr-1 inline-block size-2 rounded-full bg-[#c14c8a] align-middle" />orphan</span>
           <span><span className="mr-1 inline-block size-2 rounded-full bg-[#2f8a57] align-middle" />database</span>
         </div>
-        {hover && <div className="pointer-events-none absolute right-4 top-3 rounded-md bg-elev px-2 py-1 text-[12px] shadow">{hover.label} · {hover.deg} connections</div>}
+        {hover && <div className="pointer-events-none absolute right-4 top-3 rounded-md bg-elev px-2 py-1 text-meta shadow">{hover.label} · {hover.deg} connections</div>}
       </div>
     </div>
   );

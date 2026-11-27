@@ -8,6 +8,7 @@ import { useApp } from "@/store/app";
 import { Chip, EmptyState, Modal } from "@/components/ui";
 import { Limited } from "@/components/Limited";
 import { addDays, cx, fmtDate, today } from "@/lib/util";
+import { parseQuickDate } from "@/lib/quickDate";
 
 export const STATUS: Record<TaskStatus, { label: string; icon: React.ReactNode; color: string }> = {
   todo: { label: "To do", icon: <Circle size={16} />, color: "gray" },
@@ -27,8 +28,8 @@ export function parseQuickTask(input: string): Partial<Task> {
   const tags: string[] = [];
   title = title.replace(/\s!(urgent|high|medium|low)\b/i, (_m, p: string) => { priority = p.toLowerCase() as Priority; return ""; });
   title = title.replace(/\s#([\w-]+)/g, (_m, t: string) => { tags.push(t.toLowerCase()); return ""; });
-  title = title.replace(/\s(today|tomorrow|next week)\b/i, (_m, d: string) => { dueDate = d.toLowerCase() === "today" ? today() : d.toLowerCase() === "tomorrow" ? addDays(today(), 1) : addDays(today(), 7); return ""; });
-  title = title.replace(/\s(\d{4}-\d{2}-\d{2})\b/, (_m, d: string) => { dueDate = d; return ""; });
+  const when = parseQuickDate(title);
+  if (when) { dueDate = when.date; title = when.rest; }
   return { title: title.trim(), dueDate, priority, tags };
 }
 
@@ -54,14 +55,14 @@ export function TaskRow({ task, onOpen, showProject }: { task: Task; onOpen: (t:
         }
         await repo.updateTask(task.id, { status: task.status === "done" ? "todo" : "done" });
       }}>{STATUS[task.status].icon}</button>
-      <button className={cx("min-w-0 flex-1 truncate text-left text-[13.5px]", task.status === "done" && "text-faint line-through")} onClick={() => onOpen(task)}>{task.title || "Untitled task"}</button>
+      <button className={cx("min-w-0 flex-1 truncate text-left text-ui", task.status === "done" && "text-faint line-through")} onClick={() => onOpen(task)}>{task.title || "Untitled task"}</button>
       {task.recurrence && <Repeat size={13} className="text-faint" aria-label="Recurring" />}
       {task.reminderAt && <Bell size={13} className="text-faint" aria-label="Has reminder" />}
       {task.dependsOn.length > 0 && <Link2 size={13} className="text-faint" aria-label="Has dependencies" />}
-      {showProject && <span className="text-[12px] text-faint">{showProject}</span>}
-      {task.tags.map((t) => <span key={t} className="text-[12px] text-faint">#{t}</span>)}
+      {showProject && <span className="text-meta text-faint">{showProject}</span>}
+      {task.tags.map((t) => <span key={t} className="text-meta text-faint">#{t}</span>)}
       {task.priority !== "none" && <Chip color={PRIORITY[task.priority].color}>{PRIORITY[task.priority].label}</Chip>}
-      {task.dueDate && <span className={cx("w-16 text-right text-[12px]", overdue ? "text-danger" : "text-muted")}>{fmtDate(task.dueDate)}</span>}
+      {task.dueDate && <span className={cx("w-16 text-right text-meta", overdue ? "text-danger" : "text-muted")}>{fmtDate(task.dueDate)}</span>}
     </div>
   );
 }
@@ -73,7 +74,7 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
   const subtasks = all?.filter((x) => x.parentTaskId === t.id) ?? [];
   const up = (patch: Partial<Task>) => repo.updateTask(t.id, patch);
   const [sub, setSub] = useState("");
-  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => <div className="flex items-center gap-3"><span className="w-28 shrink-0 text-[13px] text-muted">{label}</span><div className="flex-1">{children}</div></div>;
+  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => <div className="flex items-center gap-3"><span className="w-28 shrink-0 text-ui text-muted">{label}</span><div className="flex-1">{children}</div></div>;
   const reminderLocal = t.reminderAt ? new Date(t.reminderAt - new Date().getTimezoneOffset() * 60e3).toISOString().slice(0, 16) : "";
   return (
     <Modal open onClose={onClose} width={640} title="Task"
@@ -82,7 +83,7 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
       <div className="space-y-2">
         <Row label="Status"><select className="input" value={t.status} onChange={(e) => up({ status: e.target.value as TaskStatus })}>{Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></Row>
         <Row label="Priority"><select className="input" value={t.priority} onChange={(e) => up({ priority: e.target.value as Priority })}>{Object.entries(PRIORITY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></Row>
-        <Row label="Important"><label className="flex items-center gap-2 text-[13px]"><input type="checkbox" checked={!!t.important} onChange={(e) => up({ important: e.target.checked ? 1 : 0 })} /> Counts as important in the Eisenhower matrix</label></Row>
+        <Row label="Important"><label className="flex items-center gap-2 text-ui"><input type="checkbox" checked={!!t.important} onChange={(e) => up({ important: e.target.checked ? 1 : 0 })} /> Counts as important in the Eisenhower matrix</label></Row>
         <Row label="Project"><select className="input" value={t.projectId ?? ""} onChange={(e) => up({ projectId: e.target.value || null })}><option value="">No project</option>{projects?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Row>
         <Row label="Start / due"><div className="flex gap-2"><input type="date" className="input" value={t.startDate ?? ""} onChange={(e) => up({ startDate: e.target.value || null })} /><input type="date" className="input" value={t.dueDate ?? ""} onChange={(e) => up({ dueDate: e.target.value || null })} /></div></Row>
         <Row label="Reminder"><input type="datetime-local" className="input" value={reminderLocal} onChange={(e) => up({ reminderAt: e.target.value ? new Date(e.target.value).getTime() : null })} /></Row>
@@ -93,9 +94,9 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose: () => void 
             </select>
             {t.recurrence && <input type="number" min={1} className="input w-20" value={t.recurrence.interval} onChange={(e) => up({ recurrence: { ...t.recurrence!, interval: Math.max(1, Number(e.target.value)) } })} aria-label="Repeat interval" />}
           </div>
-          {t.recurrence && !t.dueDate && <div className="mt-1 text-[12px] text-warning">Set a due date so the next occurrence can be scheduled.</div>}
+          {t.recurrence && !t.dueDate && <div className="mt-1 text-meta text-warning">Set a due date so the next occurrence can be scheduled.</div>}
         </Row>
-        <Row label="Estimate / actual"><div className="flex items-center gap-2"><input type="number" min={0} className="input w-24" value={t.estimateMin} onChange={(e) => up({ estimateMin: Number(e.target.value) })} /><span className="text-[12px] text-faint">min</span><input type="number" min={0} className="input w-24" value={t.actualMin} onChange={(e) => up({ actualMin: Number(e.target.value) })} /><span className="text-[12px] text-faint">min</span></div></Row>
+        <Row label="Estimate / actual"><div className="flex items-center gap-2"><input type="number" min={0} className="input w-24" value={t.estimateMin} onChange={(e) => up({ estimateMin: Number(e.target.value) })} /><span className="text-meta text-faint">min</span><input type="number" min={0} className="input w-24" value={t.actualMin} onChange={(e) => up({ actualMin: Number(e.target.value) })} /><span className="text-meta text-faint">min</span></div></Row>
         <Row label="Tags"><input className="input" defaultValue={t.tags.join(", ")} placeholder="comma, separated" onBlur={(e) => up({ tags: e.target.value.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean) })} /></Row>
         <Row label="Depends on">
           <div className="flex flex-wrap items-center gap-1">
@@ -154,13 +155,13 @@ export default function Tasks() {
           {(["list", "board", "matrix"] as Mode[]).map((m) => <button key={m} className={cx("btn h-6", mode === m && "bg-active")} onClick={() => setMode(m)}>{m === "matrix" ? "Eisenhower" : m[0]!.toUpperCase() + m.slice(1)}</button>)}
         </div>
         <select className="input h-7 w-40" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} aria-label="Filter by project"><option value="">All projects</option>{projects?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
-        <label className="flex items-center gap-1.5 text-[13px] text-muted"><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} /> Show done</label>
+        <label className="flex items-center gap-1.5 text-ui text-muted"><input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} /> Show done</label>
       </div>
       <div className="mb-4"><QuickAdd projectId={projectFilter || null} /></div>
       {tasks && tasks.length === 0 && <EmptyState icon={<CheckSquare />} title="No tasks yet" body="Add one above. Tasks can have due dates, reminders, subtasks, dependencies and repeat schedules." />}
       {mode === "list" && sections.filter(([, ts]) => ts.length).map(([name, ts]) => (
         <section key={name} className="mb-5">
-          <h2 className={cx("mb-1 px-2 text-[12px] font-semibold uppercase tracking-wide", name === "Overdue" ? "text-danger" : "text-faint")}>{name} · {ts.length}</h2>
+          <h2 className={cx("mb-1 px-2 text-meta font-semibold uppercase tracking-wide", name === "Overdue" ? "text-danger" : "text-faint")}>{name} · {ts.length}</h2>
           <Limited items={ts} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpen} showProject={t.projectId ? pname.get(t.projectId) : undefined} />} />
         </section>
       ))}
@@ -168,11 +169,11 @@ export default function Tasks() {
         <div className="grid grid-cols-4 gap-3">
           {(Object.keys(STATUS) as TaskStatus[]).map((s) => (
             <div key={s} className="min-h-40 rounded-[14px] bg-sunken p-2.5 shadow-[var(--inset)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { status: s }); }}>
-              <div className="mb-2 flex items-center gap-2 px-1 text-[13px] font-medium">{STATUS[s].icon}{STATUS[s].label}<span className="text-faint">{(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).length}</span></div>
+              <div className="mb-2 flex items-center gap-2 px-1 text-ui font-medium">{STATUS[s].icon}{STATUS[s].label}<span className="text-faint">{(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).length}</span></div>
               {(tasks ?? []).filter((t) => t.status === s && !t.parentTaskId && (!projectFilter || t.projectId === projectFilter)).slice(0, 300).map((t) => (
-                <button key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)} onClick={() => setOpen(t)} className="panel mb-1.5 block w-full p-2 text-left text-[13px] hover:border-line-strong">
+                <button key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)} onClick={() => setOpen(t)} className="panel mb-1.5 block w-full p-2 text-left text-ui hover:border-line-strong">
                   <div className="mb-1">{t.title}</div>
-                  <div className="flex gap-1 text-[11px] text-faint">{t.priority !== "none" && <Flag size={11} />}{t.dueDate && fmtDate(t.dueDate)}</div>
+                  <div className="flex gap-1 text-caption text-faint">{t.priority !== "none" && <Flag size={11} />}{t.dueDate && fmtDate(t.dueDate)}</div>
                 </button>
               ))}
             </div>
@@ -186,7 +187,7 @@ export default function Tasks() {
             const ts = list.filter((t) => t.status !== "done" && !!t.important === imp && urgent(t) === urg);
             return (
               <div key={title} className="panel min-h-48 p-3" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-task"); if (id) void repo.updateTask(id, { important: imp ? 1 : 0 }); }}>
-                <div className="font-medium">{title}</div><div className="mb-2 text-[12px] text-faint">{sub} · urgent = due within 2 days or urgent priority</div>
+                <div className="font-medium">{title}</div><div className="mb-2 text-meta text-faint">{sub} · urgent = due within 2 days or urgent priority</div>
                 <Limited items={ts} step={100} label="tasks" render={(t) => <div key={t.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-task", t.id)}><TaskRow task={t} onOpen={setOpen} /></div>} />
               </div>
             );

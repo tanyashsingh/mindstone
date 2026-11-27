@@ -16,7 +16,7 @@ ${error.stack ?? ""}`);
       <div className="flex h-full items-center justify-center p-8">
         <div className="panel max-w-md p-5">
           <div className="mb-1 font-medium">Something went wrong{this.props.label ? ` in ${this.props.label}` : ""}</div>
-          <p className="mb-3 text-[13px] text-muted">Your data is stored locally and was not affected. Details: {this.state.error.message}</p>
+          <p className="mb-3 text-ui text-muted">Your data is stored locally and was not affected. Details: {this.state.error.message}</p>
           <button className="btn-primary" onClick={() => this.setState({ error: null })}>Try again</button>
         </div>
       </div>

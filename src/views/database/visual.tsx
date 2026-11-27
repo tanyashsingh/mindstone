@@ -25,7 +25,7 @@ export function ChartView({ database, view, records, ctx, updateView }: { databa
 
   return (
     <div className="panel p-4">
-      <div className="mb-3 flex flex-wrap items-center gap-2 text-[12.5px]">
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-meta">
         <label className="flex items-center gap-1">Group by
           <select className="input h-7 w-36" aria-label="Chart group" value={view.groupBy ?? ""} onChange={(e) => updateView({ groupBy: e.target.value || undefined })}>
             <option value="">Choose…</option>{groupable.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -47,7 +47,7 @@ export function ChartView({ database, view, records, ctx, updateView }: { databa
       {!group ? <EmptyState title="Charts group records by a Select, Status or Checkbox property" body={groupable.length ? "Choose one in “Group by”." : "Add one of those properties first."} />
         : !records.length ? <EmptyState title="No records to chart" />
           : <figure aria-label={title} data-testid="chart" data-kind={chart.kind}>
-            <figcaption className="mb-2 text-[13px] text-muted">{title}</figcaption>
+            <figcaption className="mb-2 text-ui text-muted">{title}</figcaption>
             <Chart kind={chart.kind} points={points} />
             <table className="sr-only"><caption>{title}</caption><tbody>{points.map((p) => <tr key={p.key}><th>{p.label}</th><td>{p.value}</td></tr>)}</tbody></table>
           </figure>}
@@ -62,7 +62,7 @@ function Chart({ kind, points }: { kind: ChartKind; points: { key: string; label
     return (
       <div className="space-y-2">
         {points.map((g) => (
-          <div key={g.key} className="flex items-center gap-3 text-[13px]" data-testid="chart-mark" data-label={g.label} data-value={g.value}>
+          <div key={g.key} className="flex items-center gap-3 text-ui" data-testid="chart-mark" data-label={g.label} data-value={g.value}>
             <span className="w-32 truncate text-right text-muted">{g.label}</span>
             <div className="h-5 flex-1"><div className="h-full rounded-sm" style={{ background: OPTION_HEX[g.color] ?? OPTION_HEX.gray, width: `${(Math.max(0, g.value) / max) * 100}%`, minWidth: g.value ? 2 : 0 }} /></div>
             <span className="w-14 tabular-nums">{fmtNum(g.value)}</span>
@@ -91,7 +91,7 @@ function Chart({ kind, points }: { kind: ChartKind; points: { key: string; label
           {arcs.map(({ p, d }) => <path key={p.key} d={d} fill={OPTION_HEX[p.color] ?? OPTION_HEX.gray} fillRule="evenodd" stroke="var(--surface, #fff)" strokeWidth={1.5} data-testid="chart-mark" data-label={p.label} data-value={p.value}><title>{`${p.label}: ${fmtNum(p.value)}`}</title></path>)}
           {kind === "donut" && <text x="100" y="106" textAnchor="middle" className="fill-current text-[18px] font-semibold">{fmtNum(total)}</text>}
         </svg>
-        <ul className="space-y-1 text-[13px]">
+        <ul className="space-y-1 text-ui">
           {points.map((p) => <li key={p.key} className="flex items-center gap-2"><span className="size-3 rounded-sm" style={{ background: OPTION_HEX[p.color] ?? OPTION_HEX.gray }} />{p.label}<span className="tabular-nums text-muted">{fmtNum(p.value)}{total ? ` · ${Math.round((p.value / total) * 100)}%` : ""}</span></li>)}
         </ul>
       </div>
@@ -114,7 +114,7 @@ function Chart({ kind, points }: { kind: ChartKind; points: { key: string; label
           <polyline fill="none" stroke="var(--accent, #1f2a44)" strokeWidth={2} points={points.map((p, i) => `${pad.l + i * step + step / 2},${y(p.value)}`).join(" ")} />
           {points.map((p, i) => <circle key={p.key} cx={pad.l + i * step + step / 2} cy={y(p.value)} r={4} fill="var(--accent, #1f2a44)" data-testid="chart-mark" data-label={p.label} data-value={p.value}><title>{`${p.label}: ${fmtNum(p.value)}`}</title></circle>)}
         </>}
-        {points.map((p, i) => <text key={p.key} x={pad.l + i * step + step / 2} y={H - pad.b + 16} textAnchor="middle" className="fill-current text-[11px]">{p.label.length > 12 ? `${p.label.slice(0, 11)}…` : p.label}</text>)}
+        {points.map((p, i) => <text key={p.key} x={pad.l + i * step + step / 2} y={H - pad.b + 16} textAnchor="middle" className="fill-current text-caption">{p.label.length > 12 ? `${p.label.slice(0, 11)}…` : p.label}</text>)}
         {points.map((p, i) => kind === "bar" && <text key={`v${p.key}`} x={pad.l + i * step + step / 2} y={y(p.value) - 4} textAnchor="middle" className="fill-current text-[10px]">{fmtNum(p.value)}</text>)}
       </svg>
     </div>
@@ -190,14 +190,14 @@ export function TimelineView({ database, view, records, onOpen, updateView }: { 
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-1 text-[12.5px]">
+      <div className="mb-2 flex items-center gap-1 text-meta">
         <span className="text-faint">Zoom</span>
         {(["day", "week", "month"] as const).map((z) => <button key={z} className={cx("btn h-7", zoom === z && "bg-active")} aria-pressed={zoom === z} onClick={() => updateView({ timelineZoom: z })}>{z[0]!.toUpperCase() + z.slice(1)}</button>)}
         <span className="ml-2 text-faint">by {dp.name}{editable ? " · drag bars to move; drag their ends to change dates" : ""}</span>
       </div>
       <div ref={scroller} className="overflow-x-auto rounded-md border border-line" data-testid="timeline">
         <div className="relative" style={{ width: days * dayW + 200 }}>
-          <div className="flex h-7 border-b border-line text-[11px] text-faint">
+          <div className="flex h-7 border-b border-line text-caption text-faint">
             <div className="sticky left-0 z-10 w-[200px] shrink-0 bg-surface" />
             <div className="relative flex-1">{ticks.map((t) => <span key={t.at} className="absolute top-1.5 border-l border-line pl-1" style={{ left: t.at * dayW }}>{t.label}</span>)}</div>
           </div>
@@ -209,10 +209,10 @@ export function TimelineView({ database, view, records, onOpen, updateView }: { 
             const title = recordTitle(database, r);
             return (
               <div key={r.id} className="flex h-9 items-center border-b border-line">
-                <button className="sticky left-0 z-10 w-[200px] shrink-0 truncate bg-surface px-2 text-left text-[13px]" onClick={() => onOpen(r)}>{title}</button>
+                <button className="sticky left-0 z-10 w-[200px] shrink-0 truncate bg-surface px-2 text-left text-ui" onClick={() => onOpen(r)}>{title}</button>
                 <div className="relative h-full flex-1">
                   <div role="button" tabIndex={0} aria-label={`${title}: ${start}${end && end !== start ? ` to ${end}` : ""}`} data-testid="timeline-bar"
-                    className={cx("group absolute top-2 h-5 select-none rounded bg-accent/80 text-[11px] text-on-accent", editable ? "cursor-grab" : "cursor-pointer", d && "cursor-grabbing ring-2 ring-accent")}
+                    className={cx("group absolute top-2 h-5 select-none rounded bg-accent/80 text-caption text-on-accent", editable ? "cursor-grab" : "cursor-pointer", d && "cursor-grabbing ring-2 ring-accent")}
                     style={{ left: s * dayW, width: (e - s + 1) * dayW }}
                     onDoubleClick={() => onOpen(r)}
                     onKeyDown={(ev) => { if (ev.key === "Enter") onOpen(r); }}

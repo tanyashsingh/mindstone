@@ -80,7 +80,7 @@ function FindBar({ editor, onClose, replace }: { editor: TEditor; onClose: () =>
         <Search size={14} className="ml-1 text-faint" />
         <input autoFocus className="input h-7 w-48" placeholder="Find in page" value={q} onChange={(e) => { setQ(e.target.value); set({ query: e.target.value, active: 0 }); }}
           onKeyDown={(e) => { if (e.key === "Enter") go(e.shiftKey ? -1 : 1); if (e.key === "Escape") onClose(); }} />
-        <span className="w-14 text-center text-[12px] text-faint">{st?.matches.length ? `${st.active + 1}/${st.matches.length}` : "0/0"}</span>
+        <span className="w-14 text-center text-meta text-faint">{st?.matches.length ? `${st.active + 1}/${st.matches.length}` : "0/0"}</span>
         <button className="icon-btn" aria-label="Previous" onClick={() => go(-1)}>↑</button>
         <button className="icon-btn" aria-label="Next" onClick={() => go(1)}>↓</button>
         <button className="icon-btn" aria-label="Close find" onClick={onClose}><X size={14} /></button>
@@ -301,7 +301,11 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!editor?.isFocused && !find) return;
+      // Also when nothing has focus (after clicking empty space), for the page in the main view: the desktop app has
+      // no find bar of its own, so Ctrl+F would otherwise do nothing.
+      const idle = !document.activeElement || document.activeElement === document.body;
+      const inMain = !!editor?.view.dom.closest('[aria-label="Main view"]');
+      if (!editor?.isFocused && !find && !(idle && inMain)) return;
       if (e.ctrlKey && e.key.toLowerCase() === "f" && !e.shiftKey) { e.preventDefault(); setFind("find"); }
       if (e.ctrlKey && e.key.toLowerCase() === "h") { e.preventDefault(); setFind("replace"); }
     };
@@ -347,11 +351,11 @@ export function Editor({ page, editable }: { page: Page; editable: boolean }) {
         </div>
       </BubbleMenu>
       {resolvedThreads.length > 0 && <style>{resolvedThreads.map((c) => `span.comment-mark[data-comment="${CSS.escape(c.threadId ?? c.id)}"]`).join(",") + "{background:none;border-bottom:0}"}</style>}
-      {page.suggesting ? <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-0.5 text-[12px] text-accent" role="note" aria-label="Suggestion mode">Suggesting: your edits are tracked for review</div> : null}
+      {page.suggesting ? <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-0.5 text-meta text-accent" role="note" aria-label="Suggestion mode">Suggesting: your edits are tracked for review</div> : null}
       <DragHandle editor={editor} container={wrapRef} />
       <EditorContent editor={editor} />
       <SuggestMenu label="Insert block" state={slash} render={(it) => (
-        <span className="flex w-full items-center justify-between gap-3"><span>{it.title}</span><span className="truncate text-[11.5px] text-faint">{it.hint}</span></span>
+        <span className="flex w-full items-center justify-between gap-3"><span>{it.title}</span><span className="truncate text-caption text-faint">{it.hint}</span></span>
       )} />
       <SuggestMenu label="Link to page" state={links} render={(it) => (
         <span className="flex items-center gap-2"><span className="w-5 text-center">{it.create ? "+" : it.icon || "📄"}</span><span className="truncate">{it.create ? `Create “${it.title}”` : it.title}</span></span>

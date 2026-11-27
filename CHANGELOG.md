@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased (0.5.2)
+
+- Quick add understands more dates: weekdays ("next friday"), "in 3 days", "next month", "dec 5".
+- Dialogs and the command palette keep keyboard focus inside and return it when they close; Escape closes the palette from anywhere in it.
+- Ctrl+F opens find in page even when the text isn't focused.
+- Clear messages when a backup file is damaged or an import fails; an import can't be started twice.
+- Copy buttons confirm what was copied.
+- Home adapts to the space beside the sidebar, so small windows aren't cramped.
+- One icon style for pages and databases; a consistent type scale across the app; the current sidebar item is clearer; sidebar sections show and remember whether they're open.
+- Inbox activity shows pages by their current name.
+- Removed the empty "Shared" sidebar section and the calendar note about Google and Outlook.
+- Fixed a React warning when opening Files.
+
 ## 0.5.1 (2026-11-27)
 
 - Desktop: Mindstone now remembers which data folder it chose the first time it ran, so a later start can never open an empty folder instead of your workspace. If you upgraded from Cairn and 0.5.0 showed only starter content, your data is safe in the Cairn folder and 0.5.1 opens it again.

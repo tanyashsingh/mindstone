@@ -33,18 +33,18 @@ export function FeedsDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal open onClose={onClose} title="Subscribed calendars" width={560}>
-      <p className="mb-3 text-[13px] text-muted">Show a Google, Outlook or other calendar next to your tasks, read-only. Paste its private iCalendar address: in Google Calendar, Settings → your calendar → “Secret address in iCal format”; in Outlook, Settings → Calendar → Shared calendars → Publish → ICS link. No sign-in needed; it refreshes every 30 minutes.</p>
+      <p className="mb-3 text-ui text-muted">Show a Google, Outlook or other calendar next to your tasks, read-only. Paste its private iCalendar address: in Google Calendar, Settings → your calendar → “Secret address in iCal format”; in Outlook, Settings → Calendar → Shared calendars → Publish → ICS link. No sign-in needed; it refreshes every 30 minutes.</p>
       <ul className="mb-4 space-y-1.5" aria-label="Subscribed calendars">
         {feeds.map((f) => (
-          <li key={f.id} className="flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-[13px]" data-testid="feed">
+          <li key={f.id} className="flex items-center gap-2 rounded-md border border-line px-2.5 py-2 text-ui" data-testid="feed">
             <span className={cx("size-3 shrink-0 rounded-full", `dot-${f.color}`)} />
             <span className="min-w-0 flex-1"><span className="block truncate font-medium">{f.name}</span>
-              <span className={cx("block truncate text-[12px]", f.lastError ? "text-danger" : "text-faint")}>{f.lastError ? `Couldn't refresh: ${f.lastError}` : f.lastFetched ? `${f.eventCount} events · refreshed ${relTime(f.lastFetched)}` : "Not downloaded yet"}</span></span>
+              <span className={cx("block truncate text-meta", f.lastError ? "text-danger" : "text-faint")}>{f.lastError ? `Couldn't refresh: ${f.lastError}` : f.lastFetched ? `${f.eventCount} events · refreshed ${relTime(f.lastFetched)}` : "Not downloaded yet"}</span></span>
             <button className="icon-btn" aria-label={`Refresh ${f.name}`} disabled={busy === f.id} onClick={async () => { setBusy(f.id); try { await refreshFeed(f.id); } catch { /* shown in the row */ } finally { setBusy(null); } }}>{busy === f.id ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}</button>
             <button className="icon-btn hover:text-danger" aria-label={`Remove ${f.name}`} onClick={async () => { if (await confirmDialog(`Remove “${f.name}”?`, "Its events disappear from Mindstone. The calendar itself is not affected.")) await removeFeed(f.id); }}><Trash2 size={14} /></button>
           </li>
         ))}
-        {feeds.length === 0 && <li className="text-[13px] text-faint">No subscriptions yet.</li>}
+        {feeds.length === 0 && <li className="text-ui text-faint">No subscriptions yet.</li>}
       </ul>
       <form className="grid gap-2" onSubmit={add} aria-label="Subscribe to a calendar">
         <input className="input" aria-label="Calendar name" placeholder="Name, e.g. Work" value={name} onChange={(e) => setName(e.target.value)} />
@@ -54,7 +54,7 @@ export function FeedsDialog({ onClose }: { onClose: () => void }) {
           <span className="flex-1" />
           <button className="btn-primary" disabled={!url.trim() || busy === "new"}>{busy === "new" && <Loader2 size={14} className="animate-spin" />} Subscribe</button>
         </div>
-        {err && <p className="text-[12.5px] text-danger" role="alert">{err}</p>}
+        {err && <p className="text-meta text-danger" role="alert">{err}</p>}
       </form>
     </Modal>
   );

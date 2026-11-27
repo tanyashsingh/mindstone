@@ -246,7 +246,7 @@ export async function createDatabase(workspaceId: ID, parentId: ID | null, name 
   const props = properties ?? [newProperty("Name", "title"), newProperty("Status", "status"), newProperty("Tags", "multiSelect"), newProperty("Date", "date")];
   const status = props.find((p) => p.type === "status" || p.type === "select");
   const date = props.find((p) => p.type === "date");
-  const page = newPage(workspaceId, parentId, { kind: "database", title: name, icon: "▦", content: null });
+  const page = newPage(workspaceId, parentId, { kind: "database", title: name, icon: "", content: null });
   const database: Database = {
     id: uid(), workspaceId, pageId: page.id, name, properties: props, nextSeq: 1, createdAt: now(), updatedAt: now(),
     views: [

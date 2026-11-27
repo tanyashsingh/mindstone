@@ -76,10 +76,10 @@ export function AiRewriteDialog({ editor, onClose }: { editor: Editor; onClose: 
         <button className="btn-primary" onClick={() => apply("replace")}>Replace selection</button>
       </> : undefined}>
       {!p ? (
-        <p className="text-[13px] text-muted">No AI provider is set up. Open Settings → AI providers to connect Claude, OpenAI, Gemini or a local Ollama model.</p>
+        <p className="text-ui text-muted">No AI provider is set up. Open Settings → AI providers to connect Claude, OpenAI, Gemini or a local Ollama model.</p>
       ) : (
         <>
-          <div className="mb-3 rounded-md bg-sunken px-3 py-2 text-[12px] text-muted">
+          <div className="mb-3 rounded-md bg-sunken px-3 py-2 text-meta text-muted">
             Selected text ({source.length.toLocaleString()} characters) will be sent to <b>{PROVIDER_LABELS[p.id]}</b> · {p.cfg.model}{p.isLocal ? " on this computer." : " over the internet."}
             {requiresCloudConsent() && <div className="mt-1 text-warning">Cloud AI is off. Enable it in Settings → AI first.</div>}
           </div>
@@ -88,7 +88,7 @@ export function AiRewriteDialog({ editor, onClose }: { editor: Editor; onClose: 
               <div className="mb-2 grid grid-cols-3 gap-1">
                 {WRITING_ACTIONS.map((a) => <button key={a.id} className="btn-outline justify-start" onClick={() => void run(a.id)}>{a.label}</button>)}
               </div>
-              <div className="mb-2 flex items-center gap-2 text-[12px] text-muted">Language / tone for “…” actions: <input className="input h-7 w-40" value={extra} onChange={(e) => setExtra(e.target.value)} /></div>
+              <div className="mb-2 flex items-center gap-2 text-meta text-muted">Language / tone for “…” actions: <input className="input h-7 w-40" value={extra} onChange={(e) => setExtra(e.target.value)} /></div>
               <div className="flex gap-2">
                 <input className="input" placeholder="Or describe what to do with the selection…" value={custom} onChange={(e) => setCustom(e.target.value)} onKeyDown={(e) => e.key === "Enter" && custom && void run("custom")} />
                 <button className="btn-primary" disabled={!custom} onClick={() => void run("custom")}>Run</button>
@@ -97,14 +97,14 @@ export function AiRewriteDialog({ editor, onClose }: { editor: Editor; onClose: 
           )}
           {action && (
             <div className="grid grid-cols-2 gap-3">
-              <div><div className="label mb-1">Original</div><div className="max-h-[42vh] overflow-auto whitespace-pre-wrap rounded-md border border-line p-2 text-[13px] text-muted">{source}</div></div>
+              <div><div className="label mb-1">Original</div><div className="max-h-[42vh] overflow-auto whitespace-pre-wrap rounded-md border border-line p-2 text-ui text-muted">{source}</div></div>
               <div>
                 <div className="label mb-1 flex items-center gap-1">Suggestion {busy && <Loader2 size={12} className="animate-spin" />}</div>
-                <div className={cx("rea-editor !pb-0 max-h-[42vh] overflow-auto rounded-md border border-accent/40 p-2 !text-[13px]")} dangerouslySetInnerHTML={{ __html: html || "<p class='text-faint'>Waiting for response…</p>" }} />
+                <div className={cx("rea-editor !pb-0 max-h-[42vh] overflow-auto rounded-md border border-accent/40 p-2 !text-ui")} dangerouslySetInnerHTML={{ __html: html || "<p class='text-faint'>Waiting for response…</p>" }} />
               </div>
             </div>
           )}
-          {err && <div className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-danger">{err}</div>}
+          {err && <div className="mt-3 rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-ui text-danger">{err}</div>}
           {action && !busy && <button className="btn mt-2" onClick={() => { setAction(null); setOut(""); setErr(""); }}>← Other actions</button>}
         </>
       )}

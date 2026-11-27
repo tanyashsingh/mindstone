@@ -46,7 +46,7 @@ export default function Templates() {
   return (
     <div className="mx-auto max-w-5xl px-10 py-10">
       <div className="mb-2 flex items-center gap-3"><LayoutTemplate size={22} className="text-muted" /><h1 className="text-[26px] font-bold tracking-tight">Templates</h1></div>
-      <p className="mb-5 text-[13px] text-muted">Start from a template, or save any page as a template from its ••• menu.</p>
+      <p className="mb-5 text-ui text-muted">Start from a template, or save any page as a template from its ••• menu.</p>
       <div className="mb-4 flex flex-wrap gap-1">{cats.map((c) => <button key={c} className={cx("btn h-7", cat === c && "bg-active")} onClick={() => setCat(c)}>{c}</button>)}</div>
       {(cat === "All" || cat === "Custom") && custom && custom.length > 0 && (
         <>
@@ -59,7 +59,7 @@ export default function Templates() {
                   <button className="icon-btn size-6 opacity-0 group-hover:opacity-100" aria-label="Duplicate" onClick={() => db().templates.add({ ...t, id: uid(), name: `${t.name} (copy)`, createdAt: Date.now() })}><Copy size={13} /></button>
                   <button className="icon-btn size-6 opacity-0 group-hover:opacity-100" aria-label="Delete" onClick={async () => { if (await confirmDialog(`Delete template “${t.name}”?`)) await db().templates.delete(t.id); }}><Trash2 size={13} /></button>
                 </div>
-                <div className="mb-3 text-[12.5px] text-muted">{t.description}</div>
+                <div className="mb-3 text-meta text-muted">{t.description}</div>
                 <button className="btn-outline" onClick={() => use(() => applyCustom(ws, t))}>Use template</button>
               </div>
             ))}
@@ -73,7 +73,7 @@ export default function Templates() {
             {builtins.map((t) => (
               <div key={t.id} className="panel flex flex-col p-4">
                 <div className="mb-1 flex items-center gap-2"><span className="text-[20px]">{t.icon}</span><span className="font-medium">{t.name}</span></div>
-                <div className="mb-3 flex-1 text-[12.5px] text-muted">{t.description}{t.database && <span className="text-faint"> Includes a “{t.database.name}” database.</span>}</div>
+                <div className="mb-3 flex-1 text-meta text-muted">{t.description}{t.database && <span className="text-faint"> Includes a “{t.database.name}” database.</span>}</div>
                 <button className="btn-outline self-start" onClick={() => use(() => applyBuiltIn(ws, t))}>Use template</button>
               </div>
             ))}

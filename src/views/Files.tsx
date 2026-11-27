@@ -24,10 +24,10 @@ function Preview({ a, onClose }: { a: Attachment; onClose: () => void }) {
       {a.mime.startsWith("video/") && <video src={url} controls className="max-h-[60vh] w-full" />}
       {a.mime.startsWith("audio/") && <audio src={url} controls className="w-full" />}
       {a.mime === "application/pdf" && <object data={url} type="application/pdf" className="h-[60vh] w-full"><p>PDF preview is unavailable here. Use Save as.</p></object>}
-      {!isText && a.text && a.mime !== "application/pdf" && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 text-[12.5px]">{a.text.slice(0, 200_000)}</pre>}
-      {isText && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 font-mono text-[12px]">{text ?? "Loading…"}</pre>}
-      {!isText && !a.text && !/^(image|video|audio)\//.test(a.mime) && a.mime !== "application/pdf" && <p className="text-[13px] text-muted">No preview for {a.mime}. Use Save as to open it in another app. Mindstone never runs attachments.</p>}
-      <dl className="mt-3 grid grid-cols-3 gap-2 text-[12px] text-muted"><div>Type<br /><b className="text-fg">{a.mime}</b></div><div>Size<br /><b className="text-fg">{fmtBytes(a.size)}</b></div><div>Added<br /><b className="text-fg">{new Date(a.createdAt).toLocaleString()}</b></div></dl>
+      {!isText && a.text && a.mime !== "application/pdf" && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 text-meta">{a.text.slice(0, 200_000)}</pre>}
+      {isText && <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-sunken p-3 font-mono text-meta">{text ?? "Loading…"}</pre>}
+      {!isText && !a.text && !/^(image|video|audio)\//.test(a.mime) && a.mime !== "application/pdf" && <p className="text-ui text-muted">No preview for {a.mime}. Use Save as to open it in another app. Mindstone never runs attachments.</p>}
+      <dl className="mt-3 grid grid-cols-3 gap-2 text-meta text-muted"><div>Type<br /><b className="text-fg">{a.mime}</b></div><div>Size<br /><b className="text-fg">{fmtBytes(a.size)}</b></div><div>Added<br /><b className="text-fg">{new Date(a.createdAt).toLocaleString()}</b></div></dl>
     </Modal>
   );
 }
@@ -45,7 +45,7 @@ export default function Files() {
   const list = (files ?? []).filter((f) => (!q || f.name.toLowerCase().includes(q.toLowerCase())) && (!kind || f.mime.startsWith(kind)));
   const total = (files ?? []).reduce((a, f) => a + f.size, 0);
   const [quota, setQuota] = useState<{ usage?: number; quota?: number } | null>(null);
-  if (quota === null && navigator.storage?.estimate) void navigator.storage.estimate().then(setQuota);
+  useEffect(() => { let live = true; void navigator.storage?.estimate?.().then((q) => { if (live) setQuota(q); }); return () => { live = false; }; }, [files?.length]);
 
   const upload = async (fs: File[]) => {
     for (const f of fs) {
@@ -62,7 +62,7 @@ export default function Files() {
         <button className="btn-primary" onClick={() => input.current?.click()}><Upload size={14} /> Upload</button>
         <input ref={input} type="file" multiple hidden onChange={(e) => { void upload([...(e.target.files ?? [])]); e.target.value = ""; }} />
       </div>
-      <p className="mb-5 text-[13px] text-muted">
+      <p className="mb-5 text-ui text-muted">
         {files?.length ?? 0} files · {fmtBytes(total)} in this workspace{quota?.usage !== undefined && quota.quota ? ` · ${fmtBytes(quota.usage)} of ${fmtBytes(quota.quota)} local storage used` : ""}. Drop files anywhere here. Max 100 MB each; executables are blocked.
       </p>
       <div className="mb-3 flex gap-2">
@@ -72,10 +72,10 @@ export default function Files() {
       {list.length === 0 ? <EmptyState icon={<Paperclip />} title="No files" body="Upload files here or drop them into any page." /> : (
         <div className="divide-y divide-line overflow-hidden rounded-[12px] shadow-[var(--elev)]">
           {list.map((f) => (
-            <div key={f.id} className="group flex items-center gap-3 px-3 py-2 text-[13px]">
+            <div key={f.id} className="group flex items-center gap-3 px-3 py-2 text-ui">
               <span className="text-muted">{icon(f.mime)}</span>
               <button className="flex-1 truncate text-left hover:underline" onClick={() => setPreview(f)}>{f.name}</button>
-              {f.pageId && <button className="max-w-40 truncate text-[12px] text-accent" onClick={() => open({ kind: "page", id: f.pageId! })}>↗ {pages?.get(f.pageId) ?? "page"}</button>}
+              {f.pageId && <button className="max-w-40 truncate text-meta text-accent" onClick={() => open({ kind: "page", id: f.pageId! })}>↗ {pages?.get(f.pageId) ?? "page"}</button>}
               {f.textStatus === "ok" && <span className="chip c-green" title={f.ocr === "done" ? "Text recognised (OCR): found by search and AI" : "Text extracted: found by search and AI"}>{f.ocr === "done" ? "Searchable (OCR)" : "Searchable"}</span>}
               {f.textStatus === "empty" && <span className="chip c-gray" title="No text found (for example a scanned PDF or a photo)">No text</span>}
               {f.textStatus !== "ok" || f.ocr === "done" || f.mime.startsWith("image/") ? <OcrButton a={f} compact /> : null}

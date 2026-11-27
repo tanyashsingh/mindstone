@@ -3,9 +3,10 @@ import { NodeViewContent, NodeViewWrapper, type ReactNodeViewProps } from "@tipt
 import { useLiveQuery } from "dexie-react-hooks";
 import katex from "katex";
 import DOMPurify from "dompurify";
-import { Info, Lightbulb, AlertTriangle, AlertOctagon, FileText, Download, ExternalLink, Link2, Table2, AudioLines, Loader2 } from "lucide-react";
+import { Info, Lightbulb, AlertTriangle, AlertOctagon, FileText, Download, ExternalLink, Link2, AudioLines, Loader2 } from "lucide-react";
 import { transcribeAttachment } from "@/voice/VoiceNoteView";
 import { OcrButton } from "@/components/OcrButton";
+import { PageIcon } from "@/components/ui";
 import { db } from "@/data/db";
 import { useApp } from "@/store/app";
 import { cx, downloadBlob, fmtBytes } from "@/lib/util";
@@ -45,13 +46,13 @@ export function MathView({ node, updateAttributes, selected, editor }: ReactNode
   return (
     <NodeViewWrapper className={cx("my-2 rounded-md", selected && "ring-2 ring-accent")}>
       <div contentEditable={false} onDoubleClick={() => setEditing(true)} className="cursor-default overflow-x-auto rounded-md px-2 py-1 hover:bg-hover">
-        {html.ok ? <div dangerouslySetInnerHTML={{ __html: html.html }} /> : <div className="text-[13px] text-danger">{html.html}</div>}
+        {html.ok ? <div dangerouslySetInnerHTML={{ __html: html.html }} /> : <div className="text-ui text-danger">{html.html}</div>}
       </div>
       {editing && (
         <textarea autoFocus className="textarea mt-1 font-mono" rows={3} defaultValue={node.attrs.latex}
           onBlur={(e) => { updateAttributes({ latex: e.target.value }); setEditing(false); }} onKeyDown={(e) => e.key === "Escape" && (e.target as HTMLTextAreaElement).blur()} />
       )}
-      {!editing && editor.isEditable && <div contentEditable={false} className="text-[11px] text-faint opacity-0 hover:opacity-100">Double-click to edit LaTeX</div>}
+      {!editing && editor.isEditable && <div contentEditable={false} className="text-caption text-faint opacity-0 hover:opacity-100">Double-click to edit LaTeX</div>}
     </NodeViewWrapper>
   );
 }
@@ -78,12 +79,12 @@ export function MermaidView({ node, updateAttributes, selected, editor }: ReactN
   return (
     <NodeViewWrapper className={cx("my-2 rounded-lg border border-line p-3", selected && "ring-2 ring-accent")}>
       <div contentEditable={false} onDoubleClick={() => setEditing(true)} className="flex justify-center overflow-x-auto [&_svg]:max-w-full">
-        {err ? <div className="text-[13px] text-danger">Diagram error: {err}</div> : svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <div className="skeleton h-24 w-full" />}
+        {err ? <div className="text-ui text-danger">Diagram error: {err}</div> : svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : <div className="skeleton h-24 w-full" />}
       </div>
       {editing ? (
         <textarea autoFocus className="textarea mt-2 font-mono" rows={6} defaultValue={node.attrs.code}
           onBlur={(e) => { updateAttributes({ code: e.target.value }); setEditing(false); }} />
-      ) : editor.isEditable && <div contentEditable={false} className="mt-1 text-center text-[11px] text-faint">Mermaid diagram · double-click to edit</div>}
+      ) : editor.isEditable && <div contentEditable={false} className="mt-1 text-center text-caption text-faint">Mermaid diagram · double-click to edit</div>}
     </NodeViewWrapper>
   );
 }
@@ -95,9 +96,9 @@ export function PageEmbedView({ node, selected }: ReactNodeViewProps) {
     <NodeViewWrapper className={cx("my-1", selected && "rounded-md ring-2 ring-accent")} data-drag-handle>
       <button contentEditable={false} onClick={(e) => page && open({ kind: "page", id: page.id }, { newTab: e.ctrlKey })}
         className="flex w-full items-center gap-2 rounded-md px-1 py-1 text-left hover:bg-hover">
-        <span className="w-5 text-center">{page?.icon || (page?.kind === "database" ? <Table2 size={16} className="inline text-muted" /> : <FileText size={16} className="inline text-muted" />)}</span>
+        <span className="w-5 text-center"><PageIcon page={page} size={16} /></span>
         <span className={cx("border-b border-line-strong font-medium", page?.deletedAt ? "text-faint line-through" : "")}>{page ? page.title || "Untitled" : "Missing page"}</span>
-        {page?.deletedAt ? <span className="text-[12px] text-faint">in trash</span> : null}
+        {page?.deletedAt ? <span className="text-meta text-faint">in trash</span> : null}
       </button>
     </NodeViewWrapper>
   );
@@ -113,9 +114,9 @@ export function TocView({ editor }: ReactNodeViewProps) {
   return (
     <NodeViewWrapper className="my-2 rounded-lg border border-line px-3 py-2" contentEditable={false}>
       <div className="label mb-1">Contents</div>
-      {items.length === 0 && <div className="text-[13px] text-faint">Add headings to build the table of contents.</div>}
+      {items.length === 0 && <div className="text-ui text-faint">Add headings to build the table of contents.</div>}
       {items.map((h, i) => (
-        <button key={h.id || i} className="block w-full truncate rounded px-1 py-0.5 text-left text-[14px] text-muted hover:bg-hover hover:text-fg" style={{ paddingLeft: (h.level - 1) * 14 + 4 }}
+        <button key={h.id || i} className="block w-full truncate rounded px-1 py-0.5 text-left text-body text-muted hover:bg-hover hover:text-fg" style={{ paddingLeft: (h.level - 1) * 14 + 4 }}
           onClick={() => document.querySelector(`[data-id="${CSS.escape(h.id)}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{h.text || "Untitled"}</button>
       ))}
     </NodeViewWrapper>
@@ -129,7 +130,7 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
   const wrap = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
   if (att === undefined) return <NodeViewWrapper className="my-2"><div className="skeleton h-10" /></NodeViewWrapper>;
-  if (!att) return <NodeViewWrapper className="my-2 rounded-md border border-dashed border-line p-3 text-[13px] text-faint">Attachment missing: {node.attrs.name}</NodeViewWrapper>;
+  if (!att) return <NodeViewWrapper className="my-2 rounded-md border border-dashed border-line p-3 text-ui text-faint">Attachment missing: {node.attrs.name}</NodeViewWrapper>;
   const kind = att.mime.split("/")[0];
   return (
     <NodeViewWrapper className={cx("my-2", selected && "rounded-md ring-2 ring-accent")} data-drag-handle>
@@ -154,10 +155,10 @@ export function AttachmentView({ node, selected, updateAttributes, editor }: Rea
         {kind === "video" && <video src={url} controls className="max-w-full rounded-md" />}
         {kind === "audio" && <audio src={url} controls className="w-[min(480px,100%)]" />}
         {(kind === "audio" || kind === "video") && att.textStatus === "ok" && att.text && (
-          <details className="mt-1 rounded-[10px] bg-sunken px-3 py-2 text-[13px] shadow-[var(--inset)]"><summary className="cursor-pointer text-muted">Transcript</summary><p className="mt-1 whitespace-pre-wrap">{att.text}</p></details>
+          <details className="mt-1 rounded-[10px] bg-sunken px-3 py-2 text-ui shadow-[var(--inset)]"><summary className="cursor-pointer text-muted">Transcript</summary><p className="mt-1 whitespace-pre-wrap">{att.text}</p></details>
         )}
       {kind !== "image" && (
-          <div className="mt-1 flex items-center gap-2 rounded-md border border-line px-3 py-2 text-[13px]">
+          <div className="mt-1 flex items-center gap-2 rounded-md border border-line px-3 py-2 text-ui">
             <FileText size={16} className="text-muted" />
             <span className="flex-1 truncate">{att.name}</span>
             <span className="text-faint">{fmtBytes(att.size)}</span>
@@ -185,8 +186,8 @@ export function BookmarkView({ node, selected }: ReactNodeViewProps) {
       <a href={safe ? node.attrs.url : undefined} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg border border-line px-3 py-2.5 no-underline hover:bg-hover">
         <Link2 size={16} className="shrink-0 text-muted" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[14px] text-fg">{node.attrs.title || host || node.attrs.url}</span>
-          <span className="block truncate text-[12px] text-faint">{node.attrs.url}</span>
+          <span className="block truncate text-body text-fg">{node.attrs.title || host || node.attrs.url}</span>
+          <span className="block truncate text-meta text-faint">{node.attrs.url}</span>
         </span>
         <ExternalLink size={14} className="text-faint" />
       </a>

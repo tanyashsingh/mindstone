@@ -129,26 +129,26 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
       <div className="flex items-center gap-2">
         <span className={cx("flex size-8 items-center justify-center rounded-full", phase === "recording" ? "bg-danger/15 text-danger" : "bg-accent-soft text-accent")}><Mic size={16} /></span>
         <input className="min-w-0 flex-1 bg-transparent font-medium outline-none" value={title} readOnly={!editable} aria-label="Voice note title" onChange={(e) => updateAttributes({ title: e.target.value })} />
-        {node.attrs.recordedAt && <span className="text-[12px] text-faint">{new Date(node.attrs.recordedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>}
+        {node.attrs.recordedAt && <span className="text-meta text-faint">{new Date(node.attrs.recordedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>}
       </div>
 
       {phase === "idle" && editable && (
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button className="btn-primary" onClick={() => void begin()}><Mic size={14} /> Start recording</button>
           {window.rea?.platform === "win32" && ( // computer-audio capture is Windows-only
-            <label className="flex items-center gap-1.5 text-[12.5px] text-muted" title="Records what your computer plays too, such as the other people on a call">
+            <label className="flex items-center gap-1.5 text-meta text-muted" title="Records what your computer plays too, such as the other people on a call">
               <input type="checkbox" checked={system} onChange={(e) => setSystem(e.target.checked)} /><Monitor size={13} /> Include computer audio
             </label>
           )}
-          <span className="text-[12px] text-faint">Transcribed on this computer; audio never leaves it.</span>
+          <span className="text-meta text-faint">Transcribed on this computer; audio never leaves it.</span>
         </div>
       )}
 
       {(phase === "recording" || phase === "paused") && (
         <div className="mt-3 flex items-center gap-3">
           <LevelMeter rec={phase === "recording" ? rec : null} />
-          <span className="text-[13px] tabular-nums">{fmtClock(seconds)}</span>
-          <span className="text-[12px] text-muted">{phase === "paused" ? "Paused" : rec?.systemAudio ? "Recording microphone and computer audio" : "Recording"}</span>
+          <span className="text-ui tabular-nums">{fmtClock(seconds)}</span>
+          <span className="text-meta text-muted">{phase === "paused" ? "Paused" : rec?.systemAudio ? "Recording microphone and computer audio" : "Recording"}</span>
           <span className="flex-1" />
           {phase === "paused"
             ? <button className="btn-outline" onClick={() => { rec?.resume(); setPhase("recording"); }}><Play size={14} /> Resume</button>
@@ -158,11 +158,11 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
       )}
 
       {(phase === "saving" || phase === "transcribing") && (
-        <div className="mt-3 flex items-center gap-2 text-[13px] text-muted"><Loader2 size={15} className="animate-spin" />{phase === "saving" ? "Saving recording…" : "Transcribing on this computer… long recordings take a while."}</div>
+        <div className="mt-3 flex items-center gap-2 text-ui text-muted"><Loader2 size={15} className="animate-spin" />{phase === "saving" ? "Saving recording…" : "Transcribing on this computer… long recordings take a while."}</div>
       )}
 
       {phase === "error" && (
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-ui">
           <span className="text-danger">{err}</span>
           {attachmentId ? <button className="btn-outline" onClick={() => void runTranscription(attachmentId)}><RotateCcw size={14} /> Try again</button>
             : <button className="btn-outline" onClick={() => setPhase("idle")}>Back</button>}
@@ -176,13 +176,13 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
             <>
               <div className="flex flex-wrap items-center gap-1.5">
                 <button className="btn" onClick={() => setShowText(!showText)}><ChevronDown size={14} className={cx("transition-transform", !showText && "-rotate-90")} /> Transcript</button>
-                <span className="text-[12px] text-faint">{att.text?.split(/\s+/).length.toLocaleString()} words{node.attrs.duration ? ` · ${fmtClock(node.attrs.duration)}` : ""}</span>
+                <span className="text-meta text-faint">{att.text?.split(/\s+/).length.toLocaleString()} words{node.attrs.duration ? ` · ${fmtClock(node.attrs.duration)}` : ""}</span>
                 <span className="flex-1" />
                 {editable && <button className="btn" onClick={insertTranscript}><FileText size={14} /> Insert transcript</button>}
                 {editable && <button className="btn-outline" disabled={summarizing} onClick={() => void summarize()}>{summarizing ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Summarize</button>}
               </div>
               {showText && att.speakers && editable && (
-                <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-muted">Speakers:
+                <div className="flex flex-wrap items-center gap-2 text-meta text-muted">Speakers:
                   {(["left", "right"] as const).map((k) => (
                     <input key={k} className="input h-7 w-36" aria-label={k === "left" ? "Name for the microphone speaker" : "Name for the computer audio speaker"} defaultValue={att.speakers![k]}
                       onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== att.speakers![k]) void patch(db().attachments, att.id, { speakers: { ...att.speakers!, [k]: v.slice(0, 40) } }); }} />
@@ -190,15 +190,15 @@ export function VoiceNoteView({ node, updateAttributes, editor, getPos, selected
                 </div>
               )}
               {showText && (
-                <div className="max-h-72 space-y-1 overflow-y-auto rounded-[10px] bg-sunken p-3 text-[13.5px] leading-relaxed shadow-[var(--inset)]">
+                <div className="max-h-72 space-y-1 overflow-y-auto rounded-[10px] bg-sunken p-3 text-ui leading-relaxed shadow-[var(--inset)]">
                   {(att.segments?.length ? att.segments : [{ text: att.text ?? "", start: 0, end: null }]).map((s, i) => (
-                    <p key={i} data-speaker={s.speaker ?? ""}><span className="mr-2 font-mono text-[11.5px] text-faint">{fmtClock(s.start)}</span>{att.speakers && s.speaker && <b className={cx("mr-1 font-medium", s.speaker === "left" ? "text-accent" : "text-warning")}>{att.speakers[s.speaker]}:</b>}{s.text}</p>
+                    <p key={i} data-speaker={s.speaker ?? ""}><span className="mr-2 font-mono text-caption text-faint">{fmtClock(s.start)}</span>{att.speakers && s.speaker && <b className={cx("mr-1 font-medium", s.speaker === "left" ? "text-accent" : "text-warning")}>{att.speakers[s.speaker]}:</b>}{s.text}</p>
                   ))}
                 </div>
               )}
             </>
           )}
-          {att.textStatus === "empty" && <div className="text-[13px] text-muted">No speech was detected in this recording.</div>}
+          {att.textStatus === "empty" && <div className="text-ui text-muted">No speech was detected in this recording.</div>}
           {att.textStatus === "error" && <button className="btn-outline" onClick={() => void runTranscription(att.id)}><RotateCcw size={14} /> Transcribe again</button>}
         </div>
       )}

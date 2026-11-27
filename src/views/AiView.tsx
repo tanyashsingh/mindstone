@@ -13,7 +13,7 @@ import { PROVIDER_LABELS } from "@/ai/providers";
 import { contextBlock, indexWorkspace, retrieve } from "@/ai/rag";
 import { groundedSources, parseTaskProposal, reminderAt, systemPrompt, type ProposedTask } from "@/ai/actions";
 import { ACTIONS_PROMPT, applyChanges, databaseContext, pageRefs, planActions, stripActions, tasksContext, undoChanges, type ActionRefs, type Change } from "@/ai/agentActions";
-import { confirmDialog, EmptyState } from "@/components/ui";
+import { confirmDialog, copyText, EmptyState } from "@/components/ui";
 import { cx, fmtDate, relTime, uid } from "@/lib/util";
 import { PRIORITY } from "./Tasks";
 
@@ -36,22 +36,22 @@ function TaskProposal({ tasks, message }: { tasks: ProposedTask[]; message?: AiM
   };
   return (
     <div className="mt-3 rounded-lg border border-accent/40 bg-accent-soft p-3" role="group" aria-label="Proposed tasks">
-      <div className="mb-2 flex items-center gap-2 text-[13px] font-medium"><CheckSquare size={15} className="text-accent" /> {applied ? "Tasks created" : `Proposed task${tasks.length === 1 ? "" : "s"}: review before creating`}</div>
+      <div className="mb-2 flex items-center gap-2 text-ui font-medium"><CheckSquare size={15} className="text-accent" /> {applied ? "Tasks created" : `Proposed task${tasks.length === 1 ? "" : "s"}: review before creating`}</div>
       <ul className="space-y-1">
         {tasks.map((t, i) => (
-          <li key={i} className="flex items-center gap-2 rounded-md bg-elev px-2 py-1.5 text-[13.5px]">
+          <li key={i} className="flex items-center gap-2 rounded-md bg-elev px-2 py-1.5 text-ui">
             <span className="flex-1">{t.title}</span>
             {t.priority !== "none" && <span className={cx("chip", `c-${PRIORITY[t.priority].color}`)}>{PRIORITY[t.priority].label}</span>}
-            {t.due && <span className="text-[12px] text-muted">{fmtDate(t.due, { weekday: "short", month: "short", day: "numeric" })}</span>}
-            {t.time && <span className="flex items-center gap-1 text-[12px] text-muted"><Clock size={12} />{t.time}</span>}
+            {t.due && <span className="text-meta text-muted">{fmtDate(t.due, { weekday: "short", month: "short", day: "numeric" })}</span>}
+            {t.time && <span className="flex items-center gap-1 text-meta text-muted"><Clock size={12} />{t.time}</span>}
           </li>
         ))}
       </ul>
       <div className="mt-2 flex items-center gap-2">
         {applied
-          ? <span className="flex items-center gap-1 text-[12.5px] text-success"><Check size={14} /> Added to Tasks{tasks.some((t) => t.time) ? ", with reminders at the given times" : ""}.</span>
+          ? <span className="flex items-center gap-1 text-meta text-success"><Check size={14} /> Added to Tasks{tasks.some((t) => t.time) ? ", with reminders at the given times" : ""}.</span>
           : <button className="btn-primary" disabled={busy || !message} onClick={create}>Create {tasks.length} task{tasks.length === 1 ? "" : "s"}</button>}
-        {!applied && tasks.some((t) => t.time) && <span className="text-[12px] text-faint">Tasks with a time get a reminder then.</span>}
+        {!applied && tasks.some((t) => t.time) && <span className="text-meta text-faint">Tasks with a time get a reminder then.</span>}
       </div>
     </div>
   );
@@ -80,24 +80,24 @@ function ActionProposal({ raw, message }: { raw: unknown[]; message: AiMessage }
     try { await undoChanges(message.undo ?? []); await db().aiMessages.update(message.id, { undoneAt: Date.now(), undo: [] }); useApp.getState().toast("Changes undone", "info"); }
     finally { setBusy(false); }
   };
-  if (!plan.changes.length && !applied) return <div className="mt-3 rounded-lg border border-line p-2 text-[12.5px] text-muted">The assistant proposed changes, but none matched items it was shown or valid values{plan.skipped ? ` (${plan.skipped} ignored)` : ""}.</div>;
+  if (!plan.changes.length && !applied) return <div className="mt-3 rounded-lg border border-line p-2 text-meta text-muted">The assistant proposed changes, but none matched items it was shown or valid values{plan.skipped ? ` (${plan.skipped} ignored)` : ""}.</div>;
   return (
     <div className="mt-3 rounded-lg border border-accent/40 bg-accent-soft p-3" role="group" aria-label="Proposed changes">
-      <div className="mb-2 flex items-center gap-2 text-[13px] font-medium"><Wand2 size={15} className="text-accent" /> {applied ? "Changes applied" : `Proposed change${plan.changes.length === 1 ? "" : "s"}: review before applying`}</div>
+      <div className="mb-2 flex items-center gap-2 text-ui font-medium"><Wand2 size={15} className="text-accent" /> {applied ? "Changes applied" : `Proposed change${plan.changes.length === 1 ? "" : "s"}: review before applying`}</div>
       {!applied && <ul className="space-y-1">
         {plan.changes.map((c) => (
-          <li key={c.key} className="flex items-start gap-2 rounded-md bg-elev px-2 py-1.5 text-[13px]" data-testid="proposed-change">
+          <li key={c.key} className="flex items-start gap-2 rounded-md bg-elev px-2 py-1.5 text-ui" data-testid="proposed-change">
             <input type="checkbox" className="mt-1" aria-label={`Include: ${c.label}`} checked={!off.has(c.key)} onChange={(e) => setOff((s) => { const n = new Set(s); if (e.target.checked) n.delete(c.key); else n.add(c.key); return n; })} />
-            <span className="min-w-0 flex-1"><span className="font-medium">{c.label}</span><span className="block text-[12.5px]"><span className="text-muted line-through decoration-danger/60">{c.before}</span> → <span className="text-success">{c.after}</span></span></span>
+            <span className="min-w-0 flex-1"><span className="font-medium">{c.label}</span><span className="block text-meta"><span className="text-muted line-through decoration-danger/60">{c.before}</span> → <span className="text-success">{c.after}</span></span></span>
           </li>
         ))}
       </ul>}
       <div className="mt-2 flex items-center gap-2">
         {applied
-          ? <><span className="flex items-center gap-1 text-[12.5px] text-success"><Check size={14} /> {message.undo?.length ?? 0} change{message.undo?.length === 1 ? "" : "s"} applied.</span><button className="btn-outline h-7" disabled={busy || !message.undo?.length} onClick={() => void undo()}><Undo2 size={13} /> Undo</button></>
+          ? <><span className="flex items-center gap-1 text-meta text-success"><Check size={14} /> {message.undo?.length ?? 0} change{message.undo?.length === 1 ? "" : "s"} applied.</span><button className="btn-outline h-7" disabled={busy || !message.undo?.length} onClick={() => void undo()}><Undo2 size={13} /> Undo</button></>
           : <button className="btn-primary" disabled={busy || !chosen.length} onClick={() => void apply()}>Apply {chosen.length} change{chosen.length === 1 ? "" : "s"}</button>}
-        {!applied && plan.skipped > 0 && <span className="text-[12px] text-faint">{plan.skipped} proposal{plan.skipped === 1 ? "" : "s"} ignored: unknown item or invalid value.</span>}
-        {message.undoneAt && <span className="text-[12px] text-faint">Undone.</span>}
+        {!applied && plan.skipped > 0 && <span className="text-meta text-faint">{plan.skipped} proposal{plan.skipped === 1 ? "" : "s"} ignored: unknown item or invalid value.</span>}
+        {message.undoneAt && <span className="text-meta text-faint">Undone.</span>}
       </div>
     </div>
   );
@@ -113,7 +113,7 @@ function Markdown({ text, citations, message }: { text: string; citations: Citat
   const shown = citations.map((c, i) => ({ c, i })).filter(({ i }) => used.has(i));
   return (
     <div>
-      <div className="rea-editor !pb-0 !text-[14px]" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="rea-editor !pb-0 !text-body" dangerouslySetInnerHTML={{ __html: html }} />
       {tasks.length > 0 && <TaskProposal tasks={tasks} message={message} />}
       {stripped.raw && message && <ActionProposal raw={stripped.raw} message={message} />}
       {shown.length > 0 && (
@@ -219,14 +219,14 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
           <button className="btn-outline mb-2 w-full justify-center" onClick={() => setConvId(null)}><Plus size={14} /> New chat</button>
           {convs?.map((c) => (
             <div key={c.id} className={cx("group flex items-center rounded-md hover:bg-hover", convId === c.id && "bg-active")}>
-              <button className="min-w-0 flex-1 px-2 py-1.5 text-left" onClick={() => setConvId(c.id)}><div className="truncate text-[13px]">{c.title}</div><div className="text-[11px] text-faint">{relTime(c.updatedAt)}</div></button>
+              <button className="min-w-0 flex-1 px-2 py-1.5 text-left" onClick={() => setConvId(c.id)}><div className="truncate text-ui">{c.title}</div><div className="text-caption text-faint">{relTime(c.updatedAt)}</div></button>
               <button className="icon-btn mr-1 size-6 opacity-0 group-hover:opacity-100" aria-label="Delete conversation" onClick={async () => { await db().aiMessages.where("conversationId").equals(c.id).delete(); await db().aiConversations.delete(c.id); if (convId === c.id) setConvId(null); }}><Trash2 size={12} /></button>
             </div>
           ))}
         </aside>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-2 border-b border-line px-3 py-2 text-[12.5px]">
+        <div className="flex items-center gap-2 border-b border-line px-3 py-2 text-meta">
           <select className="input h-7 w-auto" value={scope} onChange={(e) => setScope(e.target.value as Scope)} aria-label="Context">
             <option value="general">General chat</option>
             {pageId && <option value="page">This page</option>}
@@ -248,12 +248,12 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
           <div className="mx-auto max-w-3xl space-y-4">
             {messages?.map((m) => (
               <div key={m.id} className={cx("group", m.role === "user" && "flex justify-end")}>
-                {m.role === "user" ? <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-accent-soft px-3 py-2 text-[14px]">{m.content}</div> : (
+                {m.role === "user" ? <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-accent-soft px-3 py-2 text-body">{m.content}</div> : (
                   <div>
                     <Markdown text={m.content} citations={m.citations} message={m} />
-                    <div className="mt-1 flex gap-1 text-[11.5px] text-faint opacity-0 group-hover:opacity-100">
+                    <div className="mt-1 flex gap-1 text-caption text-faint opacity-0 group-hover:opacity-100">
                       <span className="mr-2">{m.model} · {m.inputTokens + m.outputTokens} tokens</span>
-                      <button className="btn h-6" onClick={() => void navigator.clipboard.writeText(m.content)}><Copy size={12} /> Copy</button>
+                      <button className="btn h-6" onClick={() => void copyText(m.content, "Answer copied")}><Copy size={12} /> Copy</button>
                       <button className="btn h-6" onClick={() => toPage(m)}><Plus size={12} /> Save as page</button>
                       <button className="btn h-6" onClick={() => toTasks(m)}><ListChecks size={12} /> Create tasks</button>
                     </div>
@@ -263,7 +263,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
             ))}
             {streaming && <Markdown text={streaming} citations={[]} />}
             {busy && !streaming && <div className="skeleton h-4 w-40" />}
-            {err && <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-danger">{err}</div>}
+            {err && <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-ui text-danger">{err}</div>}
             <div ref={bottom} />
           </div>
         </div>
@@ -275,7 +275,7 @@ export function AiChat({ compact = false, pageId }: { compact?: boolean; pageId?
               : <button className="btn-primary h-10" disabled={!input.trim()} aria-label="Send" title="Send (Enter)"><Send size={14} /></button>}
           </div>
           {!compact && <div className="mx-auto mt-1.5 flex max-w-3xl flex-wrap gap-1">
-            {["Summarize what I worked on this week", "Which notes look like duplicates?", "Suggest a project plan from my notes", "Turn my meeting notes into action items"].map((s) => <button type="button" key={s} className="btn h-6 text-[12px] text-muted" onClick={() => setInput(s)}>{s}</button>)}
+            {["Summarize what I worked on this week", "Which notes look like duplicates?", "Suggest a project plan from my notes", "Turn my meeting notes into action items"].map((s) => <button type="button" key={s} className="btn h-6 text-meta text-muted" onClick={() => setInput(s)}>{s}</button>)}
           </div>}
         </form>
       </div>

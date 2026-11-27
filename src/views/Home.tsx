@@ -11,12 +11,12 @@ import { QuickAdd, TaskDetail, TaskRow } from "./Tasks";
 import { useDigest } from "@/components/DigestDialog";
 import { Limited } from "@/components/Limited";
 import { pageList } from "@/data/pageDirectory";
-import { EmptyState, promptDialog } from "@/components/ui";
+import { EmptyState, PageIcon, promptDialog } from "@/components/ui";
 
 function Card({ title, icon, children, action }: { title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <section className="panel p-4" aria-label={title}>
-      <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-muted"><span className="[&>svg]:size-4">{icon}</span><span className="flex-1">{title}</span>{action}</div>
+      <div className="mb-2 flex items-center gap-2 text-ui font-medium text-muted"><span className="[&>svg]:size-4">{icon}</span><span className="flex-1">{title}</span>{action}</div>
       {children}
     </section>
   );
@@ -61,16 +61,16 @@ function Habits({ ws }: { ws: string }) {
   const streak = (d: string[]) => { let n = 0; let cur = today(); const s = new Set(d); if (!s.has(cur)) cur = addDays(cur, -1); while (s.has(cur)) { n++; cur = addDays(cur, -1); } return n; };
   return (
     <div>
-      {habits?.length === 0 && <div className="text-[13px] text-faint">Track a daily habit to build a streak.</div>}
+      {habits?.length === 0 && <div className="text-ui text-faint">Track a daily habit to build a streak.</div>}
       {habits?.map((h) => (
         <div key={h.id} className="group flex items-center gap-2 py-0.5">
-          <span className="w-24 truncate text-[13px]">{h.name}</span>
+          <span className="w-24 truncate text-ui">{h.name}</span>
           {days.map((d) => (
             <button key={d} title={fmtDate(d)} aria-label={`${h.name} on ${d}`} aria-pressed={h.days.includes(d)}
               className={cx("size-5 rounded", h.days.includes(d) ? "bg-accent" : "bg-active hover:bg-line-strong")}
               onClick={() => db().habits.update(h.id, { days: h.days.includes(d) ? h.days.filter((x) => x !== d) : [...h.days, d] })} />
           ))}
-          <span className="ml-1 flex items-center gap-0.5 text-[12px] text-muted"><Flame size={12} />{streak(h.days)}</span>
+          <span className="ml-1 flex items-center gap-0.5 text-meta text-muted"><Flame size={12} />{streak(h.days)}</span>
           <button className="icon-btn size-5 opacity-0 group-hover:opacity-100" aria-label="Delete habit" onClick={() => db().habits.delete(h.id)}><Trash2 size={12} /></button>
         </div>
       ))}
@@ -83,12 +83,12 @@ function Goals({ ws }: { ws: string }) {
   const goals = useLiveQuery(() => db().goals.where("workspaceId").equals(ws).toArray(), [ws]);
   return (
     <div className="space-y-2">
-      {goals?.length === 0 && <div className="text-[13px] text-faint">Set a measurable goal, like “Read 12 books”.</div>}
+      {goals?.length === 0 && <div className="text-ui text-faint">Set a measurable goal, like “Read 12 books”.</div>}
       {goals?.map((g) => {
         const pct = Math.min(100, Math.round((g.current / Math.max(1, g.target)) * 100));
         return (
           <div key={g.id} className="group">
-            <div className="flex items-center text-[13px]"><span className="flex-1 truncate">{g.name}</span>
+            <div className="flex items-center text-ui"><span className="flex-1 truncate">{g.name}</span>
               <input type="number" className="w-14 bg-transparent text-right tabular-nums outline-none" value={g.current} onChange={(e) => db().goals.update(g.id, { current: Number(e.target.value) })} aria-label={`${g.name} progress`} />
               <span className="text-faint">/{g.target} {g.unit}</span>
               <button className="icon-btn ml-1 size-5 opacity-0 group-hover:opacity-100" aria-label="Delete goal" onClick={() => db().goals.delete(g.id)}><Trash2 size={12} /></button></div>
@@ -161,16 +161,16 @@ export default function Home() {
   const greet = h < 12 ? ["Good morning", <Sunrise key="i" size={22} />] : h < 18 ? ["Good afternoon", <Sun key="i" size={22} />] : ["Good evening", <Moon key="i" size={22} />];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-10 sm:py-10">
-      <div className="mb-1 flex items-center gap-2 text-faint">{greet[1]}<span className="text-[13px]">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</span></div>
+    <div className="@container mx-auto max-w-6xl px-4 py-6 sm:px-10 sm:py-10">
+      <div className="mb-1 flex items-center gap-2 text-faint">{greet[1]}<span className="text-ui">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</span></div>
       <div className="mb-6 flex flex-wrap items-end gap-2">
         <h1 className="flex-1 text-[30px] font-bold tracking-tight">{greet[0]}</h1>
         <button className="btn-outline" onClick={() => useDigest.getState().show("today")}><Newspaper size={14} /> Today's digest</button>
         <button className="btn" onClick={() => useDigest.getState().show("week")}>This week</button>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="panel p-3"><div className="mb-1 text-[12px] text-muted">Quick capture: task</div><QuickAdd /></div>
+      <div className="mb-6 grid grid-cols-1 gap-3 @2xl:grid-cols-2">
+        <div className="panel p-3"><div className="mb-1 text-meta text-muted">Quick capture: task</div><QuickAdd /></div>
         <form className="panel flex items-center gap-2 p-3" onSubmit={async (e) => {
           e.preventDefault();
           if (!note.trim()) return;
@@ -181,50 +181,50 @@ export default function Home() {
           setNote("");
           useApp.getState().toast("Note saved to Quick notes", "success");
         }}>
-          <div className="flex-1"><div className="mb-1 text-[12px] text-muted">Quick capture: note</div><input className="input h-9 border-transparent bg-sunken" placeholder="Jot something down and press Enter" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Quick note" /></div>
+          <div className="flex-1"><div className="mb-1 text-meta text-muted">Quick capture: note</div><input className="input h-9 border-transparent bg-sunken" placeholder="Jot something down and press Enter" value={note} onChange={(e) => setNote(e.target.value)} aria-label="Quick note" /></div>
         </form>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-        <div className="space-y-3 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-3 @4xl:grid-cols-3">
+        <div className="space-y-3 @4xl:col-span-2">
           <Card title="Today & overdue" icon={<ListChecks />} action={<button className="btn h-6" onClick={() => open({ kind: "tasks" })}>All tasks</button>}>
-            {data?.today.length === 0 ? <div className="py-3 text-[13px] text-faint">Nothing due today. Plan your day by giving tasks a due date.</div> : <Limited items={data?.today ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
+            {data?.today.length === 0 ? <div className="py-3 text-ui text-faint">Nothing due today. Plan your day by giving tasks a due date.</div> : <Limited items={data?.today ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
           </Card>
           <Card title="Upcoming deadlines · next 7 days" icon={<Clock />}>
-            {data?.upcoming.length === 0 ? <div className="py-2 text-[13px] text-faint">No deadlines this week.</div> : <Limited items={data?.upcoming ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
+            {data?.upcoming.length === 0 ? <div className="py-2 text-ui text-faint">No deadlines this week.</div> : <Limited items={data?.upcoming ?? []} step={50} label="tasks" render={(t) => <TaskRow key={t.id} task={t} onOpen={setOpenTask} />} />}
           </Card>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 @xl:grid-cols-2">
             <Card title="Recent pages" icon={<Clock />}>
-              {data?.recent.length === 0 && <div className="text-[13px] text-faint">Pages you open appear here. Press Ctrl+N to start one.</div>}
-              {data?.recent.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-[13px] hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center">{p.icon || "📄"}</span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-[11px] text-faint">{relTime(p.lastOpenedAt)}</span></button>)}
+              {data?.recent.length === 0 && <div className="text-ui text-faint">Pages you open appear here. Press Ctrl+N to start one.</div>}
+              {data?.recent.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-ui hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center"><PageIcon page={p} /></span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-caption text-faint">{relTime(p.lastOpenedAt)}</span></button>)}
             </Card>
             <Card title="Pinned" icon={<Star />}>
-              {data?.pinned.length === 0 ? <div className="text-[13px] text-faint">Star a page to pin it here.</div> : data?.pinned.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-[13px] hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center">{p.icon || "📄"}</span><span className="truncate">{p.title || "Untitled"}</span></button>)}
+              {data?.pinned.length === 0 ? <div className="text-ui text-faint">Star a page to pin it here.</div> : data?.pinned.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left text-ui hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center"><PageIcon page={p} /></span><span className="truncate">{p.title || "Untitled"}</span></button>)}
             </Card>
           </div>
           <Card title="Active projects" icon={<FolderKanban />}>
             {data?.projects.length === 0 ? <EmptyState title="No active projects" action={<button className="btn-outline" onClick={() => open({ kind: "projects" })}>Go to projects</button>} /> : data?.projects.map((p) => {
               const ts = data.projectTasks.filter((t) => t.projectId === p.id && !t.parentTaskId);
               const pct = ts.length ? Math.round((ts.filter((t) => t.status === "done").length / ts.length) * 100) : 0;
-              return <button key={p.id} className="flex w-full items-center gap-3 rounded px-1 py-1.5 text-left text-[13px] hover:bg-hover" onClick={() => open({ kind: "project", id: p.id })}><span className="flex-1 truncate">{p.name}</span><span className="h-1 w-32 rounded bg-active"><span className="block h-full rounded bg-accent" style={{ width: `${pct}%` }} /></span><span className="w-10 text-right text-faint">{pct}%</span></button>;
+              return <button key={p.id} className="flex w-full items-center gap-3 rounded px-1 py-1.5 text-left text-ui hover:bg-hover" onClick={() => open({ kind: "project", id: p.id })}><span className="flex-1 truncate">{p.name}</span><span className="h-1 w-32 rounded bg-active"><span className="block h-full rounded bg-accent" style={{ width: `${pct}%` }} /></span><span className="w-10 text-right text-faint">{pct}%</span></button>;
             })}
           </Card>
         </div>
         <div className="space-y-3">
           <Card title="Today's schedule" icon={<CalendarDays />} action={<button className="btn h-6" onClick={() => open({ kind: "calendar" })}>Calendar</button>}>
-            {data?.events.length === 0 ? <div className="text-[13px] text-faint">No events today.</div> : data?.events.map((o) => <div key={o.key} className="flex gap-2 py-0.5 text-[13px]"><span className="w-20 text-muted">{o.event.allDay ? "All day" : fmtTime(o.start)}</span><span className="truncate">{o.event.title}</span></div>)}
+            {data?.events.length === 0 ? <div className="text-ui text-faint">No events today.</div> : data?.events.map((o) => <div key={o.key} className="flex gap-2 py-0.5 text-ui"><span className="w-20 text-muted">{o.event.allDay ? "All day" : fmtTime(o.start)}</span><span className="truncate">{o.event.title}</span></div>)}
           </Card>
           <Card title="Daily journal" icon={<NotebookPen />}>
             <button className="btn-outline w-full justify-center" onClick={() => openJournal(ws)}>Open today's entry</button>
           </Card>
           <Card title="Weekly review" icon={<Target />}>
-            <dl className="grid grid-cols-2 gap-2 text-[13px]">
+            <dl className="grid grid-cols-2 gap-2 text-ui">
               <div><dt className="text-faint">Tasks completed</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.done ?? 0}</dd></div>
               <div><dt className="text-faint">Tasks added</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.created ?? 0}</dd></div>
               <div><dt className="text-faint">Pages edited</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.week.pagesEdited ?? 0}</dd></div>
               <div><dt className="text-faint">Open tasks</dt><dd className="font-display text-[24px] leading-tight tabular-nums">{data?.open.length ?? 0}</dd></div>
             </dl>
-            <div className="mt-1 text-[11px] text-faint">Since {fmtDate(toISODate(startOfWeek(new Date())))}</div>
+            <div className="mt-1 text-caption text-faint">Since {fmtDate(toISODate(startOfWeek(new Date())))}</div>
           </Card>
           <Card title="Focus timer" icon={<Timer />}><Pomodoro tasks={focusChoices} /></Card>
           <Card title="Habits" icon={<Flame />}><Habits ws={ws} /></Card>

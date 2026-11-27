@@ -8,7 +8,7 @@ export function Limited<T>({ items, step = 200, render, label = "items" }: { ite
     <>
       {items.slice(0, shown).map(render)}
       {rest > 0 && (
-        <div className="flex items-center gap-2 px-2 py-1.5 text-[12.5px] text-muted">
+        <div className="flex items-center gap-2 px-2 py-1.5 text-meta text-muted">
           <button className="btn h-7" onClick={() => setShown((n) => n + step)}>Show {Math.min(step, rest).toLocaleString()} more</button>
           <span>{rest.toLocaleString()} more {label} not shown</span>
         </div>

@@ -33,7 +33,7 @@ function FilterGroupEditor({ database, group, onChange, depth = 0 }: { database:
     <div className={cx("space-y-1.5", depth > 0 && "rounded-md border border-line bg-sunken p-2")}>
       {group.children.map((c, i) => (
         <div key={i} className="flex items-start gap-1.5">
-          <span className="w-12 pt-1.5 text-right text-[12px] text-faint">{i === 0 ? "Where" : (
+          <span className="w-12 pt-1.5 text-right text-meta text-faint">{i === 0 ? "Where" : (
             <button className="underline" onClick={() => onChange({ ...group, mode: group.mode === "and" ? "or" : "and" })}>{group.mode}</button>
           )}</span>
           {c.kind === "group" ? (
@@ -86,7 +86,7 @@ export function RecordModal({ database, record, ctx, onClose }: { database: Data
       <div className="space-y-1">
         {database.properties.map((p) => (
           <div key={p.id} className="flex min-h-8 items-start gap-3">
-            <div className="w-36 shrink-0 pt-1.5 text-[13px] text-muted">{p.name}</div>
+            <div className="w-36 shrink-0 pt-1.5 text-ui text-muted">{p.name}</div>
             <div className="min-w-0 flex-1">
               {editing === p.id ? <CellEditor database={database} record={live} prop={p} onDone={() => setEditing(null)} /> : (
                 <button className="flex min-h-8 w-full items-center rounded px-1.5 text-left hover:bg-hover disabled:hover:bg-transparent" disabled={READONLY.includes(p.type)}
@@ -130,7 +130,7 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
   return (
     <div>
       {selected.size > 0 && (
-        <div className="mb-2 flex items-center gap-2 rounded-md bg-accent-soft px-2 py-1 text-[13px]">
+        <div className="mb-2 flex items-center gap-2 rounded-md bg-accent-soft px-2 py-1 text-ui">
           <span>{selected.size} selected</span>
           <button className="btn h-6" onClick={bulk.openAt}>Set property…</button>
           <button className="btn h-6" onClick={async () => { for (const id of selected) { const r = records.find((x) => x.id === id); if (r) await repo.addRecord(database.id, structuredClone(r.values)); } setSelected(new Set()); }}><Copy size={13} /> Duplicate</button>
@@ -145,9 +145,9 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
           </Popover>
         </div>
       )}
-      <div className="max-h-[70vh] overflow-auto rounded-[12px] bg-elev shadow-[var(--elev-sm)]" onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)} role="grid" aria-rowcount={records.length}>
+      <div className="w-fit max-w-full max-h-[70vh] overflow-auto rounded-[12px] bg-elev shadow-[var(--elev-sm)]" onScroll={(e) => setScrollTop((e.target as HTMLElement).scrollTop)} role="grid" aria-rowcount={records.length}>
         <div style={{ width: total + 120 }} role="presentation">
-          <div className="sticky top-0 z-[1] flex border-b border-line bg-sunken text-[12.5px] text-muted" role="row">
+          <div className="sticky top-0 z-[1] flex border-b border-line bg-sunken text-meta text-muted" role="row">
             <div className="flex w-10 shrink-0 items-center justify-center" role="columnheader" aria-label="Select"><input type="checkbox" aria-label="Select all" checked={selected.size > 0 && selected.size === records.length} onChange={(e) => setSelected(e.target.checked ? new Set(records.map((r) => r.id)) : new Set())} /></div>
             {ordered.map((p) => (
               <div key={p.id} role="columnheader" draggable onDragStart={() => (dragCol.current = p.id)} onDragOver={(e) => e.preventDefault()}
@@ -174,7 +174,7 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
           </div>
           <div style={{ height: records.length * ROW_H, position: "relative" }} role="rowgroup">
             {visible.map((r, i) => (
-              <div key={r.id} role="row" className={cx("group absolute left-0 flex w-full border-b border-line text-[13.5px] hover:bg-hover/50", selected.has(r.id) && "bg-accent-soft")} style={{ top: (visibleStart + i) * ROW_H, height: ROW_H }}>
+              <div key={r.id} role="row" className={cx("group absolute left-0 flex w-full border-b border-line text-ui hover:bg-hover/50", selected.has(r.id) && "bg-accent-soft")} style={{ top: (visibleStart + i) * ROW_H, height: ROW_H }}>
                 <div className="flex w-10 shrink-0 items-center justify-center" role="gridcell">
                   <input type="checkbox" aria-label="Select row" className="opacity-0 group-hover:opacity-100 checked:opacity-100" checked={selected.has(r.id)} onChange={(e) => { const s = new Set(selected); if (e.target.checked) s.add(r.id); else s.delete(r.id); setSelected(s); }} />
                 </div>
@@ -187,7 +187,7 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
                     }}
                     onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLElement).click()}>
                     <CellDisplay database={database} record={r} prop={p} ctx={ctx} />
-                    {p.type === "title" && <button className="btn ml-auto h-6 px-1.5 text-[11px] opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); onOpen(r); }}>Open</button>}
+                    {p.type === "title" && <button className="btn ml-auto h-6 px-1.5 text-caption opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); onOpen(r); }}>Open</button>}
                   </div>
                 ))}
               </div>
@@ -195,8 +195,8 @@ function TableView({ database, view, records, ctx, onOpen, updateView }: { datab
           </div>
         </div>
       </div>
-      <button className="flex h-8 w-full items-center gap-1.5 px-3 text-[13px] text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id)}><Plus size={14} /> New record</button>
-      <div className="mt-1 px-1 text-[12px] text-faint">{records.length.toLocaleString()} records</div>
+      <button className="flex h-8 w-full items-center gap-1.5 px-3 text-ui text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id)}><Plus size={14} /> New record</button>
+      <div className="mt-1 px-1 text-meta text-faint">{records.length.toLocaleString()} records</div>
       {editing && editRec && editProp && (
         <Popover anchor={editing.rect} onClose={() => setEditing(null)} className="p-1">
           <CellEditor database={database} record={editRec} prop={editProp} onDone={() => setEditing(null)} />
@@ -224,17 +224,17 @@ function BoardView({ database, view, records, ctx, onOpen }: { database: Databas
     <div className="flex gap-3 overflow-x-auto pb-4">
       {groups.map((g) => (
         <div key={g.key} className="w-72 shrink-0 rounded-[14px] bg-sunken p-2.5 shadow-[var(--inset)]" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-record"); if (id) move(id, g.key); }}>
-          <div className="mb-2 flex items-center gap-2 px-1"><Chip color={g.color}>{g.label}</Chip><span className="text-[12px] text-faint">{g.records.length}</span></div>
+          <div className="mb-2 flex items-center gap-2 px-1"><Chip color={g.color}>{g.label}</Chip><span className="text-meta text-faint">{g.records.length}</span></div>
           <div className="space-y-1.5">
             {g.records.map((r) => (
               <button key={r.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-record", r.id)} onClick={() => onOpen(r)}
                 className="panel block w-full p-2.5 text-left shadow-sm hover:border-line-strong">
-                <div className="mb-1 text-[13.5px] font-medium">{recordTitle(database, r)}</div>
-                {shown.map((p) => <div key={p.id} className="text-[12px] text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></div>)}
+                <div className="mb-1 text-ui font-medium">{recordTitle(database, r)}</div>
+                {shown.map((p) => <div key={p.id} className="text-meta text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></div>)}
               </button>
             ))}
           </div>
-          <button className="mt-1.5 flex h-7 w-full items-center gap-1 rounded px-1.5 text-[13px] text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id, g.key ? { [groupProp.id]: groupProp.type === "multiSelect" ? [g.key] : groupProp.type === "checkbox" ? g.key === "true" : g.key } : {})}><Plus size={13} /> New</button>
+          <button className="mt-1.5 flex h-7 w-full items-center gap-1 rounded px-1.5 text-ui text-faint hover:bg-hover" onClick={() => repo.addRecord(database.id, g.key ? { [groupProp.id]: groupProp.type === "multiSelect" ? [g.key] : groupProp.type === "checkbox" ? g.key === "true" : g.key } : {})}><Plus size={13} /> New</button>
         </div>
       ))}
     </div>
@@ -249,7 +249,7 @@ function ListView({ database, view, records, ctx, onOpen }: { database: Database
       {records.map((r) => (
         <button key={r.id} onClick={() => onOpen(r)} className="flex w-full items-center gap-4 px-3 py-2 text-left hover:bg-hover">
           <span className="flex-1 truncate font-medium">{recordTitle(database, r)}</span>
-          {shown.map((p) => <span key={p.id} className="max-w-40 truncate text-[12.5px] text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></span>)}
+          {shown.map((p) => <span key={p.id} className="max-w-40 truncate text-meta text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></span>)}
         </button>
       ))}
       {records.length === 0 && <EmptyState title="No records match" />}
@@ -267,7 +267,7 @@ function GalleryView({ database, view, records, ctx, onOpen }: { database: Datab
           <div className="h-20 bg-sunken" />
           <div className="p-3">
             <div className="mb-1 font-medium">{recordTitle(database, r)}</div>
-            {shown.map((p) => <div key={p.id} className="truncate text-[12px] text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></div>)}
+            {shown.map((p) => <div key={p.id} className="truncate text-meta text-muted"><CellDisplay database={database} record={r} prop={p} ctx={ctx} /></div>)}
           </div>
         </button>
       ))}
@@ -298,15 +298,15 @@ function CalendarDbView({ database, view, records, onOpen }: { database: Databas
         <button className="btn-outline" onClick={() => { const d = new Date(); setMonth(new Date(d.getFullYear(), d.getMonth(), 1)); }}>Today</button>
         <button className="btn-outline" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>›</button>
         <span className="font-medium">{month.toLocaleDateString(undefined, { month: "long", year: "numeric" })}</span>
-        <span className="text-[12px] text-faint">by {dp.name}</span>
+        <span className="text-meta text-faint">by {dp.name}</span>
       </div>
       <div className="grid grid-cols-7 overflow-hidden rounded-[12px] shadow-[var(--inset)]">
         {days.map((d) => (
           <div key={d} className={cx("min-h-24 border-b border-r border-line p-1", parseISODate(d).getMonth() !== month.getMonth() && "bg-sunken/60")}
             onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-record"); if (id) void repo.updateRecord(id, dp.id, dp.type === "dateRange" ? { start: d } : d); }}>
-            <div className="mb-0.5 flex justify-between text-[11px] text-faint"><span>{parseISODate(d).getDate()}</span>
+            <div className="mb-0.5 flex justify-between text-caption text-faint"><span>{parseISODate(d).getDate()}</span>
               <button className="opacity-0 hover:opacity-100" aria-label="Add record on this day" onClick={() => repo.addRecord(database.id, { [dp.id]: dp.type === "dateRange" ? { start: d } : d })}><Plus size={11} /></button></div>
-            {byDay.get(d)?.map((r) => <button key={r.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-record", r.id)} onClick={() => onOpen(r)} className="mb-0.5 block w-full truncate rounded bg-accent-soft px-1 text-left text-[12px]">{recordTitle(database, r)}</button>)}
+            {byDay.get(d)?.map((r) => <button key={r.id} draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-record", r.id)} onClick={() => onOpen(r)} className="mb-0.5 block w-full truncate rounded bg-accent-soft px-1 text-left text-meta">{recordTitle(database, r)}</button>)}
           </div>
         ))}
       </div>
@@ -352,7 +352,7 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
           ))}
         </Popover>
         <span className="flex-1" />
-        <label className="flex h-7 items-center gap-1 rounded-md px-2 text-muted focus-within:bg-hover"><Search size={14} /><input className="w-32 bg-transparent text-[13px] outline-none" placeholder="Search" value={view.search ?? ""} onChange={(e) => updateView({ search: e.target.value })} /></label>
+        <label className="flex h-7 items-center gap-1 rounded-md px-2 text-muted focus-within:bg-hover"><Search size={14} /><input className="w-32 bg-transparent text-ui outline-none" placeholder="Search" value={view.search ?? ""} onChange={(e) => updateView({ search: e.target.value })} /></label>
         <button className={cx("btn h-7", countRules(view.filter) > 0 && "text-accent")} onClick={filterMenu.openAt}><Filter size={14} /> Filter{countRules(view.filter) ? ` (${countRules(view.filter)})` : ""}</button>
         <button className={cx("btn h-7", view.sorts.length > 0 && "text-accent")} onClick={sortMenu.openAt}><ArrowUpDown size={14} /> Sort</button>
         {view.type === "board" && <button className="btn h-7" onClick={groupMenu.openAt}>Group</button>}
@@ -373,7 +373,7 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
             <button className="icon-btn size-6 shrink-0 opacity-0 group-hover:opacity-100" aria-label={`Delete template ${t.name}`} onClick={() => repo.deleteRecordTemplate(database.id, t.id)}><X size={12} /></button>
           </div>
         ))}
-        {(database.templates ?? []).length === 0 && <div className="px-2 py-1.5 text-[12px] text-faint">Open a record and choose “Save as template” to add one here.</div>}
+        {(database.templates ?? []).length === 0 && <div className="px-2 py-1.5 text-meta text-faint">Open a record and choose “Save as template” to add one here.</div>}
       </Popover>
       <Popover anchor={filterMenu.anchor} onClose={filterMenu.close} className="w-[560px] p-2">
         <FilterGroupEditor database={database} group={view.filter} onChange={(filter) => updateView({ filter })} />
@@ -389,7 +389,7 @@ export function DatabaseView({ databaseId }: { databaseId: string }) {
         <button className="btn h-7 text-muted" onClick={() => updateView({ sorts: [...view.sorts, { propertyId: database.properties[0]!.id, dir: "asc" }] })}><Plus size={13} /> Add sort</button>
       </Popover>
       <Popover anchor={groupMenu.anchor} onClose={groupMenu.close} className="w-52">
-        {groupable.length === 0 && <div className="p-2 text-[13px] text-muted">Add a Select, Status or Checkbox property first.</div>}
+        {groupable.length === 0 && <div className="p-2 text-ui text-muted">Add a Select, Status or Checkbox property first.</div>}
         {groupable.map((p) => <MenuItem key={p.id} onClick={() => { void updateView({ groupBy: p.id }); groupMenu.close(); }} shortcut={view.groupBy === p.id ? "✓" : undefined}>{p.name}</MenuItem>)}
       </Popover>
       <Popover anchor={propsMenu.anchor} onClose={propsMenu.close} className="w-56">

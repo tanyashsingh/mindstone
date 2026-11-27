@@ -15,8 +15,8 @@ export function PluginPanels() {
     <div className="space-y-3">
       {shown.map((p) => (
         <section key={p.id} className="rounded-md border border-line bg-elev p-2.5" aria-label={`${p.manifest.name} panel`}>
-          <div className="mb-1 text-[11.5px] font-medium uppercase tracking-wide text-faint">{p.manifest.name}</div>
-          <div className="rea-editor !pb-0 !text-[13px]" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(panels[p.id]!.markdown, { async: false }) as string, { FORBID_TAGS: ["img", "style", "form"] }) }} />
+          <div className="mb-1 text-caption font-medium uppercase tracking-wide text-faint">{p.manifest.name}</div>
+          <div className="rea-editor !pb-0 !text-ui" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(panels[p.id]!.markdown, { async: false }) as string, { FORBID_TAGS: ["img", "style", "form"] }) }} />
           {panels[p.id]!.buttons.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {panels[p.id]!.buttons.map((b) => <button key={b.id} className="btn h-7" onClick={() => void invoke(p.id, "panel", b.id).catch((e: Error) => useApp.getState().toast(e.message, "error"))}>{b.label}</button>)}

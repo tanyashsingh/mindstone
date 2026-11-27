@@ -70,10 +70,10 @@ export function DigestHost() {
       </>}>
       {!d ? <div className="skeleton h-40" /> : (
         <div className="max-h-[60vh] overflow-y-auto pr-1" data-testid="digest">
-          {ai && <div className="prose-sm mb-4 rounded-[10px] bg-accent-soft p-3 text-[13.5px]" data-testid="digest-ai" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(ai, { async: false }) as string) }} />}
-          {isEmptyDigest(d) ? <p className="text-[13.5px] text-muted">Nothing to report {range === "today" ? "today" : "this week"} yet: no tasks done or due, no events coming up, and no pages edited.</p>
-            : <div className="digest text-[13.5px] [&_h2]:mb-1 [&_h2]:mt-3 [&_h2]:text-[14px] [&_h2]:font-semibold [&_li]:ml-5 [&_li]:list-disc" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(md, { async: false }) as string) }} />}
-          {!p && <p className="mt-4 text-[12px] text-faint">Turn on an AI provider to add a written summary. The digest itself never needs AI.</p>}
+          {ai && <div className="prose-sm mb-4 rounded-[10px] bg-accent-soft p-3 text-ui" data-testid="digest-ai" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(ai, { async: false }) as string) }} />}
+          {isEmptyDigest(d) ? <p className="text-ui text-muted">Nothing to report {range === "today" ? "today" : "this week"} yet: no tasks done or due, no events coming up, and no pages edited.</p>
+            : <div className="digest text-ui [&_h2]:mb-1 [&_h2]:mt-3 [&_h2]:text-body [&_h2]:font-semibold [&_li]:ml-5 [&_li]:list-disc" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked.parse(md, { async: false }) as string) }} />}
+          {!p && <p className="mt-4 text-meta text-faint">Turn on an AI provider to add a written summary. The digest itself never needs AI.</p>}
         </div>
       )}
     </Modal>

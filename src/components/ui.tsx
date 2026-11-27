@@ -1,7 +1,8 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { create } from "zustand";
-import { X } from "lucide-react";
+import { FileText, Table2, X } from "lucide-react";
+import { useApp } from "@/store/app";
 import { cx } from "@/lib/util";
 
 /** Click-outside + Escape aware popover anchored to a rect. */
@@ -53,13 +54,51 @@ export function MenuItem({ icon, children, onClick, danger, shortcut, disabled }
     <button type="button" disabled={disabled} className={cx("menu-item disabled:opacity-40", danger && "text-danger")} onClick={onClick}>
       {icon && <span className="text-muted [&>svg]:size-4">{icon}</span>}
       <span className="flex-1 truncate">{children}</span>
-      {shortcut && <span className="text-[11px] text-faint">{shortcut}</span>}
+      {shortcut && <span className="text-caption text-faint">{shortcut}</span>}
     </button>
   );
 }
 export const MenuSep = () => <div className="my-1 h-px bg-line" />;
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+
+/** Keeps keyboard focus inside a dialog while it is open and gives it back to where it was when it closes. */
+// The last element focused outside any dialog: a dialog's autofocus runs before its effects, so it is remembered here.
+let lastOutside: HTMLElement | null = null;
+if (typeof document !== "undefined") document.addEventListener("focusin", (e) => { const t = e.target as HTMLElement; if (!t.closest?.("[aria-modal=true]")) lastOutside = t; }, true);
+
+export function useFocusTrap(open: boolean, box: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    if (!open) return;
+    const active = document.activeElement as HTMLElement | null;
+    const before = active && !active.closest("[aria-modal=true]") ? active : lastOutside;
+    // Let autoFocus inside the dialog win; otherwise focus its first control, or the dialog itself.
+    const t = setTimeout(() => {
+      const el = box.current;
+      if (!el || el.contains(document.activeElement)) return;
+      (el.querySelector<HTMLElement>(FOCUSABLE) ?? el).focus();
+    }, 0);
+    const tab = (e: KeyboardEvent) => {
+      const el = box.current;
+      if (e.key !== "Tab" || !el) return;
+      const items = [...el.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((n) => n.offsetParent !== null);
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0]!, last = items[items.length - 1]!;
+      if (e.shiftKey && (document.activeElement === first || !el.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !el.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", tab);
+    return () => { clearTimeout(t); document.removeEventListener("keydown", tab); // Give focus back only if nothing else (say, a page the dialog opened) has taken it.
+      const now = document.activeElement;
+      if (before?.isConnected && (!now || now === document.body || box.current?.contains(now))) before.focus({ preventScroll: true });
+    };
+  }, [open, box]);
+}
+
 export function Modal({ open, onClose, title, children, width = 520, footer }: { open: boolean; onClose: () => void; title?: ReactNode; children: ReactNode; width?: number; footer?: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  useFocusTrap(open, box);
   useEffect(() => {
     if (!open) return;
     const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -69,10 +108,10 @@ export function Modal({ open, onClose, title, children, width = 520, footer }: {
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" className="panel anim-in flex max-h-[80vh] flex-col shadow-[var(--shadow)]" style={{ width: `min(${width}px, 94vw)` }}>
+      <div ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} className="panel anim-in flex max-h-[80vh] flex-col shadow-[var(--shadow)] outline-none" style={{ width: `min(${width}px, 94vw)` }}>
         {title && (
           <div className="flex items-center justify-between border-b border-line px-4 h-11">
-            <div className="font-medium">{title}</div>
+            <div id={titleId} className="font-medium">{title}</div>
             <button className="icon-btn" aria-label="Close" onClick={onClose}><X size={16} /></button>
           </div>
         )}
@@ -114,17 +153,17 @@ export function DialogHost() {
         <button className={req.danger ? "btn bg-danger text-white hover:bg-danger" : "btn-primary"} autoFocus={req.kind === "confirm"}
           hidden={req.kind === "choose"} onClick={() => done(req.kind === "prompt" ? value : true)}>{req.confirmLabel ?? (req.kind === "prompt" ? "OK" : "Confirm")}</button>
       </>}>
-      {req.body && <p className="mb-3 whitespace-pre-wrap text-[13px] text-muted">{req.body}</p>}
+      {req.body && <p className="mb-3 whitespace-pre-wrap text-ui text-muted">{req.body}</p>}
       {req.kind === "choose" && <>
         <input autoFocus className="input mb-2" placeholder="Filter…" aria-label="Filter" value={value} onChange={(e) => setValue(e.target.value)} />
         <div className="max-h-72 overflow-y-auto" role="listbox" aria-label={req.title}>
           {(req.choices ?? []).filter((c) => !value || `${c.label} ${c.hint ?? ""}`.toLowerCase().includes(value.toLowerCase())).map((c) => (
             <button key={c.value} role="option" aria-selected={false} className="block w-full rounded-md px-2 py-1.5 text-left hover:bg-hover" onClick={() => done(c.value)}>
-              <div className="truncate text-[13.5px]">{c.label}</div>
-              {c.hint && <div className="truncate text-[12px] text-muted">{c.hint}</div>}
+              <div className="truncate text-ui">{c.label}</div>
+              {c.hint && <div className="truncate text-meta text-muted">{c.hint}</div>}
             </button>
           ))}
-          {!(req.choices ?? []).length && <p className="px-2 py-3 text-[13px] text-muted">Nothing to choose from yet.</p>}
+          {!(req.choices ?? []).length && <p className="px-2 py-3 text-ui text-muted">Nothing to choose from yet.</p>}
         </div>
       </>}
       {req.kind === "prompt" && (
@@ -139,7 +178,7 @@ export function EmptyState({ icon, title, body, action }: { icon?: ReactNode; ti
     <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
       {icon && <div className="mb-1 text-faint [&>svg]:size-8">{icon}</div>}
       <div className="font-medium">{title}</div>
-      {body && <div className="max-w-sm text-[13px] text-muted">{body}</div>}
+      {body && <div className="max-w-sm text-ui text-muted">{body}</div>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   );
@@ -180,4 +219,24 @@ export function IconPicker({ onPick, onClose, anchor }: { onPick: (v: string) =>
       <MenuItem onClick={() => { onPick(""); onClose(); }}>Remove icon</MenuItem>
     </Popover>
   );
+}
+
+/** The icon a person chose ("▦" was the automatic icon of databases before 0.5.2 and counts as none). */
+export const ownIcon = (p: { icon?: string | null } | null | undefined) => (p?.icon && p.icon !== "▦" ? p.icon : "");
+
+/** A page's icon: its own emoji when it has one, otherwise one line icon for pages and another for databases. */
+export function PageIcon({ page, size = 14 }: { page: { icon?: string | null; kind?: string } | null | undefined; size?: number }) {
+  if (ownIcon(page)) return <>{ownIcon(page)}</>;
+  const Icon = page?.kind === "database" ? Table2 : FileText;
+  return <Icon size={size} aria-hidden className="inline align-[-2px] text-faint" />;
+}
+
+/** Copies text and says so, or says why it could not. */
+export async function copyText(text: string, what = "Copied") {
+  try {
+    await navigator.clipboard.writeText(text);
+    useApp.getState().toast(`${what} to the clipboard`, "success");
+  } catch {
+    useApp.getState().toast("Couldn't copy: the clipboard isn't available here. Select the text and press Ctrl+C.", "error");
+  }
 }

@@ -21,11 +21,11 @@ function FeedEventModal({ e, onClose }: { e: CalendarEvent; onClose: () => void 
   const fmt = (ms: number) => new Date(ms).toLocaleString(undefined, e.allDay ? { dateStyle: "full" } : { dateStyle: "full", timeStyle: "short" });
   return (
     <Modal open onClose={onClose} title={e.title} width={480}>
-      <div className="space-y-2 text-[13.5px]" data-testid="feed-event">
+      <div className="space-y-2 text-ui" data-testid="feed-event">
         <p>{fmt(e.start)}{!e.allDay && e.end > e.start ? ` to ${new Date(e.end).toLocaleTimeString(undefined, { timeStyle: "short" })}` : ""}</p>
         {e.recurrence && <p className="text-muted">Repeats {e.recurrence.freq}{e.recurrence.byDay?.length ? ` on ${e.recurrence.byDay.join(", ")}` : ""}</p>}
         {e.notes && <p className="whitespace-pre-wrap text-muted">{e.notes}</p>}
-        <p className="rounded-md bg-sunken p-2 text-[12.5px] text-muted">From the subscribed calendar “{e.calendar}”. It is read-only here; change it in its own calendar and it updates within 30 minutes.</p>
+        <p className="rounded-md bg-sunken p-2 text-meta text-muted">From the subscribed calendar “{e.calendar}”. It is read-only here; change it in its own calendar and it updates within 30 minutes.</p>
       </div>
     </Modal>
   );
@@ -39,7 +39,7 @@ function EventModal({ ev, onClose }: { ev: CalendarEvent; onClose: () => void })
     <Modal open onClose={onClose} title="Event" width={520}
       footer={<button className="btn-danger mr-auto" onClick={async () => { await repo.updateEvent(e.id, { deletedAt: Date.now() }); onClose(); }}><Trash2 size={14} /> Delete</button>}>
       <input autoFocus className="mb-3 w-full bg-transparent text-[20px] font-semibold outline-none" defaultValue={e.title} onBlur={(x) => up({ title: x.target.value || "Untitled event" })} />
-      <div className="space-y-2 text-[13px]">
+      <div className="space-y-2 text-ui">
         <label className="flex items-center gap-2"><input type="checkbox" checked={!!e.allDay} onChange={(x) => up({ allDay: x.target.checked ? 1 : 0 })} /> All day</label>
         {e.allDay ? (
           <div className="flex gap-2"><input type="date" className="input" value={toISODate(new Date(e.start))} onChange={(x) => { const s = parseISODate(x.target.value).getTime(); void up({ start: s, end: Math.max(s, e.end) }); }} />
@@ -48,7 +48,7 @@ function EventModal({ ev, onClose }: { ev: CalendarEvent; onClose: () => void })
           <div className="flex gap-2"><input type="datetime-local" className="input" value={toLocalInput(e.start)} onChange={(x) => { const s = new Date(x.target.value).getTime(); void up({ start: s, end: s + (e.end - e.start) }); }} />
             <input type="datetime-local" className="input" value={toLocalInput(e.end)} onChange={(x) => up({ end: Math.max(e.start, new Date(x.target.value).getTime()) })} /></div>
         )}
-        <div className="text-[12px] text-faint">Time zone: {e.timezone} (times shown in your current zone)</div>
+        <div className="text-meta text-faint">Time zone: {e.timezone} (times shown in your current zone)</div>
         <div className="flex gap-2">
           <input className="input" defaultValue={e.calendar} placeholder="Calendar" onBlur={(x) => up({ calendar: x.target.value || "Personal" })} aria-label="Calendar name" />
           <div className="flex items-center gap-1">{COLORS.map((c) => <button key={c} aria-label={c} className={cx("size-5 rounded-full", `dot-${c}`, e.color === c && "ring-2 ring-offset-1 ring-fg")} onClick={() => up({ color: c })} />)}</div>
@@ -117,11 +117,11 @@ export default function CalendarView() {
 
   const Chip = ({ o }: { o: Occurrence }) => (
     <button draggable onDragStart={(e) => e.dataTransfer.setData("text/rea-event", o.key)} onClick={() => setOpen(o.event)}
-      className={cx("mb-0.5 block w-full truncate rounded px-1 text-left text-[12px]", `c-${o.event.color}`)}>
+      className={cx("mb-0.5 block w-full truncate rounded px-1 text-left text-meta", `c-${o.event.color}`)}>
       {!o.event.allDay && <span className="text-muted">{fmtTime(o.start)} </span>}{o.event.title}
     </button>
   );
-  const TaskChip = ({ t }: { t: Task }) => <button onClick={() => setOpenTask(t)} className={cx("mb-0.5 flex w-full items-center gap-1 truncate rounded border border-dashed border-line-strong px-1 text-left text-[12px]", t.status === "done" && "line-through text-faint")}><CheckSquare size={11} />{t.title}</button>;
+  const TaskChip = ({ t }: { t: Task }) => <button onClick={() => setOpenTask(t)} className={cx("mb-0.5 flex w-full items-center gap-1 truncate rounded border border-dashed border-line-strong px-1 text-left text-meta", t.status === "done" && "line-through text-faint")}><CheckSquare size={11} />{t.title}</button>;
 
   return (
     <div className="flex h-full flex-col px-6 py-5">
@@ -149,20 +149,19 @@ export default function CalendarView() {
         {[...calendars, "Tasks"].map((c) => (
           <label key={c} className="flex items-center gap-1.5 text-muted"><input type="checkbox" checked={!hidden.has(c)} onChange={() => { const h = new Set(hidden); if (h.has(c)) h.delete(c); else h.add(c); setHidden(h); }} />{c}</label>
         ))}
-        <span className="text-faint">Google Calendar and Outlook sync are not set up: they need your explicit sign-in, and Mindstone works without them.</span>
       </div>
 
       {mode === "month" && (
         <div className="grid flex-1 grid-cols-7 grid-rows-[auto_repeat(6,1fr)] overflow-hidden rounded-[12px] shadow-[var(--inset)]">
-          {days.slice(0, 7).map((d) => <div key={d} className="border-b border-r border-line px-2 py-1 text-[11.5px] text-faint">{parseISODate(d).toLocaleDateString(undefined, { weekday: "short" })}</div>)}
+          {days.slice(0, 7).map((d) => <div key={d} className="border-b border-r border-line px-2 py-1 text-caption text-faint">{parseISODate(d).toLocaleDateString(undefined, { weekday: "short" })}</div>)}
           {days.map((d) => (
             <div key={d} className={cx("min-h-0 overflow-hidden border-b border-r border-line p-1", parseISODate(d).getMonth() !== parseISODate(cursor).getMonth() && "bg-sunken/60")}
               onDoubleClick={() => create(parseISODate(d).getTime() + 9 * 3600e3)}
               onDragOver={(e) => e.preventDefault()} onDrop={(e) => { const id = e.dataTransfer.getData("text/rea-event"); if (id) void reschedule(id, parseISODate(d).getTime(), true); }}>
-              <div className={cx("mb-0.5 inline-flex size-5 items-center justify-center rounded-full text-[11.5px]", d === today() ? "bg-accent text-on-accent" : "text-muted")}>{parseISODate(d).getDate()}</div>
+              <div className={cx("mb-0.5 inline-flex size-5 items-center justify-center rounded-full text-caption", d === today() ? "bg-accent text-on-accent" : "text-muted")}>{parseISODate(d).getDate()}</div>
               {onDay(d).slice(0, 4).map((o) => <Chip key={o.key + d} o={o} />)}
               {tasksOn(d).slice(0, 2).map((t) => <TaskChip key={t.id} t={t} />)}
-              {onDay(d).length > 4 && <div className="text-[11px] text-faint">+{onDay(d).length - 4} more</div>}
+              {onDay(d).length > 4 && <div className="text-caption text-faint">+{onDay(d).length - 4} more</div>}
             </div>
           ))}
         </div>
@@ -174,7 +173,7 @@ export default function CalendarView() {
             <div className="w-14 shrink-0" />
             {days.map((d) => (
               <div key={d} className="flex-1 border-l border-line px-2 py-1">
-                <div className={cx("text-[12px]", d === today() ? "font-semibold text-accent" : "text-muted")}>{parseISODate(d).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}</div>
+                <div className={cx("text-meta", d === today() ? "font-semibold text-accent" : "text-muted")}>{parseISODate(d).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}</div>
                 {onDay(d).filter((o) => o.event.allDay).map((o) => <Chip key={o.key} o={o} />)}
                 {tasksOn(d).map((t) => <TaskChip key={t.id} t={t} />)}
               </div>
@@ -182,7 +181,7 @@ export default function CalendarView() {
           </div>
           <div ref={hoursRef} className="relative min-h-0 flex-1 overflow-y-auto" tabIndex={0} role="region" aria-label="Hours">
             <div className="flex" style={{ height: 24 * 48 }}>
-              <div className="w-14 shrink-0">{Array.from({ length: 24 }, (_, h) => <div key={h} className="h-12 pr-2 text-right text-[10.5px] text-faint">{h ? `${h}:00` : ""}</div>)}</div>
+              <div className="w-14 shrink-0">{Array.from({ length: 24 }, (_, h) => <div key={h} className="h-12 pr-2 text-right text-caption text-faint">{h ? `${h}:00` : ""}</div>)}</div>
               {days.map((d) => (
                 <div key={d} className="relative flex-1 border-l border-line">
                   {Array.from({ length: 24 }, (_, h) => (
@@ -194,9 +193,9 @@ export default function CalendarView() {
                     const s = Math.max(o.start, dayStart), e = Math.min(o.end, dayStart + 864e5);
                     return (
                       <button key={o.key} draggable onDragStart={(ev) => ev.dataTransfer.setData("text/rea-event", o.key)} onClick={() => setOpen(o.event)}
-                        className={cx("absolute inset-x-1 overflow-hidden rounded px-1.5 py-0.5 text-left text-[12px]", `c-${o.event.color}`)}
+                        className={cx("absolute inset-x-1 overflow-hidden rounded px-1.5 py-0.5 text-left text-meta", `c-${o.event.color}`)}
                         style={{ top: ((s - dayStart) / 3600e3) * 48, height: Math.max(20, ((e - s) / 3600e3) * 48 - 2) }}>
-                        <div className="font-medium">{o.event.title}</div><div className="text-[11px] text-muted">{fmtTime(o.start)}–{fmtTime(o.end)}</div>
+                        <div className="font-medium">{o.event.title}</div><div className="text-caption text-muted">{fmtTime(o.start)}–{fmtTime(o.end)}</div>
                       </button>
                     );
                   })}
@@ -212,9 +211,9 @@ export default function CalendarView() {
         <div className="mx-auto w-full max-w-3xl space-y-4 overflow-y-auto">
           {days.filter((d) => onDay(d).length || tasksOn(d).length).map((d) => (
             <section key={d}>
-              <h2 className="mb-1 text-[13px] font-semibold text-muted">{parseISODate(d).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</h2>
-              {onDay(d).map((o) => <button key={o.key} onClick={() => setOpen(o.event)} className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-hover"><span className={cx("size-2 rounded-full", `dot-${o.event.color}`)} /><span className="w-28 text-[12.5px] text-muted">{o.event.allDay ? "All day" : `${fmtTime(o.start)}–${fmtTime(o.end)}`}</span><span>{o.event.title}</span></button>)}
-              {tasksOn(d).map((t) => <button key={t.id} onClick={() => setOpenTask(t)} className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-hover"><CheckSquare size={13} className="text-muted" /><span className="w-28 text-[12.5px] text-muted">Task due</span><span>{t.title}</span></button>)}
+              <h2 className="mb-1 text-ui font-semibold text-muted">{parseISODate(d).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</h2>
+              {onDay(d).map((o) => <button key={o.key} onClick={() => setOpen(o.event)} className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-hover"><span className={cx("size-2 rounded-full", `dot-${o.event.color}`)} /><span className="w-28 text-meta text-muted">{o.event.allDay ? "All day" : `${fmtTime(o.start)}–${fmtTime(o.end)}`}</span><span>{o.event.title}</span></button>)}
+              {tasksOn(d).map((t) => <button key={t.id} onClick={() => setOpenTask(t)} className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left hover:bg-hover"><CheckSquare size={13} className="text-muted" /><span className="w-28 text-meta text-muted">Task due</span><span>{t.title}</span></button>)}
             </section>
           ))}
           {!days.some((d) => onDay(d).length || tasksOn(d).length) && <div className="py-10 text-center text-muted">Nothing scheduled in the next 30 days.</div>}

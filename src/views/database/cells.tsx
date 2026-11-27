@@ -44,7 +44,7 @@ export function CellDisplay({ database, record, prop, ctx }: { database: Databas
     case "multiSelect": return <span className="flex flex-wrap gap-1">{((raw as string[]) ?? []).map((id) => prop.options?.find((o) => o.id === id)).filter(Boolean).map((o) => <Chip key={o!.id} color={o!.color}>{o!.name}</Chip>)}</span>;
     case "url": return typeof raw === "string" && /^https?:\/\//.test(raw) ? <a className="truncate text-accent underline" href={raw} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{raw}</a> : <span>{String(raw ?? "")}</span>;
     case "email": return raw ? <a className="text-accent underline" href={`mailto:${String(raw)}`} onClick={(e) => e.stopPropagation()}>{String(raw)}</a> : null;
-    case "progress": { const v = Math.max(0, Math.min(100, Number(raw) || 0)); return <span className="flex w-full items-center gap-2"><span className="h-1.5 flex-1 rounded bg-active"><span className="block h-full rounded bg-accent" style={{ width: `${v}%` }} /></span><span className="text-[12px] text-muted">{v}%</span></span>; }
+    case "progress": { const v = Math.max(0, Math.min(100, Number(raw) || 0)); return <span className="flex w-full items-center gap-2"><span className="h-1.5 flex-1 rounded bg-active"><span className="block h-full rounded bg-accent" style={{ width: `${v}%` }} /></span><span className="text-meta text-muted">{v}%</span></span>; }
     case "relation": return <span className="flex flex-wrap gap-1">{(cellValue(database, record, prop, ctx) as string[]).map((t, i) => <Chip key={i}>↗ {t}</Chip>)}</span>;
     case "formula": { const v = displayValue(database, record, prop, ctx); return <span className={v.startsWith("#ERR") ? "text-danger" : ""}>{v}</span>; }
     default: return <span className="truncate">{displayValue(database, record, prop, ctx)}</span>;
@@ -83,7 +83,7 @@ function RelationPicker({ prop, value, onChange }: { prop: Property; value: stri
     if (!d) return null;
     return { d, recs: (await db().records.where("databaseId").equals(d.id).toArray()).filter((r) => !r.deletedAt) };
   }, [prop.relationDatabaseId]);
-  if (!target) return <div className="w-56 p-2 text-[13px] text-muted">Choose a related database in the property menu first.</div>;
+  if (!target) return <div className="w-56 p-2 text-ui text-muted">Choose a related database in the property menu first.</div>;
   const list = target.recs.filter((r) => recordTitle(target.d, r).toLowerCase().includes(q.toLowerCase())).slice(0, 50);
   return (
     <div className="w-64">
@@ -122,7 +122,7 @@ export function CellEditor({ database, record, prop, onDone }: { database: Datab
     case "rating": return <div className="flex gap-0.5 p-1">{[1, 2, 3, 4, 5].map((n) => <button key={n} className="text-[18px]" onClick={() => { commit(n === raw ? 0 : n); onDone(); }}>{n <= (Number(raw) || 0) ? "★" : "☆"}</button>)}</div>;
     case "number": case "currency": case "percent": case "progress":
       return <input autoFocus type="number" className="input" value={v} onChange={(e) => setV(e.target.value)} onBlur={() => { commit(v === "" ? null : Number(v)); onDone(); }} onKeyDown={key} />;
-    case "files": return <div className="w-56 p-2 text-[13px] text-muted">Attach files from the Files view; this cell counts linked files.</div>;
+    case "files": return <div className="w-56 p-2 text-ui text-muted">Attach files from the Files view; this cell counts linked files.</div>;
     default:
       return <textarea autoFocus rows={prop.type === "text" ? 3 : 1} className="textarea min-w-56" value={v} onChange={(e) => setV(e.target.value)}
         onBlur={() => {
@@ -154,9 +154,9 @@ export function PropertyMenu({ database, prop: opened, anchor, onClose, onSort, 
       {prop.type === "formula" && (
         <div className="p-1">
           <div className="label mb-1">Formula</div>
-          <textarea className="textarea font-mono text-[12px]" rows={3} value={formula} onChange={(e) => setFormula(e.target.value)} placeholder='prop("Price") * prop("Qty")' />
-          {preview?.error && <div className="mt-1 text-[12px] text-danger">{preview.error}</div>}
-          <div className="mt-1 text-[11px] text-faint">Functions: {FORMULA_FUNCTIONS.join(", ")}</div>
+          <textarea className="textarea font-mono text-meta" rows={3} value={formula} onChange={(e) => setFormula(e.target.value)} placeholder='prop("Price") * prop("Qty")' />
+          {preview?.error && <div className="mt-1 text-meta text-danger">{preview.error}</div>}
+          <div className="mt-1 text-caption text-faint">Functions: {FORMULA_FUNCTIONS.join(", ")}</div>
           <button className="btn-primary mt-1.5" onClick={() => update({ formula })}>Save formula</button>
         </div>
       )}
@@ -168,7 +168,7 @@ export function PropertyMenu({ database, prop: opened, anchor, onClose, onSort, 
             {allDbs?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           {prop.relationDatabaseId && (
-            <label className="mt-1.5 flex items-center gap-1.5 text-[12.5px]">
+            <label className="mt-1.5 flex items-center gap-1.5 text-meta">
               <input type="checkbox" checked={!!prop.relationMirrorId} onChange={(e) => void repo.setRelationTwoWay(database.id, prop.id, e.target.checked)} />
               Two-way: also show on {allDbs?.find((d) => d.id === prop.relationDatabaseId)?.name ?? "the related database"}
             </label>

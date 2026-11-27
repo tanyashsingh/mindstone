@@ -8,7 +8,7 @@ import { useApp } from "@/store/app";
 import { headings } from "@/lib/doc";
 import { cx, relTime, wordCount } from "@/lib/util";
 import { AiChat } from "@/views/AiView";
-import { EmptyState } from "./ui";
+import { EmptyState, PageIcon } from "./ui";
 import { CommentsPanel } from "./CommentsPanel";
 import { PluginPanels } from "./PluginPanels";
 
@@ -62,7 +62,7 @@ export function RightPanel() {
         <span className="flex-1" />
         <button className="icon-btn" aria-label="Close panel" onClick={() => set("rightOpen", false)}><X size={15} /></button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3 text-[13px]">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 text-ui">
         {rightTab === "plugins" ? <><div className="label mb-2">Plugins</div><PluginPanels /></> : !page ? <EmptyState title="Open a page" body="Outline, backlinks, properties and comments appear here for the current page." /> : <>
           <div className="label mb-2">{TABS.find((t) => t.id === rightTab)?.label}</div>
           {rightTab === "outline" && (headings(page.content).length === 0 ? <div className="text-faint">No headings yet.</div> : headings(page.content).map((h, i) => (
@@ -72,19 +72,19 @@ export function RightPanel() {
           {rightTab === "backlinks" && (
             <>
               {backlinks?.length === 0 && <div className="mb-3 text-faint">No pages link here yet. Link to this page from another one with [[{page.title || "Untitled"}]].</div>}
-              {backlinks?.map(({ page: p, kinds }) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span>{p.icon || "📄"}</span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-[11px] text-faint">{kinds.join(", ")}</span></button>)}
-              {outgoing && outgoing.length > 0 && <><div className="label mb-1 mt-4">Links from this page</div>{outgoing.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span>{p.icon || "📄"}</span><span className="truncate">{p.title || "Untitled"}</span></button>)}</>}
+              {backlinks?.map(({ page: p, kinds }) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center"><PageIcon page={p} /></span><span className="flex-1 truncate">{p.title || "Untitled"}</span><span className="text-caption text-faint">{kinds.join(", ")}</span></button>)}
+              {outgoing && outgoing.length > 0 && <><div className="label mb-1 mt-4">Links from this page</div>{outgoing.map((p) => <button key={p.id} className="flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: p.id })}><span className="w-5 text-center"><PageIcon page={p} /></span><span className="truncate">{p.title || "Untitled"}</span></button>)}</>}
             </>
           )}
           {rightTab === "related" && (related?.length === 0 ? <div className="text-faint">Nothing similar found yet.</div> : related?.map((h) => (
-            <button key={h.id} className="block w-full rounded px-1 py-1.5 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: h.refId })}><div className="truncate">{h.title}</div><div className="line-clamp-2 text-[11.5px] text-faint">{h.snippet}</div></button>
+            <button key={h.id} className="block w-full rounded px-1 py-1.5 text-left hover:bg-hover" onClick={() => open({ kind: "page", id: h.refId })}><div className="truncate">{h.title}</div><div className="line-clamp-2 text-caption text-faint">{h.snippet}</div></button>
           )))}
           {rightTab === "properties" && (
             <dl className="space-y-2">
               {[["Created", new Date(page.createdAt).toLocaleString()], ["Last edited", `${new Date(page.updatedAt).toLocaleString()} (${relTime(page.updatedAt)})`], ["Words", wordCount(page.text).toLocaleString()], ["Versions saved", String(revisions ?? 0)], ["Type", page.kind], ["Locked", page.locked ? "Yes" : "No"], ["ID", page.id]].map(([k, v]) => (
-                <div key={k}><dt className="text-[11.5px] text-faint">{k}</dt><dd className="break-all">{v}</dd></div>
+                <div key={k}><dt className="text-caption text-faint">{k}</dt><dd className="break-all">{v}</dd></div>
               ))}
-              <div><dt className="text-[11.5px] text-faint">Tags (also picked up from #tags in text)</dt>
+              <div><dt className="text-caption text-faint">Tags (also picked up from #tags in text)</dt>
                 <dd><input className="input mt-1" key={page.tags.join(",")} defaultValue={page.tags.join(", ")} onBlur={(e) => repo.updatePageMeta(page.id, { tags: e.target.value.split(",").map((t) => t.trim().toLowerCase().replace(/^#/, "")).filter(Boolean) })} /></dd></div>
             </dl>
           )}

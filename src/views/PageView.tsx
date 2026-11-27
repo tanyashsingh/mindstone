@@ -7,7 +7,7 @@ import type { Page } from "@/data/types";
 import { useApp } from "@/store/app";
 import { useSettings } from "@/store/settings";
 import { Editor } from "@/editor/Editor";
-import { IconPicker, MenuItem, MenuSep, Modal, Popover, EmptyState, Skeleton, useAnchor, confirmDialog } from "@/components/ui";
+import { IconPicker, MenuItem, MenuSep, Modal, Popover, EmptyState, Skeleton, useAnchor, confirmDialog, ownIcon } from "@/components/ui";
 import { DatabaseView } from "./database/DatabaseView";
 import { exportPage } from "@/data/portability";
 import { cx, relTime, uid } from "@/lib/util";
@@ -31,14 +31,14 @@ function Breadcrumbs({ page }: { page: Page }) {
   }, [page.parentId]);
   const open = useApp((s) => s.open);
   return (
-    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-0.5 text-[13px] text-muted">
+    <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-0.5 text-ui text-muted">
       {chain?.map((p) => (
         <span key={p.id} className="flex min-w-0 items-center gap-0.5">
-          <button className="truncate rounded px-1 hover:bg-hover hover:text-fg" onClick={() => open({ kind: "page", id: p.id })}>{p.icon} {p.title || "Untitled"}</button>
+          <button className="truncate rounded px-1 hover:bg-hover hover:text-fg" onClick={() => open({ kind: "page", id: p.id })}>{ownIcon(p)} {p.title || "Untitled"}</button>
           <ChevronRight size={13} className="shrink-0 text-faint" />
         </span>
       ))}
-      <span className="truncate px-1 text-fg">{page.icon} {page.title || "Untitled"}</span>
+      <span className="truncate px-1 text-fg">{ownIcon(page)} {page.title || "Untitled"}</span>
     </nav>
   );
 }
@@ -55,7 +55,7 @@ function HistoryModal({ page, onClose }: { page: Page; onClose: () => void }) {
           <div className="w-52 shrink-0 space-y-0.5">
             {revs?.map((r) => <button key={r.id} className={cx("menu-item", sel === r.id && "bg-active")} onClick={() => setSel(r.id)}>{new Date(r.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</button>)}
           </div>
-          <div className="min-h-60 flex-1 whitespace-pre-wrap rounded-md border border-line p-3 text-[13px] text-muted">
+          <div className="min-h-60 flex-1 whitespace-pre-wrap rounded-md border border-line p-3 text-ui text-muted">
             {rev ? (await_text(rev.content)) : "Select a version to preview it."}
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
       <div className="sticky top-0 z-10 flex h-11 items-center gap-2 border-b border-transparent bg-bg/90 px-3 backdrop-blur">
         <Breadcrumbs page={page} />
         <span className="flex-1" />
-        <span className="hidden text-[12px] text-faint md:inline">Edited {relTime(page.updatedAt)}</span>
+        <span className="hidden text-meta text-faint md:inline">Edited {relTime(page.updatedAt)}</span>
         {locked && <span className="chip c-gray"><Lock size={11} className="mr-1" /> Locked</span>}
         {page.kind === "page" && !locked && <button className="icon-btn" title="Dictate (Ctrl+Shift+M)" aria-label="Dictate" onClick={() => { (document.querySelector(".rea-editor") as HTMLElement | null)?.focus(); window.dispatchEvent(new CustomEvent("cairn:dictate")); }}><Mic size={16} /></button>}
         <button className="icon-btn" title={page.favorite ? "Remove from favorites" : "Add to favorites"} onClick={() => repo.updatePageMeta(page.id, { favorite: page.favorite ? 0 : 1 })}>
@@ -137,10 +137,10 @@ export default function PageView({ pageId, pane }: { pageId: string; pane: "main
       </div>}
 
       <div className={cx("mx-auto px-4 pb-6 sm:px-12", maxW, page.cover ? "pt-4" : "pt-8 sm:pt-14")}>
-        {page.icon && <button className={cx("mb-2 text-[54px] leading-none", page.cover && "-mt-14 relative")} onClick={iconPick.openAt} disabled={locked}>{page.icon}</button>}
+        {ownIcon(page) && <button className={cx("mb-2 text-[54px] leading-none", page.cover && "-mt-14 relative")} onClick={iconPick.openAt} disabled={locked}>{ownIcon(page)}</button>}
         {!locked && (
-          <div className="mb-1 flex gap-1 text-[13px] text-faint">
-            {!page.icon && <button className="btn h-6 text-faint" onClick={iconPick.openAt}><Smile size={14} /> Add icon</button>}
+          <div className="mb-1 flex gap-1 text-ui text-faint">
+            {!ownIcon(page) && <button className="btn h-6 text-faint" onClick={iconPick.openAt}><Smile size={14} /> Add icon</button>}
             {!page.cover && <button className="btn h-6 text-faint" onClick={() => repo.updatePageMeta(page.id, { cover: COVERS[Math.floor(Math.random() * COVERS.length)]! })}><ImageIcon size={14} /> Add cover</button>}
             {page.cover && <button className="btn h-6 text-faint" onClick={() => repo.updatePageMeta(page.id, { cover: "" })}>Remove cover</button>}
           </div>

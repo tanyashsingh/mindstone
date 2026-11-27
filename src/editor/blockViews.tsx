@@ -46,7 +46,7 @@ export function SyncedBlockView({ node, editor, getPos, selected }: ReactNodeVie
   if (row === null) return <NodeViewWrapper className="my-2 h-10" />; // loading
   if (!row) {
     return (
-      <NodeViewWrapper className="my-2 flex items-center justify-between rounded-md border border-dashed border-line px-3 py-2 text-[13px] text-muted" data-testid="synced-missing">
+      <NodeViewWrapper className="my-2 flex items-center justify-between rounded-md border border-dashed border-line px-3 py-2 text-ui text-muted" data-testid="synced-missing">
         This synced block was deleted.
         {editor.isEditable && <button className="btn h-7" onClick={() => replaceWith(null)}><Trash2 size={14} /> Remove</button>}
       </NodeViewWrapper>
@@ -54,7 +54,7 @@ export function SyncedBlockView({ node, editor, getPos, selected }: ReactNodeVie
   }
   return (
     <NodeViewWrapper className={cx("synced-block group/synced relative my-2 rounded-md border border-accent/30 px-3 py-1", selected && "ring-2 ring-accent")} data-sync-id={id}>
-      <div contentEditable={false} className="absolute -top-2.5 right-2 flex items-center gap-1 rounded bg-surface px-1 text-[11px] text-accent opacity-70 group-hover/synced:opacity-100">
+      <div contentEditable={false} className="absolute -top-2.5 right-2 flex items-center gap-1 rounded bg-surface px-1 text-caption text-accent opacity-70 group-hover/synced:opacity-100">
         <RefreshCw size={11} /> Synced
         {editor.isEditable && <>
           <button className="rounded p-0.5 hover:bg-hover" title="Copy this synced block (paste it on any page)" aria-label="Copy synced block"
@@ -116,7 +116,7 @@ export function ButtonBlockView({ node, editor, getPos, updateAttributes, select
         {editor.isEditable && <button className="btn h-8 px-2" aria-label="Edit button" title="Edit button" onClick={() => setEditing((v) => !v)}><Settings2 size={14} /></button>}
       </div>
       {editing && editor.isEditable && (
-        <div contentEditable={false} className="panel mt-2 grid max-w-md gap-2 p-3 text-[13px]" data-testid="button-editor">
+        <div contentEditable={false} className="panel mt-2 grid max-w-md gap-2 p-3 text-ui" data-testid="button-editor">
           <label className="grid gap-1">Label<input className="input" aria-label="Button label" defaultValue={label} onBlur={(e) => updateAttributes({ label: e.target.value })} /></label>
           <label className="grid gap-1">When clicked
             <select className="input" aria-label="Button action" value={action} onChange={(e) => updateAttributes({ action: e.target.value, value: "" })}>

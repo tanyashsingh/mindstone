@@ -13,7 +13,7 @@ export function OcrButton({ a, compact }: { a: Attachment; compact?: boolean }) 
   }
   const done = a.ocr === "done";
   return (
-    <button className={compact ? "btn h-6 px-1.5 text-[12px]" : "btn h-6"} title={done ? "Run text recognition again" : "Recognise text in this file on this computer, so search and AI can use it"}
+    <button className={compact ? "btn h-6 px-1.5 text-meta" : "btn h-6"} title={done ? "Run text recognition again" : "Recognise text in this file on this computer, so search and AI can use it"}
       onClick={async () => {
         try {
           const n = await recognizeAttachment(a.id);

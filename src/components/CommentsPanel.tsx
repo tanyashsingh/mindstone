@@ -45,37 +45,37 @@ export function CommentsPanel({ page }: { page: Page }) {
         <section className="mb-4" aria-label="Suggestions">
           <div className="mb-1.5 flex items-center gap-1">
             <span className="label flex-1">Suggestions ({suggestions.length})</span>
-            <button className="btn h-6 px-1.5 text-[12px]" disabled={!editor} onClick={() => editor && resolveSuggestions(editor, null, true)}><CheckCheck size={13} /> Accept all</button>
-            <button className="btn h-6 px-1.5 text-[12px]" disabled={!editor} onClick={() => editor && resolveSuggestions(editor, null, false)}><X size={13} /> Reject all</button>
+            <button className="btn h-6 px-1.5 text-meta" disabled={!editor} onClick={() => editor && resolveSuggestions(editor, null, true)}><CheckCheck size={13} /> Accept all</button>
+            <button className="btn h-6 px-1.5 text-meta" disabled={!editor} onClick={() => editor && resolveSuggestions(editor, null, false)}><X size={13} /> Reject all</button>
           </div>
           {suggestions.map((s) => (
             <div key={`${s.kind}:${s.id}`} className="mb-1.5 rounded-md border border-line bg-elev p-2" data-testid="suggestion">
-              <div className="mb-1 text-[11.5px] text-faint">{s.author} {s.kind === "insertion" ? "added" : "removed"} · {relTime(s.at)}</div>
+              <div className="mb-1 text-caption text-faint">{s.author} {s.kind === "insertion" ? "added" : "removed"} · {relTime(s.at)}</div>
               <div className={cx("line-clamp-3", s.kind === "insertion" ? "sugg-ins" : "sugg-del")}>{s.text}</div>
               <div className="mt-1.5 flex gap-1">
-                <button className="btn h-6 px-1.5 text-[12px]" aria-label={`Accept: ${s.text}`} disabled={!editor} onClick={() => editor && resolveSuggestions(editor, s.id, true)}><Check size={13} /> Accept</button>
-                <button className="btn h-6 px-1.5 text-[12px]" aria-label={`Reject: ${s.text}`} disabled={!editor} onClick={() => editor && resolveSuggestions(editor, s.id, false)}><X size={13} /> Reject</button>
+                <button className="btn h-6 px-1.5 text-meta" aria-label={`Accept: ${s.text}`} disabled={!editor} onClick={() => editor && resolveSuggestions(editor, s.id, true)}><Check size={13} /> Accept</button>
+                <button className="btn h-6 px-1.5 text-meta" aria-label={`Reject: ${s.text}`} disabled={!editor} onClick={() => editor && resolveSuggestions(editor, s.id, false)}><X size={13} /> Reject</button>
               </div>
             </div>
           ))}
         </section>
       )}
 
-      <div className="mb-2 flex items-center text-[11.5px] text-faint">
+      <div className="mb-2 flex items-center text-caption text-faint">
         <span className="flex-1">{open.length} open · stored on this device. Select text and press Ctrl+Alt+M to comment on it.</span>
       </div>
       {roots.length > open.length && (
-        <label className="mb-2 flex items-center gap-1.5 text-[12px] text-muted"><input type="checkbox" checked={showResolved} onChange={(e) => setShowResolved(e.target.checked)} /> Show resolved ({roots.length - open.length})</label>
+        <label className="mb-2 flex items-center gap-1.5 text-meta text-muted"><input type="checkbox" checked={showResolved} onChange={(e) => setShowResolved(e.target.checked)} /> Show resolved ({roots.length - open.length})</label>
       )}
       {visible.map((root) => {
         const t = threadOf(root);
         return (
           <div key={root.id} id={`thread-${t}`} data-testid="comment-thread" className={cx("mb-2 rounded-md border bg-elev p-2", focus === t ? "border-accent" : "border-line", root.resolved && "opacity-60")}
             onClick={() => { setFocus(t); if (root.anchorText) window.dispatchEvent(new CustomEvent("cairn:scroll-thread", { detail: t })); }}>
-            {root.anchorText && <div className="mb-1 line-clamp-2 border-l-2 border-accent/40 pl-1.5 text-[12px] italic text-muted">{root.anchorText}</div>}
+            {root.anchorText && <div className="mb-1 line-clamp-2 border-l-2 border-accent/40 pl-1.5 text-meta italic text-muted">{root.anchorText}</div>}
             {[root, ...replies(t)].map((c) => (
               <div key={c.id} className={cx(c.parentId && "mt-1.5 border-t border-line pt-1.5")}>
-                <div className="flex text-[11.5px] text-faint"><span className="flex-1">{c.author} · {relTime(c.createdAt)}</span>
+                <div className="flex text-caption text-faint"><span className="flex-1">{c.author} · {relTime(c.createdAt)}</span>
                   {c.parentId && <button className="hover:text-danger" aria-label="Delete reply" onClick={(e) => { e.stopPropagation(); void db().comments.delete(c.id); }}><X size={12} /></button>}
                 </div>
                 <div className="whitespace-pre-wrap">{c.body}</div>
@@ -111,14 +111,14 @@ export function CommentsPanel({ page }: { page: Page }) {
 function ReplyBox({ onSend }: { onSend: (body: string) => unknown }) {
   const [v, setV] = useState("");
   return (
-    <input className="input h-7 flex-1 text-[12.5px]" aria-label="Reply" placeholder="Reply…" value={v} onChange={(e) => setV(e.target.value)}
+    <input className="input h-7 flex-1 text-meta" aria-label="Reply" placeholder="Reply…" value={v} onChange={(e) => setV(e.target.value)}
       onKeyDown={(e) => { if (e.key === "Enter" && v.trim()) { void onSend(v.trim()); setV(""); } }} />
   );
 }
 
 function SuggestToggle({ page }: { page: Page }) {
   return (
-    <label className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[12.5px]">
+    <label className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-meta">
       <input type="checkbox" checked={!!page.suggesting} disabled={!!page.locked} onChange={(e) => void repo.updatePageMeta(page.id, { suggesting: e.target.checked ? 1 : 0 })} />
       Suggest edits: typing and deleting become suggestions others can accept or reject
     </label>

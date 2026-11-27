@@ -23,7 +23,7 @@ export function MobileBar() {
   const kind = tabs[active]?.route.kind;
   const [capture, setCapture] = useState(false);
   const item = (label: string, icon: React.ReactNode, onClick: () => void, on = false) => (
-    <button className={cx("flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[10.5px]", on ? "text-accent" : "text-muted")} aria-label={label} aria-current={on ? "page" : undefined} onClick={onClick}>{icon}<span>{label}</span></button>
+    <button className={cx("flex flex-1 flex-col items-center gap-0.5 py-1.5 text-caption", on ? "text-accent" : "text-muted")} aria-label={label} aria-current={on ? "page" : undefined} onClick={onClick}>{icon}<span>{label}</span></button>
   );
   return (
     <>
@@ -37,7 +37,7 @@ export function MobileBar() {
       {capture && (
         <Modal open onClose={() => setCapture(false)} title="Capture a task" width={420}>
           <QuickAdd placeholder="What needs doing? e.g. “Call Sam tomorrow !high”" />
-          <p className="mt-2 text-[12px] text-faint">Press Enter to add. It appears in Tasks and syncs to your other devices.</p>
+          <p className="mt-2 text-meta text-faint">Press Enter to add. It appears in Tasks and syncs to your other devices.</p>
         </Modal>
       )}
     </>
